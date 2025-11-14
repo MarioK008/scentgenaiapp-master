@@ -87,7 +87,8 @@ const VoiceChat = () => {
             role: m.role,
             content: m.content
           })),
-          includeAudio: false
+          includeAudio: false,
+          userId: user?.id
         }
       });
 

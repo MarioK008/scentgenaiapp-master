@@ -14,6 +14,7 @@ import VoiceAssistant from "./pages/VoiceAssistant";
 import VoiceLive from "./pages/VoiceLive";
 import VoiceChat from "./pages/VoiceChat";
 import VoiceHistory from "./pages/VoiceHistory";
+import KnowledgeManagement from "./pages/KnowledgeManagement";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 import Feed from "./pages/Feed";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/voice-live" element={<VoiceLive />} />
           <Route path="/voice-chat" element={<VoiceChat />} />
           <Route path="/voice-history" element={<VoiceHistory />} />
+          <Route path="/knowledge" element={<KnowledgeManagement />} />
           <Route path="/search" element={<Search />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/user/:userId" element={<PublicProfile />} />

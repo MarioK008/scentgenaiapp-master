@@ -39,7 +39,8 @@ export const useBadges = (userId: string | undefined) => {
         .select(`
           id,
           earned_at,
-          badges (
+          badge_id,
+          badges!inner (
             id,
             name,
             description,
@@ -53,7 +54,14 @@ export const useBadges = (userId: string | undefined) => {
         .order("earned_at", { ascending: false });
 
       if (error) throw error;
-      setbadges(data || []);
+      
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        earned_at: item.earned_at,
+        badges: Array.isArray(item.badges) ? item.badges[0] : item.badges
+      }));
+      
+      setbadges(transformedData as UserBadge[]);
     } catch (error) {
       console.error("Error fetching badges:", error);
     } finally {
@@ -96,7 +104,7 @@ export const useBadges = (userId: string | undefined) => {
         .select(`
           id,
           earned_at,
-          badges (
+          badges!inner (
             id,
             name,
             description,
@@ -109,10 +117,11 @@ export const useBadges = (userId: string | undefined) => {
       if (newBadgesData && newBadgesData.length > previousCount) {
         const newBadges = newBadgesData.slice(0, newBadgesData.length - previousCount);
         newBadges.forEach((badge) => {
+          const badgeData = Array.isArray(badge.badges) ? badge.badges[0] : badge.badges;
           toast.success(
-            `🏆 Badge Earned: ${badge.badges.icon} ${badge.badges.name}`,
+            `🏆 Badge Earned: ${badgeData.icon} ${badgeData.name}`,
             {
-              description: badge.badges.description,
+              description: badgeData.description,
               duration: 5000,
             }
           );

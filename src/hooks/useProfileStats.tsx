@@ -50,36 +50,42 @@ export const useProfileStats = (userId: string | undefined) => {
       // Query 3: Favorite perfume (highest rated)
       const { data: favoriteData } = await supabase
         .from("user_collections")
-        .select("rating, perfumes(id, name, brand, image_url)")
+        .select("rating, perfumes!inner(id, name, brand, image_url)")
         .eq("user_id", userId)
         .not("rating", "is", null)
         .order("rating", { ascending: false })
         .limit(1);
 
-      const favoritePerfume = favoriteData?.[0]
-        ? {
-            id: favoriteData[0].perfumes.id,
-            name: favoriteData[0].perfumes.name,
-            brand: favoriteData[0].perfumes.brand,
-            image_url: favoriteData[0].perfumes.image_url,
-            rating: favoriteData[0].rating || 0,
-          }
-        : null;
+      let favoritePerfume = null;
+      if (favoriteData?.[0]) {
+        const perfumeData: any = Array.isArray(favoriteData[0].perfumes) 
+          ? favoriteData[0].perfumes[0] 
+          : favoriteData[0].perfumes;
+        
+        favoritePerfume = {
+          id: perfumeData.id,
+          name: perfumeData.name,
+          brand: perfumeData.brand,
+          image_url: perfumeData.image_url,
+          rating: favoriteData[0].rating || 0,
+        };
+      }
 
       // Query 4: Top notes analysis
       const { data: collections } = await supabase
         .from("user_collections")
-        .select("perfumes(top_notes, heart_notes, base_notes)")
+        .select("perfumes!inner(top_notes, heart_notes, base_notes)")
         .eq("user_id", userId);
 
       // Analyze most frequent notes
       const allNotes: string[] = [];
       collections?.forEach((c) => {
         if (c.perfumes) {
+          const perfume = Array.isArray(c.perfumes) ? c.perfumes[0] : c.perfumes;
           allNotes.push(
-            ...(c.perfumes.top_notes || []),
-            ...(c.perfumes.heart_notes || []),
-            ...(c.perfumes.base_notes || [])
+            ...(perfume.top_notes || []),
+            ...(perfume.heart_notes || []),
+            ...(perfume.base_notes || [])
           );
         }
       });
