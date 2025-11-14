@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "@/components/UserAvatar";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +40,8 @@ const Profile = () => {
       weekly_recommendations: true,
     }
   );
+
+  const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
 
   if (authLoading || profileLoading) {
     return (
@@ -348,7 +351,10 @@ const Profile = () => {
                 <Label>Password</Label>
                 <p className="text-sm text-muted-foreground">Change your password</p>
               </div>
-              <Button variant="outline" onClick={() => toast.info("Password change coming soon")}>
+              <Button 
+                variant="outline" 
+                onClick={() => setChangePasswordDialogOpen(true)}
+              >
                 <Lock className="h-4 w-4 mr-2" />
                 Change Password
               </Button>
@@ -399,6 +405,12 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        <ChangePasswordDialog
+          open={changePasswordDialogOpen}
+          onOpenChange={setChangePasswordDialogOpen}
+          userEmail={profile.email}
+        />
       </div>
     </Layout>
   );
