@@ -23,9 +23,12 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const { documentId, filePath } = await req.json();
+    const { documentId, filePath, pageRange } = await req.json();
 
-    console.log('📄 Processing PDF:', filePath);
+    const rangeText = pageRange 
+      ? `(páginas ${pageRange.start}-${pageRange.end})` 
+      : '(documento completo)';
+    console.log('📄 Processing PDF:', filePath, rangeText);
 
     // Download PDF from storage
     const { data: fileData, error: downloadError } = await supabase.storage
@@ -57,6 +60,13 @@ serve(async (req) => {
 
     console.log('📤 Sending PDF to OpenAI for text extraction...');
 
+    // Build extraction prompt based on page range
+    let extractionPrompt = 'Extract all text content from this PDF document. Return only the text content, preserving the structure and formatting as much as possible. Focus on the main content and avoid extracting headers, footers, and page numbers unless they contain important information.';
+    
+    if (pageRange) {
+      extractionPrompt = `Extract ONLY the text content from pages ${pageRange.start} to ${pageRange.end} of this PDF document. Ignore all other pages. Return only the text content from the specified page range, preserving the structure and formatting as much as possible. Focus on the main content and avoid extracting headers, footers, and page numbers unless they contain important information.`;
+    }
+
     // Use OpenAI to extract text from PDF
     const extractionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -72,7 +82,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: 'Extract all text content from this PDF document. Return only the text content, preserving the structure and formatting as much as possible. Focus on the main content and avoid extracting headers, footers, and page numbers unless they contain important information.'
+                text: extractionPrompt
               },
               {
                 type: 'image_url',
@@ -137,6 +147,15 @@ serve(async (req) => {
       const embedding = embeddingData.data[0].embedding;
 
       // Store chunk with embedding
+      const chunkMetadata: any = { 
+        page: Math.floor(index / 2) + 1 // Rough page estimation
+      };
+      
+      if (pageRange) {
+        chunkMetadata.pageRange = pageRange;
+        chunkMetadata.page = pageRange.start + Math.floor(index / 2);
+      }
+      
       const { error: insertError } = await supabase
         .from('knowledge_chunks')
         .insert({
@@ -144,7 +163,7 @@ serve(async (req) => {
           content: chunk,
           embedding,
           chunk_index: index,
-          metadata: { page: Math.floor(index / 2) + 1 }, // Rough page estimation
+          metadata: chunkMetadata,
         });
 
       if (insertError) throw insertError;

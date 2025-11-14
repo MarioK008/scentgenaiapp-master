@@ -44,7 +44,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
     }
   };
 
-  const uploadDocument = async (file: File) => {
+  const uploadDocument = async (file: File, pageRange?: { start: number; end: number }) => {
     if (!userId) return;
 
     setUploading(true);
@@ -59,7 +59,11 @@ export const useKnowledgeBase = (userId: string | undefined) => {
 
       if (uploadError) throw uploadError;
 
-      // Create document record
+      // Create document record with page range metadata
+      const metadata = pageRange 
+        ? { pageRange: { start: pageRange.start, end: pageRange.end } }
+        : {};
+
       const { data: document, error: dbError } = await supabase
         .from('knowledge_documents')
         .insert({
@@ -67,6 +71,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
           file_path: filePath,
           file_size: file.size,
           user_id: userId,
+          metadata,
         })
         .select()
         .single();
@@ -76,7 +81,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
       toast.success('Document uploaded successfully');
 
       // Process the document
-      await processDocument(document.id, filePath);
+      await processDocument(document.id, filePath, pageRange);
 
       await fetchDocuments();
     } catch (error: any) {
@@ -93,14 +98,17 @@ export const useKnowledgeBase = (userId: string | undefined) => {
     }
   };
 
-  const processDocument = async (documentId: string, filePath: string) => {
+  const processDocument = async (documentId: string, filePath: string, pageRange?: { start: number; end: number }) => {
     setProcessing(documentId);
 
     try {
-      toast.info('Processing document... This may take 2-3 minutes for large PDFs');
+      const rangeText = pageRange 
+        ? `páginas ${pageRange.start}-${pageRange.end}` 
+        : 'documento completo';
+      toast.info(`Procesando ${rangeText}... Esto puede tomar 2-3 minutos para PDFs grandes`);
 
       const { data, error } = await supabase.functions.invoke('process-pdf', {
-        body: { documentId, filePath },
+        body: { documentId, filePath, pageRange },
       });
 
       if (error) {
