@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { CSVImporter } from "@/components/CSVImporter";
 
 interface Perfume {
   id: string;
@@ -333,6 +334,8 @@ const Admin = () => {
             </DialogContent>
           </Dialog>
         </div>
+
+        <CSVImporter onImportComplete={fetchPerfumes} />
 
         <Card>
           <CardHeader>
