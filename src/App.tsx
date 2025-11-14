@@ -11,6 +11,7 @@ import Recommendations from "./pages/Recommendations";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import AdminWaitlist from "./pages/AdminWaitlist";
+import EmailTemplates from "./pages/EmailTemplates";
 import VoiceAssistant from "./pages/VoiceAssistant";
 import VoiceLive from "./pages/VoiceLive";
 import VoiceChat from "./pages/VoiceChat";
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/feed" element={<Feed />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/waitlist" element={<AdminWaitlist />} />
+          <Route path="/admin/email-templates" element={<EmailTemplates />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
