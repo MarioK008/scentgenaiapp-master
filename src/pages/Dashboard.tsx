@@ -30,100 +30,117 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-8 animate-fade-in">
         <div>
-          <h1 className="text-4xl font-bold">Welcome back!</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent">
+            Welcome back!
+          </h1>
+          <p className="text-muted-foreground mt-3 text-lg">
             Discover new perfumes and manage your collection
           </p>
         </div>
 
         <FollowRequests />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/collection")}>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-primary" />
-                <CardTitle>My Collection</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group animate-scale-in" onClick={() => navigate("/collection")}>
+            <CardHeader className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Heart className="h-6 w-6 text-primary group-hover:scale-110 transition-bounce" strokeWidth={1.5} />
+                <CardTitle className="text-2xl">My Collection</CardTitle>
               </div>
-              <CardDescription>Browse and manage your perfumes</CardDescription>
+              <CardDescription className="text-base">Browse and manage your perfumes</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
+              <Button variant="hero" className="w-full">
                 View Collection
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/recommendations")}>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-accent" />
-                <CardTitle>Get Recommendations</CardTitle>
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group animate-scale-in" onClick={() => navigate("/recommendations")}>
+            <CardHeader className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-6 w-6 text-accent group-hover:scale-110 transition-bounce" strokeWidth={1.5} />
+                <CardTitle className="text-2xl">Get Recommendations</CardTitle>
               </div>
-              <CardDescription>AI-powered fragrance suggestions</CardDescription>
+              <CardDescription className="text-base">AI-powered fragrance suggestions</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
+              <Button variant="hero" className="w-full">
                 Get Started
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/search")}>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-primary" />
-                <CardTitle>Search Perfumes</CardTitle>
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group animate-scale-in" onClick={() => navigate("/search")}>
+            <CardHeader className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Search className="h-6 w-6 text-primary group-hover:scale-110 transition-bounce" strokeWidth={1.5} />
+                <CardTitle className="text-2xl">Search Perfumes</CardTitle>
               </div>
-              <CardDescription>Find perfumes by name, brand, or notes</CardDescription>
+              <CardDescription className="text-base">Find perfumes by name, brand, or notes</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
+              <Button variant="hero" className="w-full">
                 Start Search
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/user/${user?.id}`)}>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-secondary" />
-                <CardTitle>Public Profile</CardTitle>
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group animate-scale-in" onClick={() => navigate(`/user/${user?.id}`)}>
+            <CardHeader className="space-y-3">
+              <div className="flex items-center gap-3">
+                <User className="h-6 w-6 text-accent group-hover:scale-110 transition-bounce" strokeWidth={1.5} />
+                <CardTitle className="text-2xl">Public Profile</CardTitle>
               </div>
-              <CardDescription>View and share your public profile</CardDescription>
+              <CardDescription className="text-base">View and share your public profile</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full">
+            <CardContent className="space-y-3">
+              <Button variant="hero" className="w-full">
                 View Profile
               </Button>
               <Button 
-                variant="secondary" 
+                variant="ghost-gold" 
                 className="w-full gap-2" 
                 onClick={(e) => {
                   e.stopPropagation();
                   handleShareProfile();
                 }}
               >
-                <Share2 className="h-4 w-4" />
-                Share Link
+                <Share2 className="h-4 w-4" strokeWidth={1.5} />
+                Share Profile
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+        <Card className="gradient-accent border-primary/20 animate-fade-in">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-accent" />
-              <CardTitle>Quick Tip</CardTitle>
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-6 w-6 text-primary" strokeWidth={1.5} />
+              <CardTitle className="text-2xl">Quick Stats</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-foreground/90">
-              Add perfumes to your collection and rate them to get more accurate AI recommendations based on your preferences!
-            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
+                <p className="text-3xl font-bold text-primary font-playfair">0</p>
+                <p className="text-sm text-muted-foreground mt-1">Perfumes Owned</p>
+              </div>
+              <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
+                <p className="text-3xl font-bold text-accent font-playfair">0</p>
+                <p className="text-sm text-muted-foreground mt-1">Wishlist Items</p>
+              </div>
+              <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
+                <p className="text-3xl font-bold text-primary font-playfair">0</p>
+                <p className="text-sm text-muted-foreground mt-1">Reviews</p>
+              </div>
+              <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
+                <p className="text-3xl font-bold text-accent font-playfair">0</p>
+                <p className="text-sm text-muted-foreground mt-1">Favorites</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
