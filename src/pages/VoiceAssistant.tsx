@@ -1,27 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { Mic, MicOff, MessageSquare } from "lucide-react";
-import { AudioRecorder, AudioQueue, encodeAudioForAPI, createWavFromPCM } from "@/utils/RealtimeAudio";
+import { Button } from "@/components/ui/button";
+import { Mic, MessageSquare, History } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const VoiceAssistant = () => {
-  const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  const [isConnected, setIsConnected] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [transcript, setTranscript] = useState<string[]>([]);
-  
-  const wsRef = useRef<WebSocket | null>(null);
-  const recorderRef = useRef<AudioRecorder | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const audioQueueRef = useRef<AudioQueue | null>(null);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -29,222 +16,88 @@ const VoiceAssistant = () => {
     }
   }, [user, loading, navigate]);
 
-  const startConversation = async () => {
-    try {
-      // Request microphone permission
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Initialize audio context and queue
-      audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-      audioQueueRef.current = new AudioQueue(audioContextRef.current);
-
-      // Connect to edge function WebSocket
-      const wsUrl = `wss://gmsezowrwgveggssefss.supabase.co/functions/v1/realtime-perfume-chat`;
-      wsRef.current = new WebSocket(wsUrl);
-
-      wsRef.current.onopen = () => {
-        console.log("Connected to voice assistant");
-        setIsConnected(true);
-        setIsListening(true);
-        
-        toast({
-          title: "Connected",
-          description: "Voice assistant is ready. Start speaking!",
-        });
-
-        startRecording();
-      };
-
-      wsRef.current.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Received event:", data.type);
-
-        if (data.type === "response.audio.delta") {
-          setIsSpeaking(true);
-          const binaryString = atob(data.delta);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          await audioQueueRef.current?.addToQueue(bytes);
-        }
-        
-        if (data.type === "response.audio.done") {
-          setIsSpeaking(false);
-        }
-
-        if (data.type === "conversation.item.input_audio_transcription.completed") {
-          setTranscript(prev => [...prev, `You: ${data.transcript}`]);
-        }
-
-        if (data.type === "response.audio_transcript.delta") {
-          setTranscript(prev => {
-            const newTranscript = [...prev];
-            const lastIndex = newTranscript.length - 1;
-            if (lastIndex >= 0 && newTranscript[lastIndex].startsWith("Assistant: ")) {
-              newTranscript[lastIndex] += data.delta;
-            } else {
-              newTranscript.push(`Assistant: ${data.delta}`);
-            }
-            return newTranscript;
-          });
-        }
-
-        if (data.type === "error") {
-          toast({
-            title: "Error",
-            description: data.error || "An error occurred",
-            variant: "destructive",
-          });
-        }
-      };
-
-      wsRef.current.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        toast({
-          title: "Connection Error",
-          description: "Failed to connect to voice assistant",
-          variant: "destructive",
-        });
-        endConversation();
-      };
-
-      wsRef.current.onclose = () => {
-        console.log("WebSocket closed");
-        endConversation();
-      };
-
-    } catch (error) {
-      console.error("Error starting conversation:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to start conversation",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const startRecording = async () => {
-    try {
-      recorderRef.current = new AudioRecorder((audioData) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          const encoded = encodeAudioForAPI(audioData);
-          wsRef.current.send(JSON.stringify({
-            type: 'input_audio_buffer.append',
-            audio: encoded
-          }));
-        }
-      });
-      await recorderRef.current.start();
-    } catch (error) {
-      console.error("Error starting recording:", error);
-    }
-  };
-
-  const endConversation = () => {
-    recorderRef.current?.stop();
-    wsRef.current?.close();
-    audioQueueRef.current?.clear();
-    audioContextRef.current?.close();
-    
-    setIsConnected(false);
-    setIsListening(false);
-    setIsSpeaking(false);
-  };
-
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-pulse text-lg">Cargando...</div>
+        </div>
+      </Layout>
+    );
   }
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold flex items-center justify-center gap-2">
-            <MessageSquare className="h-8 w-8 text-primary" />
-            AI Perfume Assistant
-          </h1>
-          <p className="text-muted-foreground">
-            Have a natural conversation about your fragrance preferences
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">🎤 Asistente de Voz</h1>
+          <p className="text-muted-foreground text-lg">
+            Elige cómo quieres interactuar con nuestro consultor de perfumes
           </p>
         </div>
-
-        <Card className="bg-gradient-to-br from-primary/5 to-accent/5">
-          <CardHeader>
-            <CardTitle>Voice Consultation</CardTitle>
-            <CardDescription>
-              Speak naturally about what you're looking for in a perfume
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-center">
-              {!isConnected ? (
-                <Button
-                  size="lg"
-                  onClick={startConversation}
-                  className="gap-2"
-                >
-                  <Mic className="h-5 w-5" />
-                  Start Voice Consultation
-                </Button>
-              ) : (
-                <div className="space-y-4 text-center">
-                  <div className="flex items-center justify-center gap-4">
-                    <div className={`flex items-center gap-2 ${isListening ? 'text-primary' : 'text-muted-foreground'}`}>
-                      {isListening ? <Mic className="h-5 w-5 animate-pulse" /> : <MicOff className="h-5 w-5" />}
-                      <span className="text-sm font-medium">
-                        {isListening ? 'Listening...' : 'Not listening'}
-                      </span>
-                    </div>
-                    {isSpeaking && (
-                      <div className="flex items-center gap-2 text-accent">
-                        <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                        <span className="text-sm font-medium">Assistant speaking</span>
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    variant="destructive"
-                    onClick={endConversation}
-                  >
-                    End Conversation
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {transcript.length > 0 && (
-              <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-                <h3 className="text-sm font-semibold text-muted-foreground">Conversation:</h3>
-                {transcript.map((text, index) => (
-                  <div
-                    key={index}
-                    className={`p-3 rounded-lg ${
-                      text.startsWith("You:") 
-                        ? "bg-secondary text-secondary-foreground ml-8" 
-                        : "bg-primary/10 text-foreground mr-8"
-                    }`}
-                  >
-                    <p className="text-sm">{text}</p>
-                  </div>
-                ))}
+        
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/voice-live')}>
+            <CardHeader>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Mic className="w-6 h-6 text-primary" />
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <CardTitle>💬 Conversación en Vivo</CardTitle>
+              <CardDescription>
+                Habla directamente con el asistente en tiempo real. Conversación natural de voz a voz.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" onClick={() => navigate('/voice-live')}>
+                Iniciar Conversación
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Tips for best results</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>• Speak clearly and naturally about your preferences</p>
-            <p>• Describe occasions where you'd wear the perfume</p>
-            <p>• Mention scents or notes you like or dislike</p>
-            <p>• Share your lifestyle and personal style</p>
-            <p>• The assistant will ask follow-up questions to help narrow down options</p>
-          </CardContent>
-        </Card>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/voice-chat')}>
+            <CardHeader>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <MessageSquare className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle>✍️ Dictar y Editar</CardTitle>
+              <CardDescription>
+                Graba tu mensaje, edítalo y envíalo cuando estés listo. Control total sobre tu comunicación.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" variant="secondary" onClick={() => navigate('/voice-chat')}>
+                Ir a Chat con Dictado
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/voice-history')}>
+            <CardHeader>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <History className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle>📚 Mis Conversaciones</CardTitle>
+              <CardDescription>
+                Ver y gestionar el historial de todas tus conversaciones anteriores.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" variant="outline" onClick={() => navigate('/voice-history')}>
+                Ver Historial
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-12 bg-muted/50 rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">💡 Consejos para mejores resultados</h2>
+          <ul className="space-y-2 text-muted-foreground">
+            <li>• Habla con claridad y en un ambiente tranquilo</li>
+            <li>• Sé específico sobre tus preferencias de perfumes</li>
+            <li>• Menciona ocasiones, estaciones o estilos que te gusten</li>
+            <li>• No dudes en pedir recomendaciones alternativas</li>
+          </ul>
+        </div>
       </div>
     </Layout>
   );
