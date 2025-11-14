@@ -73,13 +73,16 @@ export const useProfile = () => {
     }
   };
 
-  const uploadAvatar = async (file: File) => {
+  const uploadAvatar = async (file: File | Blob) => {
     if (!user) return;
 
-    const validation = validateImageFile(file);
-    if (!validation.valid) {
-      toast.error(validation.error);
-      return;
+    // If it's a File, validate it
+    if (file instanceof File) {
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
+      }
     }
 
     setUploading(true);
@@ -95,7 +98,7 @@ export const useProfile = () => {
       }
 
       // Upload new avatar
-      const fileExt = file.name.split(".").pop();
+      const fileExt = file instanceof File ? file.name.split(".").pop() : "jpg";
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
