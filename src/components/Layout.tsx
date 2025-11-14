@@ -64,24 +64,14 @@ const Layout = ({ children }: LayoutProps) => {
                   </Link>
                 );
               })}
-              
-              {/* Profile Button */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/profile')} 
-                className="gap-2 ml-2 hover:text-accent hover:shadow-gold transition-smooth"
-              >
-                <User className="h-4 w-4" strokeWidth={1.5} />
-                <span className="hidden md:inline">My Account</span>
-              </Button>
 
-              {/* Avatar */}
+              {/* Avatar with Profile Access */}
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/profile')}
-                className="ml-2 hover:shadow-gold transition-smooth rounded-full"
+                className="ml-4 hover:shadow-gold transition-smooth rounded-full"
+                title="My Profile"
               >
                 <UserAvatar
                   avatarUrl={profile?.avatar_url}

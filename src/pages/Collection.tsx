@@ -139,48 +139,62 @@ const Collection = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-8 animate-fade-in">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2">My Collection</h1>
-            <p className="text-muted-foreground">
-              Manage your perfumes and wishlist
-            </p>
+            <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent">My Collection</h1>
+            <p className="text-muted-foreground mt-3 text-lg">Manage your perfume collection and wishlist</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleViewPublicProfile} className="gap-2">
-              <ExternalLink className="h-4 w-4" />
-              View Public Profile
-            </Button>
-            <Button variant="secondary" onClick={handleShareProfile} className="gap-2">
-              <Share2 className="h-4 w-4" />
+          <div className="flex gap-3">
+            <Button 
+              variant="ghost-gold" 
+              onClick={handleShareProfile}
+              className="gap-2"
+            >
+              <Share2 className="h-4 w-4" strokeWidth={1.5} />
               Share Profile
+            </Button>
+            <Button 
+              variant="premium"
+              onClick={handleViewPublicProfile}
+              className="gap-2"
+            >
+              <ExternalLink className="h-4 w-4" strokeWidth={1.5} />
+              Public View
             </Button>
           </div>
         </div>
 
         <Tabs defaultValue="owned" className="w-full">
-          <TabsList>
-            <TabsTrigger value="owned">Owned ({ownedPerfumes.length})</TabsTrigger>
-            <TabsTrigger value="wishlist">Wishlist ({wishlist.length})</TabsTrigger>
+          <TabsList className="grid w-full max-w-md grid-cols-2 h-12 rounded-[20px] p-1">
+            <TabsTrigger value="owned" className="rounded-[16px] transition-smooth">
+              Owned ({ownedPerfumes.length})
+            </TabsTrigger>
+            <TabsTrigger value="wishlist" className="rounded-[16px] transition-smooth">
+              Wishlist ({wishlist.length})
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="owned" className="mt-6">
+          <TabsContent value="owned" className="mt-8">
             {ownedPerfumes.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No perfumes in your collection yet.</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Visit the search page to add perfumes!
-                </p>
+              <div className="gradient-accent border border-primary/20 rounded-[20px] p-12 text-center animate-fade-in">
+                <p className="text-muted-foreground text-lg">No perfumes in your collection yet</p>
+                <Button 
+                  variant="premium" 
+                  className="mt-6"
+                  onClick={() => navigate("/search")}
+                >
+                  Start Exploring
+                </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
                 {ownedPerfumes.map((item) => (
                   <PerfumeCard
                     key={item.id}
                     perfume={item.perfumes}
                     userRating={item.rating || undefined}
-                    status={item.status}
+                    status="owned"
                     onRate={handleRate}
                   />
                 ))}
@@ -188,22 +202,27 @@ const Collection = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="wishlist" className="mt-6">
+          <TabsContent value="wishlist" className="mt-8">
             {wishlist.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Your wishlist is empty.</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Visit the search page to add perfumes!
-                </p>
+              <div className="gradient-accent border border-primary/20 rounded-[20px] p-12 text-center animate-fade-in">
+                <p className="text-muted-foreground text-lg">Your wishlist is empty</p>
+                <Button 
+                  variant="premium" 
+                  className="mt-6"
+                  onClick={() => navigate("/search")}
+                >
+                  Find Perfumes
+                </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
                 {wishlist.map((item) => (
                   <PerfumeCard
                     key={item.id}
                     perfume={item.perfumes}
-                    status={item.status}
-                    showActions={false}
+                    userRating={item.rating || undefined}
+                    status="wishlist"
+                    onRate={handleRate}
                   />
                 ))}
               </div>

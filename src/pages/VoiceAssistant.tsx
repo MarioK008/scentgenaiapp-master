@@ -29,91 +29,83 @@ const VoiceAssistant = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">🎤 Asistente de Voz</h1>
+        <div className="text-center mb-12 animate-fade-in">
+          <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent mb-4">
+            Voice Assistant
+          </h1>
           <p className="text-muted-foreground text-lg">
-            Elige cómo quieres interactuar con nuestro consultor de perfumes
+            Choose how you want to interact with our perfume consultant
           </p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/voice-live')}>
-            <CardHeader>
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Mic className="w-6 h-6 text-primary" />
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group animate-scale-in" onClick={() => navigate('/voice-live')}>
+            <CardHeader className="space-y-4">
+              <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center shadow-glow mx-auto">
+                <Mic className="w-8 h-8 text-white" strokeWidth={1.5} />
               </div>
-              <CardTitle>💬 Conversación en Vivo</CardTitle>
-              <CardDescription>
-                Habla directamente con el asistente en tiempo real. Conversación natural de voz a voz.
+              <CardTitle className="text-xl text-center">Live Conversation</CardTitle>
+              <CardDescription className="text-center">
+                Speak directly with the assistant in real time. Natural voice-to-voice conversation.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" onClick={() => navigate('/voice-live')}>
-                Iniciar Conversación
+              <Button variant="premium" className="w-full" onClick={() => navigate('/voice-live')}>
+                Start Conversation
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/voice-chat')}>
-            <CardHeader>
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <MessageSquare className="w-6 h-6 text-primary" />
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group animate-scale-in" onClick={() => navigate('/voice-chat')}>
+            <CardHeader className="space-y-4">
+              <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center shadow-gold mx-auto">
+                <MessageSquare className="w-8 h-8 text-accent" strokeWidth={1.5} />
               </div>
-              <CardTitle>✍️ Dictar y Editar</CardTitle>
-              <CardDescription>
-                Graba tu mensaje, edítalo y envíalo cuando estés listo. Control total sobre tu comunicación.
+              <CardTitle className="text-xl text-center">Dictate & Edit</CardTitle>
+              <CardDescription className="text-center">
+                Record your message, edit it, and send when ready. Full control over your communication.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="secondary" onClick={() => navigate('/voice-chat')}>
-                Ir a Chat con Dictado
+              <Button variant="hero" className="w-full" onClick={() => navigate('/voice-chat')}>
+                Go to Chat
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/voice-history')}>
-            <CardHeader>
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <History className="w-6 h-6 text-primary" />
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group animate-scale-in" onClick={() => navigate('/voice-history')}>
+            <CardHeader className="space-y-4">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shadow-elegant mx-auto">
+                <History className="w-8 h-8 text-primary" strokeWidth={1.5} />
               </div>
-              <CardTitle>📚 Mis Conversaciones</CardTitle>
-              <CardDescription>
-                Ver y gestionar el historial de todas tus conversaciones anteriores.
+              <CardTitle className="text-xl text-center">My Conversations</CardTitle>
+              <CardDescription className="text-center">
+                View and manage the history of all your previous conversations.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline" onClick={() => navigate('/voice-history')}>
-                Ver Historial
+              <Button variant="hero" className="w-full" onClick={() => navigate('/voice-history')}>
+                View History
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-primary/5 to-primary/10" onClick={() => navigate('/knowledge')}>
-            <CardHeader>
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-                <Brain className="w-6 h-6 text-primary" />
+          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group gradient-accent border-primary/30 animate-scale-in" onClick={() => navigate('/knowledge')}>
+            <CardHeader className="space-y-4">
+              <div className="w-16 h-16 rounded-full bg-accent/30 flex items-center justify-center shadow-gold mx-auto">
+                <Brain className="w-8 h-8 text-accent" strokeWidth={1.5} />
               </div>
-              <CardTitle>🧠 Base de Conocimiento</CardTitle>
-              <CardDescription>
-                Sube documentos PDF para mejorar la precisión del asistente con información personalizada.
+              <CardTitle className="text-xl text-center">Knowledge Base</CardTitle>
+              <CardDescription className="text-center">
+                Upload documents to enhance the assistant's knowledge about perfumes.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="default" onClick={() => navigate('/knowledge')}>
-                Gestionar Conocimiento
+              <Button variant="ghost-gold" className="w-full" onClick={() => navigate('/knowledge')}>
+                Manage Knowledge
               </Button>
             </CardContent>
           </Card>
-        </div>
-
-        <div className="mt-12 bg-muted/50 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">💡 Consejos para mejores resultados</h2>
-          <ul className="space-y-2 text-muted-foreground">
-            <li>• Habla con claridad y en un ambiente tranquilo</li>
-            <li>• Sé específico sobre tus preferencias de perfumes</li>
-            <li>• Menciona ocasiones, estaciones o estilos que te gusten</li>
-            <li>• No dudes en pedir recomendaciones alternativas</li>
-          </ul>
         </div>
       </div>
     </Layout>

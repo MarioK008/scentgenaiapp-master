@@ -124,11 +124,11 @@ const Profile = () => {
 
   return (
     <Layout>
-      <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
+      <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8 animate-fade-in">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-bold text-foreground">My Profile</h1>
-          <p className="text-muted-foreground mt-2">Manage your account settings and preferences</p>
+          <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent">My Profile</h1>
+          <p className="text-muted-foreground mt-3 text-lg">Manage your account settings and preferences</p>
         </div>
 
         {/* Personal Information */}
@@ -205,7 +205,7 @@ const Profile = () => {
               </div>
             </div>
 
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button variant="premium" onClick={handleSave}>Save Changes</Button>
           </CardContent>
         </Card>
 
