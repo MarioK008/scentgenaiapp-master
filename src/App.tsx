@@ -11,6 +11,9 @@ import Recommendations from "./pages/Recommendations";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import VoiceAssistant from "./pages/VoiceAssistant";
+import VoiceLive from "./pages/VoiceLive";
+import VoiceChat from "./pages/VoiceChat";
+import VoiceHistory from "./pages/VoiceHistory";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 import Feed from "./pages/Feed";
@@ -31,6 +34,9 @@ const App = () => (
           <Route path="/collection" element={<Collection />} />
           <Route path="/recommendations" element={<Recommendations />} />
           <Route path="/voice-assistant" element={<VoiceAssistant />} />
+          <Route path="/voice-live" element={<VoiceLive />} />
+          <Route path="/voice-chat" element={<VoiceChat />} />
+          <Route path="/voice-history" element={<VoiceHistory />} />
           <Route path="/search" element={<Search />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/user/:userId" element={<PublicProfile />} />
