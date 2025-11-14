@@ -16,7 +16,7 @@ const Layout = ({ children }: LayoutProps) => {
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/collection", label: "Collection", icon: Heart },
     { path: "/recommendations", label: "Recommendations", icon: Sparkles },
-    { path: "/voice-assistant", label: "Voice", icon: MessageSquare },
+    { path: "/voice-assistant", label: "MyScentGenAI", icon: MessageSquare },
     { path: "/search", label: "Search", icon: Search },
   ];
 
