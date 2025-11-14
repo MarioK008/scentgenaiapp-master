@@ -11,6 +11,7 @@ interface Profile {
   avatar_url: string | null;
   preferred_language: string;
   dark_mode_enabled: boolean;
+  is_private: boolean;
   notification_settings: {
     email: boolean;
     newsletter: boolean;
