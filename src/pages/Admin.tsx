@@ -14,6 +14,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { CSVImporter } from "@/components/CSVImporter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const perfumeFormSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(200, "Name must be less than 200 characters"),
+  brand: z.string().trim().min(1, "Brand is required").max(100, "Brand must be less than 100 characters"),
+  image_url: z.string().url("Invalid URL format").optional().or(z.literal("")),
+  top_notes: z.string().max(500, "Top notes must be less than 500 characters"),
+  heart_notes: z.string().max(500, "Heart notes must be less than 500 characters"),
+  base_notes: z.string().max(500, "Base notes must be less than 500 characters"),
+  season: z.enum(["spring", "summer", "fall", "winter", "all_season"]),
+  longevity: z.coerce.number().min(1, "Longevity must be at least 1").max(10, "Longevity cannot exceed 10"),
+  sillage: z.coerce.number().min(1, "Sillage must be at least 1").max(10, "Sillage cannot exceed 10"),
+  description: z.string().max(1000, "Description must be less than 1000 characters").optional().or(z.literal("")),
+});
+
+type PerfumeFormValues = z.infer<typeof perfumeFormSchema>;
 
 interface Perfume {
   id: string;
@@ -36,17 +55,21 @@ const Admin = () => {
   const [perfumes, setPerfumes] = useState<Perfume[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerfume, setEditingPerfume] = useState<Perfume | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    brand: "",
-    image_url: "",
-    top_notes: "",
-    heart_notes: "",
-    base_notes: "",
-    season: "all_season",
-    longevity: "5",
-    sillage: "5",
-    description: "",
+
+  const form = useForm<PerfumeFormValues>({
+    resolver: zodResolver(perfumeFormSchema),
+    defaultValues: {
+      name: "",
+      brand: "",
+      image_url: "",
+      top_notes: "",
+      heart_notes: "",
+      base_notes: "",
+      season: "all_season",
+      longevity: 5,
+      sillage: 5,
+      description: "",
+    },
   });
 
   useEffect(() => {
@@ -78,20 +101,18 @@ const Admin = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = async (values: PerfumeFormValues) => {
     const perfumeData = {
-      name: formData.name,
-      brand: formData.brand,
-      image_url: formData.image_url || null,
-      top_notes: formData.top_notes.split(",").map(n => n.trim()).filter(Boolean),
-      heart_notes: formData.heart_notes.split(",").map(n => n.trim()).filter(Boolean),
-      base_notes: formData.base_notes.split(",").map(n => n.trim()).filter(Boolean),
-      season: formData.season as "spring" | "summer" | "fall" | "winter" | "all_season",
-      longevity: parseInt(formData.longevity),
-      sillage: parseInt(formData.sillage),
-      description: formData.description || null,
+      name: values.name,
+      brand: values.brand,
+      image_url: values.image_url || null,
+      top_notes: values.top_notes.split(",").map(n => n.trim()).filter(Boolean),
+      heart_notes: values.heart_notes.split(",").map(n => n.trim()).filter(Boolean),
+      base_notes: values.base_notes.split(",").map(n => n.trim()).filter(Boolean),
+      season: values.season as "spring" | "summer" | "fall" | "winter" | "all_season",
+      longevity: values.longevity,
+      sillage: values.sillage,
+      description: values.description || null,
     };
 
     let error;
@@ -127,16 +148,16 @@ const Admin = () => {
 
   const handleEdit = (perfume: Perfume) => {
     setEditingPerfume(perfume);
-    setFormData({
+    form.reset({
       name: perfume.name,
       brand: perfume.brand,
       image_url: perfume.image_url || "",
       top_notes: perfume.top_notes?.join(", ") || "",
       heart_notes: perfume.heart_notes?.join(", ") || "",
       base_notes: perfume.base_notes?.join(", ") || "",
-      season: perfume.season || "all_season",
-      longevity: String(perfume.longevity || 5),
-      sillage: String(perfume.sillage || 5),
+      season: (perfume.season as "spring" | "summer" | "fall" | "winter" | "all_season") || "all_season",
+      longevity: perfume.longevity || 5,
+      sillage: perfume.sillage || 5,
       description: perfume.description || "",
     });
     setIsDialogOpen(true);
@@ -167,7 +188,7 @@ const Admin = () => {
 
   const resetForm = () => {
     setEditingPerfume(null);
-    setFormData({
+    form.reset({
       name: "",
       brand: "",
       image_url: "",
@@ -175,8 +196,8 @@ const Admin = () => {
       heart_notes: "",
       base_notes: "",
       season: "all_season",
-      longevity: "5",
-      sillage: "5",
+      longevity: 5,
+      sillage: 5,
       description: "",
     });
   };
@@ -214,123 +235,177 @@ const Admin = () => {
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name *</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="brand">Brand *</Label>
-                    <Input
-                      id="brand"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="image_url">Image URL</Label>
-                  <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="top_notes">Top Notes (comma-separated)</Label>
-                  <Input
-                    id="top_notes"
-                    value={formData.top_notes}
-                    onChange={(e) => setFormData({ ...formData, top_notes: e.target.value })}
-                    placeholder="e.g. Bergamot, Lemon, Orange"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="heart_notes">Heart Notes (comma-separated)</Label>
-                  <Input
-                    id="heart_notes"
-                    value={formData.heart_notes}
-                    onChange={(e) => setFormData({ ...formData, heart_notes: e.target.value })}
-                    placeholder="e.g. Rose, Jasmine, Lavender"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="base_notes">Base Notes (comma-separated)</Label>
-                  <Input
-                    id="base_notes"
-                    value={formData.base_notes}
-                    onChange={(e) => setFormData({ ...formData, base_notes: e.target.value })}
-                    placeholder="e.g. Vanilla, Musk, Amber"
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="season">Season</Label>
-                    <Select value={formData.season} onValueChange={(value) => setFormData({ ...formData, season: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="spring">Spring</SelectItem>
-                        <SelectItem value="summer">Summer</SelectItem>
-                        <SelectItem value="fall">Fall</SelectItem>
-                        <SelectItem value="winter">Winter</SelectItem>
-                        <SelectItem value="all_season">All Season</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="longevity">Longevity (1-10)</Label>
-                    <Input
-                      id="longevity"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={formData.longevity}
-                      onChange={(e) => setFormData({ ...formData, longevity: e.target.value })}
+                    <FormField
+                      control={form.control}
+                      name="brand"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Brand *</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="sillage">Sillage (1-10)</Label>
-                    <Input
-                      id="sillage"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={formData.sillage}
-                      onChange={(e) => setFormData({ ...formData, sillage: e.target.value })}
+                  <FormField
+                    control={form.control}
+                    name="image_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="url" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="top_notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Top Notes</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="citrus, mint, bergamot" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="heart_notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Heart Notes</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="rose, jasmine, lavender" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="base_notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Base Notes</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="cedar, musk, amber" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="season"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Season</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="spring">Spring</SelectItem>
+                              <SelectItem value="summer">Summer</SelectItem>
+                              <SelectItem value="fall">Fall</SelectItem>
+                              <SelectItem value="winter">Winter</SelectItem>
+                              <SelectItem value="all_season">All Season</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="longevity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Longevity (1-10)</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" min="1" max="10" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="sillage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sillage (1-10)</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" min="1" max="10" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} rows={3} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <Button type="submit" className="w-full">
-                  {editingPerfume ? "Update Perfume" : "Create Perfume"}
-                </Button>
-              </form>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsDialogOpen(false);
+                        resetForm();
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">
+                      {editingPerfume ? "Update" : "Create"} Perfume
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
