@@ -1,265 +1,259 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/Logo";
-import { Sparkles, Heart, Brain, Users, MessageSquare, TrendingUp, Instagram, Twitter, Mail } from "lucide-react";
+import { WaitlistForm } from "@/components/WaitlistForm";
+import { Card, CardContent } from "@/components/ui/card";
+import { Sparkles, Droplet, Wind, Flower2 } from "lucide-react";
 
 const Index = () => {
-  const navigate = useNavigate();
-
-  const features = [
-    {
-      icon: Brain,
-      title: "AI-Powered Recommendations",
-      description: "Get personalized fragrance suggestions based on your preferences, mood, and occasion."
-    },
-    {
-      icon: Heart,
-      title: "Organize Your Collection",
-      description: "Keep track of all your perfumes, create wishlists, and rate your favorites."
-    },
-    {
-      icon: MessageSquare,
-      title: "Voice Assistant",
-      description: "Chat naturally with our AI consultant to discover your perfect scent match."
-    },
-    {
-      icon: Users,
-      title: "Community Feed",
-      description: "Share your fragrance journey, follow enthusiasts, and discover trending scents."
-    },
-    {
-      icon: TrendingUp,
-      title: "Smart Analytics",
-      description: "Understand your scent preferences with detailed insights and patterns."
-    },
-    {
-      icon: Sparkles,
-      title: "Knowledge Base",
-      description: "Upload documents and PDFs to enhance the AI's perfume knowledge."
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: "Sophie Laurent",
-      role: "Perfume Enthusiast",
-      content: "ScentGenAI helped me discover fragrances I never would have found on my own. The AI recommendations are incredibly accurate!",
-      avatar: "👩"
-    },
-    {
-      name: "Marcus Chen",
-      role: "Fragrance Collector",
-      content: "Finally, a platform that understands my collection needs. The organization features are game-changing.",
-      avatar: "👨"
-    },
-    {
-      name: "Isabella Rodriguez",
-      role: "Beauty Blogger",
-      content: "The voice assistant feels like having a personal fragrance consultant. It's revolutionizing how I explore scents.",
-      avatar: "👱‍♀️"
-    }
-  ];
-
   return (
-    <div className="min-h-screen gradient-subtle">
+    <div className="min-h-screen bg-[#0E2A47]">
       {/* Navigation */}
-      <nav className="border-b border-border/30 gradient-card backdrop-blur-xl shadow-elegant sticky top-0 z-50">
-        <div className="container mx-auto px-6 lg:px-8">
+      <nav className="bg-[#1C3B63]/80 backdrop-blur-sm border-b border-[#FF2E92]/20 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <Logo variant="full" />
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost-gold" 
-                onClick={() => navigate("/auth")}
-              >
-                Sign In
-              </Button>
-              <Button 
-                variant="premium"
-                onClick={() => navigate("/auth")}
-              >
-                Get Started
-              </Button>
-            </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-6 lg:px-8 py-20 lg:py-32">
-        <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
-          <h1 className="text-6xl lg:text-7xl font-bold font-playfair gradient-primary bg-clip-text text-transparent leading-tight">
-            Your Personal Scent AIssistant
-          </h1>
-          <p className="text-xl lg:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            Discover, organize, and understand fragrances like never before with AI-powered recommendations and insights.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button 
-              variant="premium"
-              size="lg"
-              onClick={() => navigate("/auth")}
-              className="text-lg animate-glow-pulse"
-            >
-              <Sparkles className="h-5 w-5" strokeWidth={1.5} />
-              Start Your Journey
-            </Button>
-            <Button 
-              variant="hero"
-              size="lg"
-              onClick={() => navigate("/auth")}
-              className="text-lg"
-            >
-              Learn More
-            </Button>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+        <div className="text-center max-w-4xl mx-auto">
+          {/* Early Access Badge */}
+          <div className="inline-flex items-center gap-2 bg-[#1C3B63] text-[#F7B731] px-5 py-2 rounded-full text-sm font-medium mb-8 border border-[#F7B731]/30">
+            <Sparkles className="h-4 w-4" />
+            Early Access
           </div>
+
+          {/* Title */}
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight font-playfair">
+            Your Personal
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF2E92] to-[#F7B731] mt-2">
+              Scent AIssistant
+            </span>
+          </h1>
+
+          {/* Description - 2 lines */}
+          <div className="space-y-3 mb-10">
+            <p className="text-xl text-[#B0C4DE] leading-relaxed max-w-2xl mx-auto">
+              An intelligent companion for perfume lovers.
+            </p>
+            <p className="text-xl text-[#B0C4DE] leading-relaxed max-w-2xl mx-auto">
+              Organize your collection, discover new scents, and understand fragrances through the lens of AI.
+            </p>
+          </div>
+
+          {/* Waitlist Form */}
+          <WaitlistForm variant="hero" className="mb-6" />
+
+          {/* Small text */}
+          <p className="text-sm text-[#B0C4DE]/70">
+            Be among the first to explore your personal scent universe
+          </p>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="container mx-auto px-6 lg:px-8 py-20">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-5xl font-bold font-playfair text-foreground mb-4">
-            Everything You Need
+      {/* What Is ScentGenAI Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 font-playfair">
+            What Is ScentGenAI?
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Powerful features to enhance your fragrance journey
+          <p className="text-lg text-[#B0C4DE] leading-relaxed mb-4">
+            ScentGenAI is an AI-powered platform designed for people who care about fragrance.
           </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <Card 
-                key={index}
-                className="group hover:shadow-elegant transition-smooth cursor-pointer animate-scale-in backdrop-blur-sm bg-card/80"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <CardHeader className="space-y-4">
-                  <div className="w-16 h-16 rounded-[20px] gradient-accent flex items-center justify-center shadow-gold mx-auto group-hover:scale-110 transition-bounce">
-                    <Icon className="h-8 w-8 text-accent" strokeWidth={1.5} />
-                  </div>
-                  <CardTitle className="text-2xl text-center">{feature.title}</CardTitle>
-                  <CardDescription className="text-center text-base">
-                    {feature.description}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            );
-          })}
+          <p className="text-lg text-[#B0C4DE] leading-relaxed">
+            It helps you track what you own, learn what you love, and discover new perfumes with intelligence and style.
+          </p>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="container mx-auto px-6 lg:px-8 py-20">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-5xl font-bold font-playfair text-foreground mb-4">
-            Loved by Fragrance Enthusiasts
+      {/* What Makes It Different */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 font-playfair">
+            What Makes It Different
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join thousands of users discovering their perfect scents
-          </p>
+          <p className="text-xl text-[#B0C4DE]">Built for curiosity, not commerce</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <Card 
-              key={index}
-              className="gradient-card border-border/50 hover:shadow-elegant transition-smooth animate-scale-in"
-              style={{ animationDelay: `${index * 0.15}s` }}
-            >
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center text-3xl shadow-glow">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-lg">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground italic">
-                  "{testimonial.content}"
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Card 1: Personal Collection */}
+          <Card className="bg-[#1C3B63] border border-[#F7B731]/20 hover:border-[#F7B731]/50 hover:shadow-2xl transition-all rounded-3xl">
+            <CardContent className="p-8">
+              <div className="p-3 bg-gradient-to-br from-[#F7B731] to-[#FF2E92] rounded-2xl w-fit mb-6">
+                <Droplet className="h-7 w-7 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold text-white mb-3 font-playfair">
+                Personal Collection
+              </h3>
+              <p className="text-[#B0C4DE] leading-relaxed">
+                Keep track of your own fragrances, organize by mood or occasion, and never lose sight of your scent wardrobe.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Card 2: Contextual Discovery */}
+          <Card className="bg-[#1C3B63] border border-[#FF2E92]/20 hover:border-[#FF2E92]/50 hover:shadow-2xl transition-all rounded-3xl">
+            <CardContent className="p-8">
+              <div className="p-3 bg-gradient-to-br from-[#FF2E92] to-[#F7B731] rounded-2xl w-fit mb-6">
+                <Wind className="h-7 w-7 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold text-white mb-3 font-playfair">
+                Contextual Discovery
+              </h3>
+              <p className="text-[#B0C4DE] leading-relaxed">
+                Find fragrances that fit the moment — weather, emotion, or event.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Card 3: AI-Powered Insights */}
+          <Card className="bg-[#1C3B63] border border-[#F7B731]/20 hover:border-[#F7B731]/50 hover:shadow-2xl transition-all rounded-3xl">
+            <CardContent className="p-8">
+              <div className="p-3 bg-gradient-to-br from-[#F7B731] to-[#FF2E92] rounded-2xl w-fit mb-6">
+                <Flower2 className="h-7 w-7 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold text-white mb-3 font-playfair">
+                AI-Powered Insights
+              </h3>
+              <p className="text-[#B0C4DE] leading-relaxed">
+                Mood-based matching, note recognition, and scent similarity analysis powered by advanced AI.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Features in Development - Detailed */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 font-playfair">
+            Features in Development
+          </h2>
+          <p className="text-xl text-[#B0C4DE]">What we're building for early access</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Feature 1: AI Chat */}
+          <div className="flex gap-4">
+            <div className="flex-shrink-0">
+              <div className="p-2 bg-gradient-to-br from-[#FF2E92] to-[#F7B731] rounded-xl">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2 font-playfair">
+                AI Chat Interface
+              </h3>
+              <p className="text-[#B0C4DE] leading-relaxed">
+                Talk to the Perfume Genie. Ask for recommendations, learn about notes, or explore your collection through conversation.
+              </p>
+            </div>
+          </div>
+
+          {/* Feature 2: Smart Organization */}
+          <div className="flex gap-4">
+            <div className="flex-shrink-0">
+              <div className="p-2 bg-gradient-to-br from-[#F7B731] to-[#FF2E92] rounded-xl">
+                <Droplet className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2 font-playfair">
+                Smart Organization
+              </h3>
+              <p className="text-[#B0C4DE] leading-relaxed">
+                Create custom collections, track your wishlist, and manage your fragrance library with ease.
+              </p>
+            </div>
+          </div>
+
+          {/* Feature 3: Mood-Based Search */}
+          <div className="flex gap-4">
+            <div className="flex-shrink-0">
+              <div className="p-2 bg-gradient-to-br from-[#FF2E92] to-[#F7B731] rounded-xl">
+                <Wind className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2 font-playfair">
+                Mood-Based Search
+              </h3>
+              <p className="text-[#B0C4DE] leading-relaxed">
+                Filter by mood, occasion, or season. Find fragrances that match the moment, not just the notes.
+              </p>
+            </div>
+          </div>
+
+          {/* Feature 4: Note Recognition */}
+          <div className="flex gap-4">
+            <div className="flex-shrink-0">
+              <div className="p-2 bg-gradient-to-br from-[#F7B731] to-[#FF2E92] rounded-xl">
+                <Flower2 className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2 font-playfair">
+                Note Recognition
+              </h3>
+              <p className="text-[#B0C4DE] leading-relaxed">
+                Understand fragrance composition. Learn what makes a scent work and discover similar profiles.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-6 lg:px-8 py-20">
-        <Card className="gradient-card border-primary/30 shadow-elegant animate-fade-in">
-          <CardContent className="py-16 text-center space-y-6">
-            <h2 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent">
-              Ready to Discover Your Signature Scent?
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="bg-gradient-to-br from-[#FF2E92] to-[#F7B731] rounded-3xl p-12 md:p-16 text-white shadow-2xl">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-playfair">
+              Join the Waitlist
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join ScentGenAI today and transform your fragrance journey
+            <p className="text-xl mb-10 text-white/90 leading-relaxed">
+              We're opening access to a small group of fragrance enthusiasts first. 
+              If you're curious about a smarter way to explore perfume, we'd love to have you.
             </p>
-            <Button 
-              variant="premium"
-              size="lg"
-              onClick={() => navigate("/auth")}
-              className="text-lg animate-glow-pulse"
-            >
-              <Sparkles className="h-5 w-5" strokeWidth={1.5} />
-              Get Started Free
-            </Button>
-          </CardContent>
-        </Card>
+            
+            {/* Waitlist Form - CTA variant */}
+            <WaitlistForm variant="cta" />
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/30 gradient-card mt-20">
-        <div className="container mx-auto px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <Logo variant="full" />
-              <p className="text-sm text-muted-foreground">
-                Your Personal Scent AIssistant
-              </p>
+      <footer className="bg-[#1C3B63] border-t border-[#F7B731]/20 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Logo */}
+            <Logo variant="full" />
+
+            {/* Navigation Links */}
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+              <a 
+                href="#contact" 
+                className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors"
+              >
+                Contact
+              </a>
+              <a 
+                href="#privacy" 
+                className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors"
+              >
+                Privacy Policy
+              </a>
+              <a 
+                href="#about" 
+                className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors"
+              >
+                About Us
+              </a>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-lg mb-4 font-playfair">Product</h3>
-              <ul className="space-y-2">
-                <li><button onClick={() => navigate("/auth")} className="text-sm text-muted-foreground hover:text-accent transition-smooth">Features</button></li>
-                <li><button onClick={() => navigate("/auth")} className="text-sm text-muted-foreground hover:text-accent transition-smooth">Pricing</button></li>
-                <li><button onClick={() => navigate("/auth")} className="text-sm text-muted-foreground hover:text-accent transition-smooth">FAQ</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-4 font-playfair">Company</h3>
-              <ul className="space-y-2">
-                <li><button onClick={() => navigate("/auth")} className="text-sm text-muted-foreground hover:text-accent transition-smooth">About</button></li>
-                <li><button onClick={() => navigate("/auth")} className="text-sm text-muted-foreground hover:text-accent transition-smooth">Blog</button></li>
-                <li><button onClick={() => navigate("/auth")} className="text-sm text-muted-foreground hover:text-accent transition-smooth">Contact</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-4 font-playfair">Connect</h3>
-              <div className="flex gap-3">
-                <button className="w-10 h-10 rounded-full bg-card hover:bg-accent/20 flex items-center justify-center transition-smooth hover:shadow-gold">
-                  <Instagram className="h-5 w-5 text-accent" strokeWidth={1.5} />
-                </button>
-                <button className="w-10 h-10 rounded-full bg-card hover:bg-primary/20 flex items-center justify-center transition-smooth hover:shadow-elegant">
-                  <Twitter className="h-5 w-5 text-primary" strokeWidth={1.5} />
-                </button>
-                <button className="w-10 h-10 rounded-full bg-card hover:bg-accent/20 flex items-center justify-center transition-smooth hover:shadow-gold">
-                  <Mail className="h-5 w-5 text-accent" strokeWidth={1.5} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-border/30 mt-12 pt-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} ScentGenAI. All rights reserved.
+            {/* Copyright */}
+            <p className="text-[#B0C4DE] text-sm">
+              © 2025 ScentGenAI. All rights reserved.
             </p>
           </div>
         </div>
