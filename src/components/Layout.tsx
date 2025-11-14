@@ -27,7 +27,10 @@ const Layout = ({ children }: LayoutProps) => {
   ];
 
   if (isAdmin) {
-    navItems.push({ path: "/admin", label: "Admin", icon: Shield });
+    navItems.push(
+      { path: "/admin", label: "Perfumes", icon: Shield },
+      { path: "/admin/waitlist", label: "Waitlist", icon: Shield }
+    );
   }
 
   return (
