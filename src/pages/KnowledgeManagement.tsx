@@ -109,12 +109,17 @@ const KnowledgeManagement = () => {
           </CardHeader>
           <CardContent>
             <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-              <li>Upload PDF documents about perfumes, fragrance notes, or perfumery</li>
-              <li>The system extracts text and creates searchable chunks</li>
-              <li>Each chunk is converted to a vector embedding for semantic search</li>
+              <li>Upload PDF documents about perfumes, fragrance notes, or perfumery (max 10MB per file)</li>
+              <li>OpenAI's GPT-4 Vision extracts the text content from your PDF automatically</li>
+              <li>The system creates searchable chunks and vector embeddings for semantic search</li>
               <li>When you chat with the AI, it searches relevant knowledge to answer accurately</li>
               <li>The AI cites sources from your documents in its responses</li>
             </ol>
+            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                <strong>📌 Important:</strong> Files larger than 10MB should be split into smaller sections to ensure reliable processing.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
