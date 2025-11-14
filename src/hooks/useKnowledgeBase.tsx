@@ -36,6 +36,14 @@ export const useKnowledgeBase = (userId: string | undefined) => {
 
       if (error) throw error;
       setDocuments(data || []);
+      
+      // If there are documents being processed, poll for updates every 5 seconds
+      const hasProcessing = data?.some(
+        doc => !doc.processed && doc.processing_status && !doc.processing_status.error
+      );
+      if (hasProcessing) {
+        setTimeout(fetchDocuments, 5000);
+      }
     } catch (error) {
       console.error('Error fetching documents:', error);
       toast.error('Failed to load documents');
@@ -44,7 +52,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
     }
   };
 
-  const uploadDocument = async (file: File, pageRange?: { start: number; end: number }) => {
+  const uploadDocument = async (file: File) => {
     if (!userId) return;
 
     setUploading(true);
@@ -59,11 +67,6 @@ export const useKnowledgeBase = (userId: string | undefined) => {
 
       if (uploadError) throw uploadError;
 
-      // Create document record with page range metadata
-      const metadata = pageRange 
-        ? { pageRange: { start: pageRange.start, end: pageRange.end } }
-        : {};
-
       const { data: document, error: dbError } = await supabase
         .from('knowledge_documents')
         .insert({
@@ -71,70 +74,46 @@ export const useKnowledgeBase = (userId: string | undefined) => {
           file_path: filePath,
           file_size: file.size,
           user_id: userId,
-          metadata,
         })
         .select()
         .single();
 
       if (dbError) throw dbError;
 
-      toast.success('Document uploaded successfully');
+      toast.success('Documento subido, procesando...');
 
       // Process the document
-      await processDocument(document.id, filePath, pageRange);
+      await processDocument(document.id, filePath);
 
-      await fetchDocuments();
+      // Start polling for updates
+      setTimeout(fetchDocuments, 2000);
     } catch (error: any) {
       console.error('Error uploading document:', error);
-      
-      // Handle specific error messages
-      if (error?.message?.includes('too large')) {
-        toast.error('File too large. Maximum size is 10MB. Please split into smaller files.');
-      } else {
-        toast.error('Failed to upload document');
-      }
+      toast.error('Error al subir documento');
     } finally {
       setUploading(false);
     }
   };
 
-  const processDocument = async (documentId: string, filePath: string, pageRange?: { start: number; end: number }) => {
+  const processDocument = async (documentId: string, filePath: string) => {
     setProcessing(documentId);
 
     try {
-      const rangeText = pageRange 
-        ? `páginas ${pageRange.start}-${pageRange.end}` 
-        : 'documento completo';
-      toast.info(`Procesando ${rangeText}... Esto puede tomar 2-3 minutos para PDFs grandes`);
+      toast.info('Procesando documento... Esto puede tomar unos minutos');
 
       const { data, error } = await supabase.functions.invoke('process-pdf', {
-        body: { documentId, filePath, pageRange },
+        body: { documentId, filePath },
       });
 
-      if (error) {
-        // Handle specific errors
-        if (error.message?.includes('too large')) {
-          throw new Error('PDF too large. Maximum size is 10MB');
-        } else if (error.message?.includes('WORKER_LIMIT')) {
-          throw new Error('PDF processing timed out. Try a smaller file or split into sections');
-        }
-        throw error;
-      }
+      if (error) throw error;
 
-      toast.success('Document processed successfully');
-      await fetchDocuments();
+      toast.success('Procesamiento iniciado en segundo plano');
+      
+      // Start polling for updates
+      setTimeout(fetchDocuments, 2000);
     } catch (error: any) {
       console.error('Error processing document:', error);
-      
-      // User-friendly error messages
-      const errorMessage = error?.message || 'Failed to process document';
-      if (errorMessage.includes('too large') || errorMessage.includes('10MB')) {
-        toast.error('File too large (max 10MB). Split into smaller files and upload separately.');
-      } else if (errorMessage.includes('WORKER_LIMIT') || errorMessage.includes('timed out')) {
-        toast.error('Processing timed out. Try uploading a smaller PDF or split it into sections.');
-      } else {
-        toast.error('Failed to process document. Try again or use a different file.');
-      }
+      toast.error('Error al iniciar el procesamiento');
     } finally {
       setProcessing(null);
     }
