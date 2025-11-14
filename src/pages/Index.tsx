@@ -1,9 +1,14 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 const Index = () => {
-  return (
-    <div>
-      {/* Empty page - ready to build */}
-    </div>
-  );
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate("/auth");
+  }, [navigate]);
+
+  return null;
 };
 
 export default Index;
