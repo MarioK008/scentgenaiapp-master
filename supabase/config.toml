@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.voice-transcribe]
 verify_jwt = true
 
+[functions.submit-waitlist]
+verify_jwt = false
+
 [functions.chat-with-assistant]
 verify_jwt = true
 
