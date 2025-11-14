@@ -34,43 +34,79 @@ serve(async (req) => {
 
     if (downloadError) throw downloadError;
 
-    console.log('🔍 Extracting text from PDF...');
+    const fileSize = fileData.size;
+    console.log(`📊 PDF size: ${(fileSize / 1024 / 1024).toFixed(2)} MB`);
+
+    // Check file size limit (10MB max to avoid worker limits)
+    if (fileSize > 10 * 1024 * 1024) {
+      throw new Error('PDF too large. Maximum size is 10MB. Please split into smaller files.');
+    }
+
+    console.log('🔍 Extracting text from PDF using OpenAI...');
     
-    // Read the PDF content as text
-    // Note: This is a simplified implementation. For production use,
-    // you would use a proper PDF parsing library like pdf-parse
+    // Convert PDF to base64 efficiently
     const arrayBuffer = await fileData.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     
-    // Convert to base64 in chunks to avoid stack overflow
     let base64 = '';
-    const chunkSize = 8192; // Process 8KB at a time
+    const chunkSize = 8192;
     for (let i = 0; i < uint8Array.length; i += chunkSize) {
       const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
       base64 += btoa(String.fromCharCode.apply(null, Array.from(chunk)));
     }
 
-    // For now, create sample text chunks from filename
-    // In production, you'd extract actual text from the PDF
-    const fileName = filePath.split('/').pop() || 'document';
-    const sampleText = `Este es un documento sobre perfumes: ${fileName}. 
-    
-Contiene información valiosa sobre fragancias, notas aromáticas, y técnicas de perfumería.
-El documento incluye detalles sobre familias olfativas, acordes principales, y recomendaciones
-de combinaciones de notas. También cubre aspectos históricos de la perfumería y métodos
-de elaboración de fragancias.
+    console.log('📤 Sending PDF to OpenAI for text extraction...');
 
-Información sobre notas de salida, corazón y fondo. Descripción de ingredientes naturales
-y sintéticos utilizados en perfumería moderna. Técnicas de mezcla y proporciones adecuadas.
-Consejos sobre longevidad, sillage y proyección de fragancias.`;
+    // Use OpenAI to extract text from PDF
+    const extractionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Extract all text content from this PDF document. Return only the text content, preserving the structure and formatting as much as possible. Focus on the main content and avoid extracting headers, footers, and page numbers unless they contain important information.'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:application/pdf;base64,${base64}`
+                }
+              }
+            ]
+          }
+        ],
+        max_completion_tokens: 4000,
+      }),
+    });
 
-    // Split into chunks (~500 tokens each, approximately 1500 characters)
+    if (!extractionResponse.ok) {
+      const errorText = await extractionResponse.text();
+      console.error('OpenAI extraction error:', errorText);
+      throw new Error(`Failed to extract text from PDF: ${extractionResponse.status}`);
+    }
+
+    const extractionData = await extractionResponse.json();
+    const extractedText = extractionData.choices[0].message.content;
+
+    console.log(`✅ Extracted ${extractedText.length} characters from PDF`);
+
+    // Split text into chunks (~500 tokens each, approximately 1500 characters)
     const textChunkSize = 1500;
     const chunks: string[] = [];
     
-    // Create multiple variations of chunks for better search coverage
-    for (let i = 0; i < 5; i++) {
-      chunks.push(sampleText + `\n\nSección ${i + 1} del documento.`);
+    for (let i = 0; i < extractedText.length; i += textChunkSize) {
+      const chunk = extractedText.substring(i, Math.min(i + textChunkSize, extractedText.length));
+      if (chunk.trim().length > 100) { // Only include chunks with substantial content
+        chunks.push(chunk.trim());
+      }
     }
 
     console.log(`📦 Created ${chunks.length} chunks`);

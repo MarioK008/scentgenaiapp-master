@@ -79,9 +79,15 @@ export const useKnowledgeBase = (userId: string | undefined) => {
       await processDocument(document.id, filePath);
 
       await fetchDocuments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading document:', error);
-      toast.error('Failed to upload document');
+      
+      // Handle specific error messages
+      if (error?.message?.includes('too large')) {
+        toast.error('File too large. Maximum size is 10MB. Please split into smaller files.');
+      } else {
+        toast.error('Failed to upload document');
+      }
     } finally {
       setUploading(false);
     }
@@ -91,19 +97,36 @@ export const useKnowledgeBase = (userId: string | undefined) => {
     setProcessing(documentId);
 
     try {
-      toast.info('Processing document... This may take a few minutes');
+      toast.info('Processing document... This may take 2-3 minutes for large PDFs');
 
-      const { error } = await supabase.functions.invoke('process-pdf', {
+      const { data, error } = await supabase.functions.invoke('process-pdf', {
         body: { documentId, filePath },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific errors
+        if (error.message?.includes('too large')) {
+          throw new Error('PDF too large. Maximum size is 10MB');
+        } else if (error.message?.includes('WORKER_LIMIT')) {
+          throw new Error('PDF processing timed out. Try a smaller file or split into sections');
+        }
+        throw error;
+      }
 
       toast.success('Document processed successfully');
       await fetchDocuments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing document:', error);
-      toast.error('Failed to process document');
+      
+      // User-friendly error messages
+      const errorMessage = error?.message || 'Failed to process document';
+      if (errorMessage.includes('too large') || errorMessage.includes('10MB')) {
+        toast.error('File too large (max 10MB). Split into smaller files and upload separately.');
+      } else if (errorMessage.includes('WORKER_LIMIT') || errorMessage.includes('timed out')) {
+        toast.error('Processing timed out. Try uploading a smaller PDF or split it into sections.');
+      } else {
+        toast.error('Failed to process document. Try again or use a different file.');
+      }
     } finally {
       setProcessing(null);
     }
