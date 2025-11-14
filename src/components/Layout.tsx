@@ -1,8 +1,10 @@
 import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Home, Heart, Search, Shield, LogOut, MessageSquare } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
+import { Sparkles, Home, Heart, Search, Shield, LogOut, MessageSquare, User } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,7 +12,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const { user, isAdmin, signOut } = useAuth();
+  const { profile } = useProfile();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
@@ -53,6 +57,29 @@ const Layout = ({ children }: LayoutProps) => {
                   </Link>
                 );
               })}
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/profile')} 
+                className="gap-2 ml-2"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">My Account</span>
+              </Button>
+
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/profile')}
+                className="ml-2"
+              >
+                <UserAvatar
+                  avatarUrl={profile?.avatar_url}
+                  username={profile?.username || user?.email || ""}
+                  size="sm"
+                />
+              </Button>
               
               <Button variant="ghost" size="sm" onClick={signOut} className="gap-2 ml-2">
                 <LogOut className="h-4 w-4" />
