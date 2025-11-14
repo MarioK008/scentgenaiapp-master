@@ -3,9 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileStats } from "@/hooks/useProfileStats";
 import { useUserFollows } from "@/hooks/useUserFollows";
+import { useBadges } from "@/hooks/useBadges";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import PerfumeCard from "@/components/PerfumeCard";
+import { BadgeDisplay } from "@/components/BadgeDisplay";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +53,7 @@ const PublicProfile = () => {
     userId,
     user?.id
   );
+  const { badges } = useBadges(userId);
 
   useEffect(() => {
     if (userId) {
@@ -218,6 +221,19 @@ const PublicProfile = () => {
 
         {/* Favorite Perfume & Top Notes */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* Badges */}
+          <BadgeDisplay
+            badges={badges.map(b => ({
+              ...b.badges,
+              earned: true,
+              earned_at: b.earned_at,
+            }))}
+            title="Achievements"
+            description="Badges earned by this user"
+            maxDisplay={6}
+          />
+
+          {/* Favorite Perfume */}
           {stats.favoritePerfume && (
             <Card>
               <CardHeader>

@@ -106,6 +106,13 @@ const Collection = () => {
         description: "Rating updated",
       });
       fetchCollection();
+      
+      // Check for new badges after rating
+      if (user) {
+        setTimeout(() => {
+          supabase.rpc("check_and_award_badges", { p_user_id: user.id });
+        }, 500);
+      }
     }
   };
 
