@@ -20,7 +20,7 @@ const Layout = ({ children }: LayoutProps) => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/collection", label: "Collection", icon: Heart },
-    { path: "/feed", label: "Feed", icon: Users },
+    // { path: "/feed", label: "Feed", icon: Users }, // Temporalmente oculto
     { path: "/recommendations", label: "Recommendations", icon: Sparkles },
     { path: "/voice-assistant", label: "MyScentGenAI", icon: MessageSquare },
     { path: "/search", label: "Search", icon: Search },

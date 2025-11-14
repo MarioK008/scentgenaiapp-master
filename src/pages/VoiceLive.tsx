@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { AudioRecorder, encodeAudioForAPI, AudioQueue } from "@/utils/RealtimeAudio";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 
@@ -39,13 +40,19 @@ const VoiceLive = () => {
 
   const startConversation = async () => {
     try {
+      // Obtener el session token para autenticación
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No estás autenticado');
+      }
+
       if (!audioContextRef.current) {
         audioContextRef.current = new AudioContext({ sampleRate: 24000 });
         audioQueueRef.current = new AudioQueue(audioContextRef.current);
       }
 
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'gmsezowrwgveggssefss';
-      const wsUrl = `wss://${projectId}.supabase.co/functions/v1/realtime-perfume-chat`;
+      const wsUrl = `wss://${projectId}.supabase.co/functions/v1/realtime-perfume-chat?token=${session.access_token}`;
       
       console.log('Connecting to:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
