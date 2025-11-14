@@ -30,6 +30,7 @@ const Layout = ({ children }: LayoutProps) => {
     navItems.push(
       { path: "/admin", label: "Admin: Perfumes", icon: Shield },
       { path: "/admin/waitlist", label: "Admin: Waitlist", icon: Shield },
+      { path: "/admin/email-templates", label: "Admin: Email Templates", icon: Shield },
       { path: "/knowledge", label: "Admin: Knowledge", icon: Shield }
     );
   }
