@@ -20,6 +20,7 @@ interface CSVImporterProps {
 export const CSVImporter = ({ onImportComplete }: CSVImporterProps) => {
   const { toast } = useToast();
   const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
   const downloadTemplate = () => {
@@ -34,6 +35,82 @@ Sauvage,Dior,,"bergamot,pepper","lavender,geranium","ambroxan,cedar",all_season,
     a.download = 'perfumes_template.csv';
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const exportToCSV = async () => {
+    setExporting(true);
+    try {
+      const { data: perfumes, error } = await supabase
+        .from("perfumes")
+        .select("*")
+        .order("brand", { ascending: true })
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+
+      if (!perfumes || perfumes.length === 0) {
+        toast({
+          title: "No Data",
+          description: "No perfumes found to export",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create CSV header
+      const header = "name,brand,image_url,top_notes,heart_notes,base_notes,season,longevity,sillage,description\n";
+      
+      // Convert perfumes to CSV rows
+      const rows = perfumes.map(p => {
+        const escapeCSV = (value: any) => {
+          if (value === null || value === undefined) return '';
+          if (Array.isArray(value)) {
+            const joined = value.join(',');
+            return `"${joined}"`;
+          }
+          const str = String(value);
+          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        };
+
+        return [
+          escapeCSV(p.name),
+          escapeCSV(p.brand),
+          escapeCSV(p.image_url),
+          escapeCSV(p.top_notes),
+          escapeCSV(p.heart_notes),
+          escapeCSV(p.base_notes),
+          escapeCSV(p.season),
+          escapeCSV(p.longevity),
+          escapeCSV(p.sillage),
+          escapeCSV(p.description)
+        ].join(',');
+      }).join('\n');
+
+      const csv = header + rows;
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `perfumes_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: `Exported ${perfumes.length} perfume(s) to CSV`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to export perfumes",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
   };
 
   const parseCSV = (text: string): string[][] => {
@@ -179,7 +256,7 @@ Sauvage,Dior,,"bergamot,pepper","lavender,geranium","ambroxan,cedar",all_season,
         <CardDescription>Upload a CSV file to import multiple perfumes at once</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             variant="outline"
             onClick={downloadTemplate}
@@ -187,6 +264,16 @@ Sauvage,Dior,,"bergamot,pepper","lavender,geranium","ambroxan,cedar",all_season,
           >
             <Download className="w-4 h-4" />
             Download Template
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={exportToCSV}
+            disabled={exporting}
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            {exporting ? "Exporting..." : "Export All Perfumes"}
           </Button>
           
           <label htmlFor="csv-upload">
