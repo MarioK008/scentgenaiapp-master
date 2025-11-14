@@ -102,6 +102,11 @@ const Profile = () => {
     await updateProfile({ notification_settings: newSettings });
   };
 
+  const handlePrivacyToggle = async (isPrivate: boolean) => {
+    await updateProfile({ is_private: isPrivate });
+    toast.success(isPrivate ? "Profile is now private" : "Profile is now public");
+  };
+
   const handleDeleteAccount = async () => {
     try {
       // Note: User deletion should be handled by a backend endpoint
@@ -235,6 +240,21 @@ const Profile = () => {
               <Switch
                 checked={theme === "dark"}
                 onCheckedChange={handleDarkModeToggle}
+              />
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Private Profile</Label>
+                <p className="text-sm text-muted-foreground">
+                  Require approval before others can see your collection
+                </p>
+              </div>
+              <Switch
+                checked={profile.is_private || false}
+                onCheckedChange={handlePrivacyToggle}
               />
             </div>
 

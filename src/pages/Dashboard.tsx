@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
+import { FollowRequests } from "@/components/FollowRequests";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, Search, TrendingUp, Share2, User } from "lucide-react";
@@ -29,13 +30,17 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Welcome back!</h1>
-          <p className="text-muted-foreground">Discover your perfect scent with AI-powered recommendations</p>
+          <h1 className="text-4xl font-bold">Welcome back!</h1>
+          <p className="text-muted-foreground mt-2">
+            Discover new perfumes and manage your collection
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <FollowRequests />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/collection")}>
             <CardHeader>
               <div className="flex items-center gap-2">

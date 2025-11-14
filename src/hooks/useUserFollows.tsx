@@ -19,28 +19,30 @@ export const useUserFollows = (userId: string | undefined, currentUserId: string
     if (!userId) return;
 
     try {
-      // Get follower count
+      // Get approved follower count
       const { count: followers } = await supabase
         .from("user_follows")
         .select("*", { count: "exact", head: true })
-        .eq("followed_id", userId);
+        .eq("followed_id", userId)
+        .eq("status", "approved");
 
-      // Get following count
+      // Get following count (approved)
       const { count: following } = await supabase
         .from("user_follows")
         .select("*", { count: "exact", head: true })
-        .eq("follower_id", userId);
+        .eq("follower_id", userId)
+        .eq("status", "approved");
 
       // Check if current user follows this user
       if (currentUserId && currentUserId !== userId) {
         const { data } = await supabase
           .from("user_follows")
-          .select("id")
+          .select("id, status")
           .eq("follower_id", currentUserId)
           .eq("followed_id", userId)
           .maybeSingle();
 
-        setIsFollowing(!!data);
+        setIsFollowing(data?.status === "approved");
       }
 
       setFollowerCount(followers || 0);
@@ -80,22 +82,37 @@ export const useUserFollows = (userId: string | undefined, currentUserId: string
           description: "You are no longer following this user",
         });
       } else {
-        // Follow
+        // Check if target user has private profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_private")
+          .eq("id", userId)
+          .single();
+
+        // Follow - with status based on privacy setting
         const { error } = await supabase
           .from("user_follows")
           .insert({
             follower_id: currentUserId,
             followed_id: userId,
+            status: profile?.is_private ? "pending" : "approved",
           });
 
         if (error) throw error;
 
-        setIsFollowing(true);
-        setFollowerCount((prev) => prev + 1);
-        toast({
-          title: "Following",
-          description: "You are now following this user",
-        });
+        if (profile?.is_private) {
+          toast({
+            title: "Follow Request Sent",
+            description: "Your follow request is pending approval",
+          });
+        } else {
+          setIsFollowing(true);
+          setFollowerCount((prev) => prev + 1);
+          toast({
+            title: "Following",
+            description: "You are now following this user",
+          });
+        }
       }
     } catch (error) {
       console.error("Error toggling follow:", error);

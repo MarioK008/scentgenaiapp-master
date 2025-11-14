@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, MapPin, Star, Heart, Sparkles, TrendingUp, UserPlus, UserMinus } from "lucide-react";
+import { Loader2, MapPin, Star, Heart, Sparkles, TrendingUp, UserPlus, UserMinus, Lock } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -19,6 +19,7 @@ interface Profile {
   bio: string | null;
   location: string | null;
   avatar_url: string | null;
+  is_private: boolean;
 }
 
 interface CollectionItem {
@@ -97,6 +98,7 @@ const PublicProfile = () => {
       setCollections(collectionsData || []);
     } catch (error) {
       console.error("Error fetching profile data:", error);
+      setCollections([]);
     } finally {
       setLoading(false);
     }
@@ -128,6 +130,11 @@ const PublicProfile = () => {
 
   const ownedPerfumes = collections.filter((c) => c.status === "owned");
   const wishlistPerfumes = collections.filter((c) => c.status === "wishlist");
+
+  // Check if current user can view the collection
+  const isOwnProfile = user?.id === userId;
+  const isPrivate = profile.is_private;
+  const canViewCollection = isOwnProfile || !isPrivate || isFollowing;
 
   return (
     <Layout>
@@ -280,7 +287,22 @@ const PublicProfile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="owned" className="w-full">
+            {!canViewCollection ? (
+              <div className="text-center py-12">
+                <Lock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <CardTitle className="mb-2">This Profile is Private</CardTitle>
+                <CardDescription className="mb-4">
+                  Follow this user to see their collection
+                </CardDescription>
+                {user && user.id !== userId && (
+                  <Button onClick={toggleFollow} className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Follow
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Tabs defaultValue="owned" className="w-full">
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="owned" className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
@@ -330,6 +352,7 @@ const PublicProfile = () => {
                 )}
               </TabsContent>
             </Tabs>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -57,11 +57,12 @@ const Feed = () => {
     if (!user) return;
 
     try {
-      // Get list of followed users
+      // Get approved followed users
       const { data: follows, error: followsError } = await supabase
         .from("user_follows")
         .select("followed_id")
-        .eq("follower_id", user.id);
+        .eq("follower_id", user.id)
+        .eq("status", "approved");
 
       if (followsError) throw followsError;
 
