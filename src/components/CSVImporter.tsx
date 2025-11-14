@@ -6,6 +6,44 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Download, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { z } from "zod";
+
+const perfumeCSVSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(200, "Name must be less than 200 characters"),
+  brand: z.string().trim().min(1, "Brand is required").max(100, "Brand must be less than 100 characters"),
+  image_url: z.string().url("Invalid URL format").optional().or(z.literal("")),
+  top_notes: z.string().max(500, "Top notes must be less than 500 characters"),
+  heart_notes: z.string().max(500, "Heart notes must be less than 500 characters"),
+  base_notes: z.string().max(500, "Base notes must be less than 500 characters"),
+  season: z.enum(["spring", "summer", "fall", "winter", "all_season"], {
+    errorMap: () => ({ message: "Season must be one of: spring, summer, fall, winter, all_season" })
+  }).optional().or(z.literal("")),
+  longevity: z.string().optional().transform((val) => {
+    if (!val) return null;
+    const num = parseInt(val);
+    if (isNaN(num) || num < 1 || num > 10) {
+      throw new z.ZodError([{
+        code: "custom",
+        path: ["longevity"],
+        message: "Longevity must be between 1-10"
+      }]);
+    }
+    return num;
+  }),
+  sillage: z.string().optional().transform((val) => {
+    if (!val) return null;
+    const num = parseInt(val);
+    if (isNaN(num) || num < 1 || num > 10) {
+      throw new z.ZodError([{
+        code: "custom",
+        path: ["sillage"],
+        message: "Sillage must be between 1-10"
+      }]);
+    }
+    return num;
+  }),
+  description: z.string().max(1000, "Description must be less than 1000 characters").optional().or(z.literal("")),
+});
 
 interface ValidationError {
   row: number;
@@ -137,28 +175,32 @@ Sauvage,Dior,,"bergamot,pepper","lavender,geranium","ambroxan,cedar",all_season,
   };
 
   const validateRow = (row: string[], index: number): ValidationError[] => {
-    const errors: ValidationError[] = [];
-    
-    if (!row[0]) errors.push({ row: index, field: 'name', message: 'Name is required' });
-    if (!row[1]) errors.push({ row: index, field: 'brand', message: 'Brand is required' });
-    
-    const season = row[6]?.toLowerCase();
-    const validSeasons = ['spring', 'summer', 'fall', 'winter', 'all_season'];
-    if (season && !validSeasons.includes(season)) {
-      errors.push({ row: index, field: 'season', message: `Invalid season. Must be one of: ${validSeasons.join(', ')}` });
+    try {
+      const rowData = {
+        name: row[0] || "",
+        brand: row[1] || "",
+        image_url: row[2] || "",
+        top_notes: row[3] || "",
+        heart_notes: row[4] || "",
+        base_notes: row[5] || "",
+        season: row[6]?.toLowerCase() || "",
+        longevity: row[7] || "",
+        sillage: row[8] || "",
+        description: row[9] || "",
+      };
+
+      perfumeCSVSchema.parse(rowData);
+      return [];
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return error.errors.map(err => ({
+          row: index,
+          field: err.path[0]?.toString() || 'unknown',
+          message: err.message
+        }));
+      }
+      return [{ row: index, field: 'unknown', message: 'Validation failed' }];
     }
-    
-    const longevity = parseInt(row[7]);
-    if (row[7] && (isNaN(longevity) || longevity < 1 || longevity > 10)) {
-      errors.push({ row: index, field: 'longevity', message: 'Longevity must be between 1-10' });
-    }
-    
-    const sillage = parseInt(row[8]);
-    if (row[8] && (isNaN(sillage) || sillage < 1 || sillage > 10)) {
-      errors.push({ row: index, field: 'sillage', message: 'Sillage must be between 1-10' });
-    }
-    
-    return errors;
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,18 +236,36 @@ Sauvage,Dior,,"bergamot,pepper","lavender,geranium","ambroxan,cedar",all_season,
         if (rowErrors.length > 0) {
           allErrors.push(...rowErrors);
         } else {
-          validPerfumes.push({
-            name: row[0],
-            brand: row[1],
-            image_url: row[2] || null,
-            top_notes: row[3] ? row[3].split(',').map(n => n.trim()).filter(Boolean) : [],
-            heart_notes: row[4] ? row[4].split(',').map(n => n.trim()).filter(Boolean) : [],
-            base_notes: row[5] ? row[5].split(',').map(n => n.trim()).filter(Boolean) : [],
-            season: row[6] || 'all_season',
-            longevity: row[7] ? parseInt(row[7]) : null,
-            sillage: row[8] ? parseInt(row[8]) : null,
-            description: row[9] || null,
-          });
+          try {
+            const validated = perfumeCSVSchema.parse({
+              name: row[0] || "",
+              brand: row[1] || "",
+              image_url: row[2] || "",
+              top_notes: row[3] || "",
+              heart_notes: row[4] || "",
+              base_notes: row[5] || "",
+              season: row[6]?.toLowerCase() || "",
+              longevity: row[7] || "",
+              sillage: row[8] || "",
+              description: row[9] || "",
+            });
+
+            validPerfumes.push({
+              name: validated.name,
+              brand: validated.brand,
+              image_url: validated.image_url || null,
+              top_notes: validated.top_notes ? validated.top_notes.split(',').map(n => n.trim()).filter(Boolean) : [],
+              heart_notes: validated.heart_notes ? validated.heart_notes.split(',').map(n => n.trim()).filter(Boolean) : [],
+              base_notes: validated.base_notes ? validated.base_notes.split(',').map(n => n.trim()).filter(Boolean) : [],
+              season: validated.season || 'all_season',
+              longevity: validated.longevity,
+              sillage: validated.sillage,
+              description: validated.description || null,
+            });
+          } catch (error) {
+            // This shouldn't happen since we validated above, but adding for type safety
+            console.error("Unexpected validation error:", error);
+          }
         }
       });
 
