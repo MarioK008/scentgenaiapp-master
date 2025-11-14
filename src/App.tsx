@@ -12,6 +12,7 @@ import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import VoiceAssistant from "./pages/VoiceAssistant";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/voice-assistant" element={<VoiceAssistant />} />
           <Route path="/search" element={<Search />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/user/:userId" element={<PublicProfile />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
