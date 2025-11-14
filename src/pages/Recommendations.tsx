@@ -58,7 +58,10 @@ const Recommendations = () => {
         body: { mood, occasion, season, userId: user?.id },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Recommendation error:", error);
+        throw error;
+      }
 
       setRecommendations(data.recommendations || []);
       
@@ -67,8 +70,14 @@ const Recommendations = () => {
           title: "No recommendations",
           description: "Try different preferences or add more perfumes to the database",
         });
+      } else {
+        toast({
+          title: "Success",
+          description: `Found ${data.recommendations.length} recommendations for you!`,
+        });
       }
     } catch (error: any) {
+      console.error("Full error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to get recommendations",
