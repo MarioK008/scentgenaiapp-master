@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Home, Heart, Search, Shield, LogOut } from "lucide-react";
+import { Sparkles, Home, Heart, Search, Shield, LogOut, MessageSquare } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -16,6 +16,7 @@ const Layout = ({ children }: LayoutProps) => {
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/collection", label: "Collection", icon: Heart },
     { path: "/recommendations", label: "Recommendations", icon: Sparkles },
+    { path: "/voice-assistant", label: "Voice", icon: MessageSquare },
     { path: "/search", label: "Search", icon: Search },
   ];
 

@@ -10,6 +10,7 @@ import Collection from "./pages/Collection";
 import Recommendations from "./pages/Recommendations";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
+import VoiceAssistant from "./pages/VoiceAssistant";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/collection" element={<Collection />} />
           <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/voice-assistant" element={<VoiceAssistant />} />
           <Route path="/search" element={<Search />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
