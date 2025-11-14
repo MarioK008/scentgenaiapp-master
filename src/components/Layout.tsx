@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Sparkles, Home, Heart, Search, Shield, LogOut, MessageSquare, User } from "lucide-react";
+import { Sparkles, Home, Heart, Search, Shield, LogOut, MessageSquare, User, Users } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -19,6 +19,7 @@ const Layout = ({ children }: LayoutProps) => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/collection", label: "Collection", icon: Heart },
+    { path: "/feed", label: "Feed", icon: Users },
     { path: "/recommendations", label: "Recommendations", icon: Sparkles },
     { path: "/voice-assistant", label: "MyScentGenAI", icon: MessageSquare },
     { path: "/search", label: "Search", icon: Search },

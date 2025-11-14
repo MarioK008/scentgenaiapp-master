@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileStats } from "@/hooks/useProfileStats";
+import { useUserFollows } from "@/hooks/useUserFollows";
+import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import PerfumeCard from "@/components/PerfumeCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, MapPin, Star, Heart, Sparkles, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, MapPin, Star, Heart, Sparkles, TrendingUp, UserPlus, UserMinus } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -38,10 +41,15 @@ interface CollectionItem {
 const PublicProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [collections, setCollections] = useState<CollectionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { stats, loading: statsLoading } = useProfileStats(userId);
+  const { isFollowing, followerCount, followingCount, toggleFollow } = useUserFollows(
+    userId,
+    user?.id
+  );
 
   useEffect(() => {
     if (userId) {
@@ -136,19 +144,43 @@ const PublicProfile = () => {
               </Avatar>
 
               <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">{profile.username}</h1>
-                {profile.location && (
-                  <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                    <MapPin className="h-4 w-4" />
-                    <span>{profile.location}</span>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                  <div>
+                    <h1 className="text-3xl font-bold mb-2">{profile.username}</h1>
+                    {profile.location && (
+                      <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                        <MapPin className="h-4 w-4" />
+                        <span>{profile.location}</span>
+                      </div>
+                    )}
+                    {profile.bio && (
+                      <p className="text-muted-foreground">{profile.bio}</p>
+                    )}
                   </div>
-                )}
-                {profile.bio && (
-                  <p className="text-muted-foreground mb-4">{profile.bio}</p>
-                )}
+                  
+                  {user && user.id !== userId && (
+                    <Button
+                      variant={isFollowing ? "outline" : "default"}
+                      onClick={toggleFollow}
+                      className="gap-2"
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserMinus className="h-4 w-4" />
+                          Unfollow
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-4 w-4" />
+                          Follow
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="bg-primary/10 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-primary">{stats.totalPerfumes}</div>
                     <div className="text-sm text-muted-foreground">Perfumes</div>
@@ -158,14 +190,18 @@ const PublicProfile = () => {
                     <div className="text-sm text-muted-foreground">Wishlist</div>
                   </div>
                   <div className="bg-accent/10 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-accent-foreground">
+                    <div className="text-2xl font-bold text-accent-foreground">{followerCount}</div>
+                    <div className="text-sm text-muted-foreground">Followers</div>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold">{followingCount}</div>
+                    <div className="text-sm text-muted-foreground">Following</div>
+                  </div>
+                  <div className="bg-muted rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold">
                       {ownedPerfumes.filter((c) => c.rating && c.rating >= 4).length}
                     </div>
                     <div className="text-sm text-muted-foreground">Favorites</div>
-                  </div>
-                  <div className="bg-muted rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold">{stats.topNotes.length}</div>
-                    <div className="text-sm text-muted-foreground">Top Notes</div>
                   </div>
                 </div>
               </div>
