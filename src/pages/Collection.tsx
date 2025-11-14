@@ -6,6 +6,9 @@ import PerfumeCard from "@/components/PerfumeCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Share2, ExternalLink } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 
 interface CollectionItem {
   id: string;
@@ -113,14 +116,36 @@ const Collection = () => {
   const ownedPerfumes = collection.filter((c) => c.status === "owned");
   const wishlist = collection.filter((c) => c.status === "wishlist");
 
+  const handleShareProfile = () => {
+    const profileUrl = `${window.location.origin}/user/${user?.id}`;
+    navigator.clipboard.writeText(profileUrl);
+    sonnerToast.success("Profile link copied to clipboard!");
+  };
+
+  const handleViewPublicProfile = () => {
+    navigate(`/user/${user?.id}`);
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">My Collection</h1>
-          <p className="text-muted-foreground">
-            Manage your perfumes and wishlist
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">My Collection</h1>
+            <p className="text-muted-foreground">
+              Manage your perfumes and wishlist
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleViewPublicProfile} className="gap-2">
+              <ExternalLink className="h-4 w-4" />
+              View Public Profile
+            </Button>
+            <Button variant="secondary" onClick={handleShareProfile} className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Share Profile
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="owned" className="w-full">

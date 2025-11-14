@@ -4,8 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, Search, TrendingUp } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Heart, Sparkles, Search, TrendingUp, Share2, User } from "lucide-react";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
@@ -20,6 +20,12 @@ const Dashboard = () => {
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
+
+  const handleShareProfile = () => {
+    const profileUrl = `${window.location.origin}/user/${user?.id}`;
+    navigator.clipboard.writeText(profileUrl);
+    toast.success("Profile link copied to clipboard!");
+  };
 
   return (
     <Layout>
@@ -71,6 +77,32 @@ const Dashboard = () => {
             <CardContent>
               <Button variant="outline" className="w-full">
                 Start Search
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/user/${user?.id}`)}>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-secondary" />
+                <CardTitle>Public Profile</CardTitle>
+              </div>
+              <CardDescription>View and share your public profile</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" className="w-full">
+                View Profile
+              </Button>
+              <Button 
+                variant="secondary" 
+                className="w-full gap-2" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShareProfile();
+                }}
+              >
+                <Share2 className="h-4 w-4" />
+                Share Link
               </Button>
             </CardContent>
           </Card>
