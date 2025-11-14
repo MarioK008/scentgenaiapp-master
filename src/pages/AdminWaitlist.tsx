@@ -17,6 +17,8 @@ interface WaitlistEntry {
   created_at: string;
   notified: boolean;
   metadata: any;
+  email_sent_at?: string;
+  welcome_email_status?: string;
 }
 
 interface Stats {
@@ -95,6 +97,33 @@ export default function AdminWaitlist() {
       console.error("Error updating entry:", error);
       toast({
         title: "Error updating entry",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const resendWelcomeEmail = async (email: string, id: string) => {
+    setUpdating(id);
+    try {
+      const { error } = await supabase.functions.invoke('send-welcome-email', {
+        body: { email, waitlistId: id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email sent!",
+        description: `Welcome email sent to ${email}`,
+      });
+
+      fetchWaitlist();
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Error sending email",
         description: "Please try again.",
         variant: "destructive",
       });
@@ -190,7 +219,8 @@ export default function AdminWaitlist() {
                       <TableRow className="bg-muted/50">
                         <TableHead>Email</TableHead>
                         <TableHead>Joined Date</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Email Status</TableHead>
+                        <TableHead>Notified</TableHead>
                         <TableHead>Source</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -201,6 +231,25 @@ export default function AdminWaitlist() {
                           <TableCell className="font-medium">{entry.email}</TableCell>
                           <TableCell>
                             {format(new Date(entry.created_at), "MMM d, yyyy 'at' h:mm a")}
+                          </TableCell>
+                          <TableCell>
+                            {entry.welcome_email_status === 'sent' ? (
+                              <div>
+                                <Badge variant="default" className="bg-gradient-primary">
+                                  <Check className="w-3 h-3 mr-1" />
+                                  Sent
+                                </Badge>
+                                {entry.email_sent_at && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {format(new Date(entry.email_sent_at), "MMM d, h:mm a")}
+                                  </div>
+                                )}
+                              </div>
+                            ) : entry.welcome_email_status === 'failed' ? (
+                              <Badge variant="destructive">Failed</Badge>
+                            ) : (
+                              <Badge variant="secondary">Pending</Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             {entry.notified ? (
@@ -219,16 +268,29 @@ export default function AdminWaitlist() {
                             {entry.metadata?.source || "N/A"}
                           </TableCell>
                           <TableCell className="text-right">
-                            {!entry.notified && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => markAsNotified(entry.id)}
-                                disabled={updating === entry.id}
-                              >
-                                {updating === entry.id ? "Updating..." : "Mark Notified"}
-                              </Button>
-                            )}
+                            <div className="flex gap-2 justify-end">
+                              {entry.welcome_email_status !== 'sent' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => resendWelcomeEmail(entry.email, entry.id)}
+                                  disabled={updating === entry.id}
+                                >
+                                  <Mail className="w-3 h-3 mr-1" />
+                                  {updating === entry.id ? "Sending..." : "Send Email"}
+                                </Button>
+                              )}
+                              {!entry.notified && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => markAsNotified(entry.id)}
+                                  disabled={updating === entry.id}
+                                >
+                                  {updating === entry.id ? "Updating..." : "Mark Notified"}
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Brain, BookOpen, Zap } from 'lucide-react';
 
 const KnowledgeManagement = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const {
     documents,
@@ -21,10 +21,10 @@ const KnowledgeManagement = () => {
   } = useKnowledgeBase(user?.id);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
+    if (!authLoading && (!user || !isAdmin)) {
+      navigate('/dashboard');
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, isAdmin, navigate]);
 
   if (authLoading || loading) {
     return (
