@@ -363,23 +363,29 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          email_sent_at: string | null
           id: string
           metadata: Json | null
           notified: boolean | null
+          welcome_email_status: string | null
         }
         Insert: {
           created_at?: string
           email: string
+          email_sent_at?: string | null
           id?: string
           metadata?: Json | null
           notified?: boolean | null
+          welcome_email_status?: string | null
         }
         Update: {
           created_at?: string
           email?: string
+          email_sent_at?: string | null
           id?: string
           metadata?: Json | null
           notified?: boolean | null
+          welcome_email_status?: string | null
         }
         Relationships: []
       }

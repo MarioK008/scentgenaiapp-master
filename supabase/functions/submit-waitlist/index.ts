@@ -64,6 +64,23 @@ serve(async (req) => {
 
     console.log('New waitlist signup:', email);
 
+    // Send welcome email in background (non-blocking)
+    const waitlistId = data?.id;
+    if (waitlistId) {
+      // Fire and forget - don't block the response
+      supabase.functions.invoke('send-welcome-email', {
+        body: { email, waitlistId }
+      }).then(({ error: emailError }) => {
+        if (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+        } else {
+          console.log('Welcome email sent successfully to:', email);
+        }
+      }).catch(err => {
+        console.error('Error invoking send-welcome-email:', err);
+      });
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true,
