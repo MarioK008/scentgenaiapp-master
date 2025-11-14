@@ -10,6 +10,7 @@ import Collection from "./pages/Collection";
 import Recommendations from "./pages/Recommendations";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
+import AdminWaitlist from "./pages/AdminWaitlist";
 import VoiceAssistant from "./pages/VoiceAssistant";
 import VoiceLive from "./pages/VoiceLive";
 import VoiceChat from "./pages/VoiceChat";
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/user/:userId" element={<PublicProfile />} />
           <Route path="/feed" element={<Feed />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/waitlist" element={<AdminWaitlist />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
