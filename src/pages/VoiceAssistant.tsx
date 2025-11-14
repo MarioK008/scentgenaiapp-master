@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, MessageSquare, History } from "lucide-react";
+import { Mic, MessageSquare, History, Brain } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const VoiceAssistant = () => {
@@ -36,7 +36,7 @@ const VoiceAssistant = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/voice-live')}>
             <CardHeader>
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -84,6 +84,23 @@ const VoiceAssistant = () => {
             <CardContent>
               <Button className="w-full" variant="outline" onClick={() => navigate('/voice-history')}>
                 Ver Historial
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-primary/5 to-primary/10" onClick={() => navigate('/knowledge')}>
+            <CardHeader>
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <Brain className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle>🧠 Base de Conocimiento</CardTitle>
+              <CardDescription>
+                Sube documentos PDF para mejorar la precisión del asistente con información personalizada.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" variant="default" onClick={() => navigate('/knowledge')}>
+                Gestionar Conocimiento
               </Button>
             </CardContent>
           </Card>

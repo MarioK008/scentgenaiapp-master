@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,8 +13,10 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, includeAudio = false } = await req.json();
+    const { messages, includeAudio = false, userId } = await req.json();
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY is not configured');
@@ -25,10 +28,47 @@ serve(async (req) => {
 
     console.log('Processing chat request with', messages.length, 'messages');
 
-    // System message for perfume consultant
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Extract last user message for knowledge search
+    const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+    let knowledgeContext = '';
+
+    if (lastUserMessage && userId) {
+      console.log('🔍 Searching knowledge base...');
+      
+      try {
+        const { data: searchResults } = await supabase.functions.invoke('search-knowledge', {
+          body: {
+            query: lastUserMessage.content,
+            userId: userId,
+            matchCount: 3,
+          },
+        });
+
+        if (searchResults?.matches && searchResults.matches.length > 0) {
+          console.log(`✅ Found ${searchResults.matches.length} relevant knowledge chunks`);
+          
+          knowledgeContext = '\n\nCONOCIMIENTO RELEVANTE DE LA BASE DE DATOS:\n' + 
+            searchResults.matches
+              .map((match: any, idx: number) => 
+                `[Fuente ${idx + 1}: ${match.document_title} - Similitud: ${(match.similarity * 100).toFixed(0)}%]\n${match.content}`
+              )
+              .join('\n\n');
+        } else {
+          console.log('ℹ️ No relevant knowledge found');
+        }
+      } catch (error) {
+        console.error('⚠️ Knowledge search error:', error);
+        // Continue without knowledge context
+      }
+    }
+
+    // System message for perfume consultant with knowledge context
     const systemMessage = {
       role: 'system',
-      content: 'Eres un consultor experto en perfumes. Ayuda a los usuarios a encontrar su fragancia perfecta preguntando sobre sus preferencias, ocasiones y aromas favoritos. Mantén las respuestas conversacionales y amigables. Responde siempre en español.'
+      content: `Eres un consultor experto en perfumes. Ayuda a los usuarios a encontrar su fragancia perfecta preguntando sobre sus preferencias, ocasiones y aromas favoritos. Mantén las respuestas conversacionales y amigables. Responde siempre en español.${knowledgeContext ? '\n\nUtiliza el conocimiento proporcionado para dar respuestas más precisas y detalladas. Si citas información de las fuentes, menciona que proviene de la base de conocimientos.' : ''
+      }${knowledgeContext}`
     };
 
     // Call GPT-4o

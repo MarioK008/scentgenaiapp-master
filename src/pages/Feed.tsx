@@ -81,7 +81,7 @@ const Feed = () => {
           added_at,
           user_id,
           status,
-          perfumes (
+          perfumes!inner (
             id,
             name,
             brand,
@@ -113,10 +113,11 @@ const Feed = () => {
       const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
       const mergedData = collections?.map(item => ({
         ...item,
+        perfumes: Array.isArray(item.perfumes) ? item.perfumes[0] : item.perfumes,
         profiles: profilesMap.get(item.user_id) || { username: "Unknown", avatar_url: null }
       })) || [];
 
-      setFeedItems(mergedData);
+      setFeedItems(mergedData as FeedItem[]);
     } catch (error) {
       console.error("Error fetching feed:", error);
       toast({

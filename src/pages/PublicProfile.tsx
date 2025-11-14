@@ -83,7 +83,7 @@ const PublicProfile = () => {
           status,
           rating,
           personal_notes,
-          perfumes (
+          perfumes!inner (
             id,
             name,
             brand,
@@ -98,7 +98,13 @@ const PublicProfile = () => {
         .order("added_at", { ascending: false });
 
       if (collectionsError) throw collectionsError;
-      setCollections(collectionsData || []);
+      
+      const transformedData = (collectionsData || []).map(item => ({
+        ...item,
+        perfumes: Array.isArray(item.perfumes) ? item.perfumes[0] : item.perfumes
+      }));
+      
+      setCollections(transformedData as CollectionItem[]);
     } catch (error) {
       console.error("Error fetching profile data:", error);
       setCollections([]);

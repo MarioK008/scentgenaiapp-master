@@ -57,7 +57,7 @@ const Collection = () => {
         perfume_id,
         status,
         rating,
-        perfumes (
+        perfumes!inner (
           id,
           name,
           brand,
@@ -80,7 +80,11 @@ const Collection = () => {
         variant: "destructive",
       });
     } else {
-      setCollection(data || []);
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        perfumes: Array.isArray(item.perfumes) ? item.perfumes[0] : item.perfumes
+      }));
+      setCollection(transformedData as CollectionItem[]);
     }
     setLoadingCollection(false);
   };
