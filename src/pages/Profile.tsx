@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileStats } from "@/hooks/useProfileStats";
+import { useBadges } from "@/hooks/useBadges";
 import { useTheme } from "next-themes";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { AvatarCropDialog } from "@/components/AvatarCropDialog";
+import { BadgeDisplay } from "@/components/BadgeDisplay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +28,7 @@ const Profile = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { profile, loading: profileLoading, uploading, updateProfile, uploadAvatar, deleteAvatar } = useProfile();
   const { stats, loading: statsLoading } = useProfileStats(user?.id);
+  const { badges, allBadges, checkBadges } = useBadges(user?.id);
   const { theme, setTheme } = useTheme();
 
   const [formData, setFormData] = useState({
@@ -375,6 +378,21 @@ const Profile = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Badges */}
+        <BadgeDisplay
+          badges={allBadges.map(badge => {
+            const earnedBadge = badges.find(b => b.badges.id === badge.id);
+            return {
+              ...badge,
+              earned: badge.earned,
+              earned_at: earnedBadge?.earned_at,
+            };
+          })}
+          title="Achievements"
+          description="Track your progress and earn badges"
+          showProgress={true}
+        />
 
         {/* Security */}
         <Card>
