@@ -8,6 +8,7 @@ import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { AvatarCropDialog } from "@/components/AvatarCropDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,22 @@ const Profile = () => {
   );
 
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string>("");
+  
+  const handleAvatarUpload = async (file: File) => {
+    // Create a URL for the image to crop
+    const imageUrl = URL.createObjectURL(file);
+    setImageToCrop(imageUrl);
+    setCropDialogOpen(true);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    await uploadAvatar(croppedBlob);
+    setCropDialogOpen(false);
+    URL.revokeObjectURL(imageToCrop);
+    setImageToCrop("");
+  };
 
   if (authLoading || profileLoading) {
     return (
@@ -119,7 +136,7 @@ const Profile = () => {
                 username={profile.username || profile.email}
                 size="lg"
                 editable
-                onUpload={uploadAvatar}
+                onUpload={handleAvatarUpload}
               />
               <div className="flex-1 space-y-2">
                 <p className="text-sm font-medium">Profile Picture</p>
@@ -410,6 +427,20 @@ const Profile = () => {
           open={changePasswordDialogOpen}
           onOpenChange={setChangePasswordDialogOpen}
           userEmail={profile.email}
+        />
+
+        <AvatarCropDialog
+          open={cropDialogOpen}
+          onOpenChange={(open) => {
+            setCropDialogOpen(open);
+            if (!open && imageToCrop) {
+              URL.revokeObjectURL(imageToCrop);
+              setImageToCrop("");
+            }
+          }}
+          imageUrl={imageToCrop}
+          onCropComplete={handleCropComplete}
+          loading={uploading}
         />
       </div>
     </Layout>
