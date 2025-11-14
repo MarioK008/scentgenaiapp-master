@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
+import { Logo } from "@/components/Logo";
 import { Sparkles, Home, Heart, Search, Shield, LogOut, MessageSquare, User, Users } from "lucide-react";
 
 interface LayoutProps {
@@ -30,50 +31,57 @@ const Layout = ({ children }: LayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b border-border bg-card">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/dashboard" className="flex items-center space-x-2">
-              <Sparkles className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                ScentGenAI
-              </span>
+    <div className="min-h-screen gradient-subtle">
+      <nav className="border-b border-border/30 gradient-card backdrop-blur-xl shadow-elegant sticky top-0 z-50">
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo */}
+            <Link 
+              to="/dashboard" 
+              className="group transition-smooth hover:opacity-80"
+            >
+              <Logo variant="full" className="hidden sm:flex" />
+              <Logo variant="compact" className="flex sm:hidden" />
             </Link>
 
-            <div className="flex items-center space-x-1">
+            {/* Navigation Items */}
+            <div className="flex items-center gap-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
                 return (
                   <Link key={item.path} to={item.path}>
                     <Button
-                      variant={isActive ? "default" : "ghost"}
+                      variant={isActive ? "premium" : "ghost"}
                       size="sm"
-                      className="gap-2"
+                      className={`gap-2 transition-smooth ${
+                        !isActive && "hover:text-accent hover:shadow-gold"
+                      }`}
                     >
-                      <Icon className="h-4 w-4" />
-                      <span className="hidden sm:inline">{item.label}</span>
+                      <Icon className="h-4 w-4" strokeWidth={1.5} />
+                      <span className="hidden lg:inline">{item.label}</span>
                     </Button>
                   </Link>
                 );
               })}
               
+              {/* Profile Button */}
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => navigate('/profile')} 
-                className="gap-2 ml-2"
+                className="gap-2 ml-2 hover:text-accent hover:shadow-gold transition-smooth"
               >
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">My Account</span>
+                <User className="h-4 w-4" strokeWidth={1.5} />
+                <span className="hidden md:inline">My Account</span>
               </Button>
 
+              {/* Avatar */}
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/profile')}
-                className="ml-2"
+                className="ml-2 hover:shadow-gold transition-smooth rounded-full"
               >
                 <UserAvatar
                   avatarUrl={profile?.avatar_url}
@@ -82,16 +90,22 @@ const Layout = ({ children }: LayoutProps) => {
                 />
               </Button>
               
-              <Button variant="ghost" size="sm" onClick={signOut} className="gap-2 ml-2">
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign Out</span>
+              {/* Sign Out */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={signOut} 
+                className="gap-2 ml-2 hover:text-destructive transition-smooth"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.5} />
+                <span className="hidden md:inline">Sign Out</span>
               </Button>
             </div>
           </div>
         </div>
       </nav>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 lg:px-8 py-12">
         {children}
       </main>
     </div>
