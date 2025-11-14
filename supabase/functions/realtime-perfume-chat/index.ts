@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const OPENAI_PROMPT_ID = Deno.env.get("OPENAI_PROMPT_ID");
 
 serve(async (req) => {
   console.log("🔌 New WebSocket connection request received");
@@ -22,8 +23,8 @@ serve(async (req) => {
   socket.onopen = () => {
     console.log("✅ Client WebSocket connected successfully");
     
-    // Connect to OpenAI Realtime API with correct model
-    const url = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01";
+    // Connect to OpenAI Realtime API with UPDATED model (2024-12-17)
+    const url = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
     console.log("🔄 Attempting to connect to OpenAI:", url);
     
     try {
@@ -41,16 +42,16 @@ serve(async (req) => {
         const data = JSON.parse(event.data);
         console.log("📨 OpenAI event received:", data.type);
 
-        // Configure session after it's created
+        // Configure session after it's created - USE PROMPT ID if available
         if (data.type === "session.created" && !sessionConfigured) {
           sessionConfigured = true;
-          console.log("⚙️ Configuring session...");
+          console.log("⚙️ Configuring session with Prompt ID:", OPENAI_PROMPT_ID ? "✓ Using custom prompt" : "✗ Using fallback");
         
         const sessionConfig = {
           type: "session.update",
           session: {
             modalities: ["text", "audio"],
-            instructions: `You are an expert fragrance consultant helping users discover their perfect perfume. 
+            instructions: OPENAI_PROMPT_ID || `You are an expert fragrance consultant helping users discover their perfect perfume. 
             
 Your role:
 - Ask thoughtful questions about their scent preferences, lifestyle, and occasions
@@ -94,7 +95,7 @@ Guidelines:
         console.error("❌ OpenAI WebSocket error:", error);
         socket.send(JSON.stringify({ 
           type: "error", 
-          error: "Connection to AI failed",
+          error: "Connection to AI failed. Verify API key has Realtime API access.",
           details: error.toString()
         }));
       };

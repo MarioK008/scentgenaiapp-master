@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { Database } from '@/integrations/supabase/types';
 
-type DbConversation = Database['public']['Tables']['voice_conversations']['Row'];
+type DbConversation = {
+  id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  title: string;
+  conversation_type: string;
+  messages: unknown;
+  metadata: unknown;
+};
 
 interface ConversationMessage {
   role: 'user' | 'assistant';
@@ -71,8 +79,8 @@ export function useConversationHistory() {
         .insert({
           title,
           conversation_type: type,
-          messages: messages as unknown as Database['public']['Tables']['voice_conversations']['Insert']['messages'],
-        } as Database['public']['Tables']['voice_conversations']['Insert'])
+          messages: messages as any,
+        })
         .select()
         .single();
 
