@@ -5,12 +5,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Collection from "./pages/Collection";
 import Recommendations from "./pages/Recommendations";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import AdminWaitlist from "./pages/AdminWaitlist";
+import AdminEmailLogs from "./pages/AdminEmailLogs";
 import EmailTemplates from "./pages/EmailTemplates";
 import VoiceAssistant from "./pages/VoiceAssistant";
 import VoiceLive from "./pages/VoiceLive";
@@ -33,6 +36,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/collection" element={<Collection />} />
           <Route path="/recommendations" element={<Recommendations />} />
@@ -48,6 +53,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/waitlist" element={<AdminWaitlist />} />
           <Route path="/admin/email-templates" element={<EmailTemplates />} />
+          <Route path="/admin/email-logs" element={<AdminEmailLogs />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
