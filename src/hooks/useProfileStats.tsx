@@ -9,9 +9,12 @@ interface ProfileStats {
     name: string;
     brand: string;
     image_url: string | null;
-    rating: number;
   } | null;
-  topNotes: string[];
+  topNotes: {
+    top: string[];
+    heart: string[];
+    base: string[];
+  };
 }
 
 export const useProfileStats = (userId: string | undefined) => {
@@ -19,7 +22,7 @@ export const useProfileStats = (userId: string | undefined) => {
     totalPerfumes: 0,
     wishlistCount: 0,
     favoritePerfume: null,
-    topNotes: [],
+    topNotes: { top: [], heart: [], base: [] },
   });
   const [loading, setLoading] = useState(true);
 
@@ -50,64 +53,92 @@ export const useProfileStats = (userId: string | undefined) => {
       // Query 3: Favorite perfume (highest rated)
       const { data: favoriteData } = await supabase
         .from("user_collections")
-        .select("rating, perfumes!inner(id, name, brand, image_url)")
+        .select("rating, perfume_id")
         .eq("user_id", userId)
         .not("rating", "is", null)
         .order("rating", { ascending: false })
-        .limit(1);
+        .limit(1)
+        .single();
 
       let favoritePerfume = null;
-      if (favoriteData?.[0]) {
-        const perfumeData: any = Array.isArray(favoriteData[0].perfumes) 
-          ? favoriteData[0].perfumes[0] 
-          : favoriteData[0].perfumes;
-        
-        favoritePerfume = {
-          id: perfumeData.id,
-          name: perfumeData.name,
-          brand: perfumeData.brand,
-          image_url: perfumeData.image_url,
-          rating: favoriteData[0].rating || 0,
-        };
+      if (favoriteData) {
+        const { data: perfumeData } = await supabase
+          .from("perfumes")
+          .select(`
+            id,
+            name,
+            image_url,
+            brand:brands(name)
+          `)
+          .eq("id", favoriteData.perfume_id)
+          .single();
+
+        if (perfumeData) {
+          const brandData: any = Array.isArray(perfumeData.brand) ? perfumeData.brand[0] : perfumeData.brand;
+          favoritePerfume = {
+            id: perfumeData.id,
+            name: perfumeData.name,
+            brand: brandData?.name || 'Unknown',
+            image_url: perfumeData.image_url,
+          };
+        }
       }
 
-      // Query 4: Top notes analysis
-      const { data: collections } = await supabase
+      // Query 4: Most common notes
+      const { data: collectionData } = await supabase
         .from("user_collections")
-        .select("perfumes!inner(top_notes, heart_notes, base_notes)")
-        .eq("user_id", userId);
+        .select("perfume_id")
+        .eq("user_id", userId)
+        .eq("status", "owned");
 
-      // Analyze most frequent notes
-      const allNotes: string[] = [];
-      collections?.forEach((c) => {
-        if (c.perfumes) {
-          const perfume = Array.isArray(c.perfumes) ? c.perfumes[0] : c.perfumes;
-          allNotes.push(
-            ...(perfume.top_notes || []),
-            ...(perfume.heart_notes || []),
-            ...(perfume.base_notes || [])
-          );
-        }
-      });
+      const perfumeIds = collectionData?.map(c => c.perfume_id) || [];
 
-      const noteCounts: Record<string, number> = {};
-      allNotes.forEach((note) => {
-        noteCounts[note] = (noteCounts[note] || 0) + 1;
-      });
+      if (perfumeIds.length > 0) {
+        const { data: notesData } = await supabase
+          .from("perfume_notes")
+          .select("note:notes(name, type)")
+          .in("perfume_id", perfumeIds);
 
-      const topNotes = Object.entries(noteCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 5)
-        .map(([note]) => note);
+        const noteCounts: Record<string, Record<string, number>> = {
+          top: {},
+          heart: {},
+          base: {},
+        };
 
-      setStats({
-        totalPerfumes: totalPerfumes || 0,
-        wishlistCount: wishlistCount || 0,
-        favoritePerfume,
-        topNotes,
-      });
+        notesData?.forEach((item: any) => {
+          const note = Array.isArray(item.note) ? item.note[0] : item.note;
+          if (note && note.type && note.name) {
+            noteCounts[note.type][note.name] = (noteCounts[note.type][note.name] || 0) + 1;
+          }
+        });
+
+        const getTopNotes = (type: 'top' | 'heart' | 'base') => {
+          return Object.entries(noteCounts[type])
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 3)
+            .map(([name]) => name);
+        };
+
+        setStats({
+          totalPerfumes: totalPerfumes || 0,
+          wishlistCount: wishlistCount || 0,
+          favoritePerfume,
+          topNotes: {
+            top: getTopNotes('top'),
+            heart: getTopNotes('heart'),
+            base: getTopNotes('base'),
+          },
+        });
+      } else {
+        setStats({
+          totalPerfumes: totalPerfumes || 0,
+          wishlistCount: wishlistCount || 0,
+          favoritePerfume,
+          topNotes: { top: [], heart: [], base: [] },
+        });
+      }
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("Error fetching profile stats:", error);
     } finally {
       setLoading(false);
     }

@@ -3,45 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import PerfumeCard from "@/components/PerfumeCard";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
-
-interface Perfume {
-  id: string;
-  name: string;
-  brand: string;
-  image_url: string | null;
-  top_notes: string[];
-  heart_notes: string[];
-  base_notes: string[];
-  season: string | null;
-  longevity: number | null;
-  sillage: number | null;
-  description: string | null;
-}
+import { usePerfumes, Perfume } from "@/hooks/usePerfumes";
+import { supabase } from "@/integrations/supabase/client";
 
 const Search = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [perfumes, setPerfumes] = useState<Perfume[]>([]);
+  const { perfumes, loading: loadingPerfumes } = usePerfumes();
   const [filteredPerfumes, setFilteredPerfumes] = useState<Perfume[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loadingPerfumes, setLoadingPerfumes] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
-
-  useEffect(() => {
-    if (user) {
-      fetchPerfumes();
-    }
-  }, [user]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -51,36 +31,17 @@ const Search = () => {
 
     const query = searchQuery.toLowerCase();
     const filtered = perfumes.filter((perfume) => {
+      const brandName = typeof perfume.brand === 'string' ? perfume.brand : perfume.brand?.name || '';
       return (
         perfume.name.toLowerCase().includes(query) ||
-        perfume.brand.toLowerCase().includes(query) ||
-        perfume.top_notes?.some((note) => note.toLowerCase().includes(query)) ||
-        perfume.heart_notes?.some((note) => note.toLowerCase().includes(query)) ||
-        perfume.base_notes?.some((note) => note.toLowerCase().includes(query)) ||
-        perfume.description?.toLowerCase().includes(query)
+        brandName.toLowerCase().includes(query) ||
+        perfume.notes?.some((note) => note.name.toLowerCase().includes(query)) ||
+        perfume.description?.toLowerCase().includes(query) ||
+        perfume.concentration?.toLowerCase().includes(query)
       );
     });
     setFilteredPerfumes(filtered);
   }, [searchQuery, perfumes]);
-
-  const fetchPerfumes = async () => {
-    const { data, error } = await supabase
-      .from("perfumes")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load perfumes",
-        variant: "destructive",
-      });
-    } else {
-      setPerfumes(data || []);
-      setFilteredPerfumes(data || []);
-    }
-    setLoadingPerfumes(false);
-  };
 
   const handleAddToCollection = async (perfumeId: string, status: "owned" | "wishlist") => {
     if (!user) return;

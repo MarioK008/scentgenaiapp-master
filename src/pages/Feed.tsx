@@ -22,15 +22,15 @@ interface FeedItem {
   perfumes: {
     id: string;
     name: string;
-    brand: string;
+    brand?: { name: string };
     image_url: string | null;
-    top_notes: string[];
-    heart_notes: string[];
-    base_notes: string[];
-    season: string | null;
-    longevity: number | null;
-    sillage: number | null;
+    notes?: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
+    seasons?: Array<{ name: string }>;
+    longevity: string | null;
+    sillage: string | null;
     description: string | null;
+    year: number | null;
+    concentration: string | null;
   };
 }
 
@@ -73,28 +73,10 @@ const Feed = () => {
 
       const followedIds = follows.map((f) => f.followed_id);
 
-      // Get recent additions from followed users with perfume details
+      // Get recent additions from followed users
       const { data: collections, error: collectionsError } = await supabase
         .from("user_collections")
-        .select(`
-          id,
-          added_at,
-          user_id,
-          status,
-          perfumes!inner (
-            id,
-            name,
-            brand,
-            image_url,
-            top_notes,
-            heart_notes,
-            base_notes,
-            season,
-            longevity,
-            sillage,
-            description
-          )
-        `)
+        .select("id, added_at, user_id, status, perfume_id")
         .in("user_id", followedIds)
         .order("added_at", { ascending: false })
         .limit(20);
@@ -109,13 +91,42 @@ const Feed = () => {
 
       if (profilesError) throw profilesError;
 
+      // Get perfumes with relations
+      const perfumeIds = collections?.map(c => c.perfume_id) || [];
+      const { data: perfumesData } = await supabase
+        .from("perfumes")
+        .select(`
+          id,
+          name,
+          image_url,
+          longevity,
+          sillage,
+          description,
+          year,
+          concentration,
+          brand:brands(name),
+          notes:perfume_notes(note:notes(name, type)),
+          seasons:perfume_seasons(season:seasons(name))
+        `)
+        .in("id", perfumeIds);
+
       // Merge the data
       const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
-      const mergedData = collections?.map(item => ({
-        ...item,
-        perfumes: Array.isArray(item.perfumes) ? item.perfumes[0] : item.perfumes,
-        profiles: profilesMap.get(item.user_id) || { username: "Unknown", avatar_url: null }
-      })) || [];
+      const perfumesMap = new Map(perfumesData?.map(p => [p.id, p]) || []);
+      
+      const mergedData = collections?.map(item => {
+        const perfume = perfumesMap.get(item.perfume_id);
+        return {
+          ...item,
+          profiles: profilesMap.get(item.user_id) || { username: "Unknown", avatar_url: null },
+          perfumes: {
+            ...perfume,
+            brand: Array.isArray(perfume?.brand) ? perfume.brand[0] : perfume?.brand,
+            notes: perfume?.notes?.map((n: any) => Array.isArray(n.note) ? n.note[0] : n.note).filter(Boolean) || [],
+            seasons: perfume?.seasons?.map((s: any) => Array.isArray(s.season) ? s.season[0] : s.season).filter(Boolean) || [],
+          }
+        };
+      }) || [];
 
       setFeedItems(mergedData as FeedItem[]);
     } catch (error) {

@@ -7,15 +7,16 @@ interface PerfumeCardProps {
   perfume: {
     id: string;
     name: string;
-    brand: string;
+    brand?: { name: string } | string;
     image_url?: string;
-    top_notes?: string[];
-    heart_notes?: string[];
-    base_notes?: string[];
-    season?: string;
-    longevity?: number;
-    sillage?: number;
-    description?: string;
+    notes?: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
+    seasons?: Array<{ name: string }>;
+    longevity?: string | null;
+    sillage?: string | null;
+    description?: string | null;
+    rating?: number | null;
+    year?: number | null;
+    concentration?: string | null;
   };
   userRating?: number;
   status?: "owned" | "wishlist";
@@ -50,11 +51,14 @@ const PerfumeCard = ({
         <div className="flex justify-between items-start gap-2">
           <div className="flex-1 min-w-0">
             <CardTitle className="text-xl truncate">{perfume.name}</CardTitle>
-            <CardDescription className="truncate">{perfume.brand}</CardDescription>
+            <CardDescription className="truncate">
+              {typeof perfume.brand === 'string' ? perfume.brand : perfume.brand?.name || 'Unknown'}
+              {perfume.year && ` (${perfume.year})`}
+            </CardDescription>
           </div>
-          {perfume.season && (
+          {perfume.seasons && perfume.seasons.length > 0 && (
             <Badge variant="secondary" className="capitalize shrink-0 rounded-[12px]">
-              {perfume.season.replace("_", " ")}
+              {perfume.seasons[0].name}
             </Badge>
           )}
         </div>
@@ -68,22 +72,28 @@ const PerfumeCard = ({
         )}
 
         <div className="space-y-2">
-          {perfume.top_notes && perfume.top_notes.length > 0 && (
+          {perfume.notes && perfume.notes.filter(n => n.type === 'top').length > 0 && (
             <div>
               <span className="text-xs font-semibold text-accent">Top: </span>
-              <span className="text-xs text-muted-foreground">{perfume.top_notes.join(", ")}</span>
+              <span className="text-xs text-muted-foreground">
+                {perfume.notes.filter(n => n.type === 'top').map(n => n.name).join(", ")}
+              </span>
             </div>
           )}
-          {perfume.heart_notes && perfume.heart_notes.length > 0 && (
+          {perfume.notes && perfume.notes.filter(n => n.type === 'heart').length > 0 && (
             <div>
               <span className="text-xs font-semibold text-primary">Heart: </span>
-              <span className="text-xs text-muted-foreground">{perfume.heart_notes.join(", ")}</span>
+              <span className="text-xs text-muted-foreground">
+                {perfume.notes.filter(n => n.type === 'heart').map(n => n.name).join(", ")}
+              </span>
             </div>
           )}
-          {perfume.base_notes && perfume.base_notes.length > 0 && (
+          {perfume.notes && perfume.notes.filter(n => n.type === 'base').length > 0 && (
             <div>
               <span className="text-xs font-semibold text-accent">Base: </span>
-              <span className="text-xs text-muted-foreground">{perfume.base_notes.join(", ")}</span>
+              <span className="text-xs text-muted-foreground">
+                {perfume.notes.filter(n => n.type === 'base').map(n => n.name).join(", ")}
+              </span>
             </div>
           )}
         </div>
@@ -92,14 +102,19 @@ const PerfumeCard = ({
           {perfume.longevity && (
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-primary" strokeWidth={1.5} />
-              <span className="font-medium">{perfume.longevity}/10</span>
+              <span className="font-medium">{perfume.longevity}</span>
             </div>
           )}
           {perfume.sillage && (
             <div className="flex items-center gap-1.5">
               <Wind className="h-4 w-4 text-accent" strokeWidth={1.5} />
-              <span className="font-medium">{perfume.sillage}/10</span>
+              <span className="font-medium">{perfume.sillage}</span>
             </div>
+          )}
+          {perfume.concentration && (
+            <Badge variant="outline" className="rounded-[12px]">
+              {perfume.concentration}
+            </Badge>
           )}
         </div>
 
