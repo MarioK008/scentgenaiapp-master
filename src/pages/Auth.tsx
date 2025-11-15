@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,29 +89,76 @@ const Auth = () => {
   }, [navigate]);
 
   const handleSignUp = async (values: SignUpFormValues) => {
-    const { error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: {
-          username: values.username || values.email.split("@")[0],
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            username: values.username || values.email.split("@")[0],
+          },
         },
-      },
-    });
-
-    if (error) {
-      toast({
-        title: "Sign up failed",
-        description: error.message,
-        variant: "destructive",
       });
-    } else {
+
+      if (error) {
+        toast({
+          title: "Sign up failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Success!",
         description: "Account created successfully. You can now sign in.",
       });
+      
+      // Send welcome email and admin notification in background
+      if (data.user) {
+        try {
+          const username = values.username || values.email.split("@")[0];
+          
+          // Send welcome email to user
+          supabase.functions.invoke('send-user-welcome', {
+            body: {
+              email: values.email,
+              username: username,
+              userId: data.user.id
+            }
+          }).then(({ error: emailError }) => {
+            if (emailError) {
+              console.error('Failed to send welcome email:', emailError);
+            }
+          });
+
+          // Notify admin
+          supabase.functions.invoke('notify-admin', {
+            body: {
+              email: values.email,
+              username: username,
+              userId: data.user.id,
+              timestamp: new Date().toISOString()
+            }
+          }).then(({ error: adminError }) => {
+            if (adminError) {
+              console.error('Failed to send admin notification:', adminError);
+            }
+          });
+        } catch (err) {
+          console.error('Error triggering post-signup emails:', err);
+        }
+      }
+      
       signUpForm.reset();
+    } catch (err) {
+      console.error('Signup error:', err);
+      toast({
+        title: "Sign up failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -198,6 +245,15 @@ const Auth = () => {
                     >
                       {signInForm.formState.isSubmitting ? "Signing in..." : "Sign In"}
                     </Button>
+                    
+                    <div className="text-center pt-2">
+                      <Link
+                        to="/forgot-password"
+                        className="text-sm text-[#FF2E92] hover:text-[#F7B731] font-medium transition-colors"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
                   </form>
                 </Form>
               </TabsContent>
