@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      accords: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           category: string
@@ -44,6 +62,27 @@ export type Database = {
           name?: string
           requirement_type?: string
           requirement_value?: number
+        }
+        Relationships: []
+      }
+      brands: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -166,53 +205,212 @@ export type Database = {
         }
         Relationships: []
       }
-      perfumes: {
+      notes: {
         Row: {
-          base_notes: string[] | null
-          brand: string
           created_at: string | null
-          description: string | null
-          heart_notes: string[] | null
           id: string
-          image_url: string | null
-          longevity: number | null
           name: string
-          season: Database["public"]["Enums"]["perfume_season"] | null
-          sillage: number | null
-          top_notes: string[] | null
-          updated_at: string | null
+          type: string
         }
         Insert: {
-          base_notes?: string[] | null
-          brand: string
           created_at?: string | null
-          description?: string | null
-          heart_notes?: string[] | null
           id?: string
-          image_url?: string | null
-          longevity?: number | null
           name: string
-          season?: Database["public"]["Enums"]["perfume_season"] | null
-          sillage?: number | null
-          top_notes?: string[] | null
-          updated_at?: string | null
+          type: string
         }
         Update: {
-          base_notes?: string[] | null
-          brand?: string
           created_at?: string | null
-          description?: string | null
-          heart_notes?: string[] | null
           id?: string
-          image_url?: string | null
-          longevity?: number | null
           name?: string
-          season?: Database["public"]["Enums"]["perfume_season"] | null
-          sillage?: number | null
-          top_notes?: string[] | null
-          updated_at?: string | null
+          type?: string
         }
         Relationships: []
+      }
+      perfume_accords: {
+        Row: {
+          accord_id: string
+          perfume_id: string
+        }
+        Insert: {
+          accord_id: string
+          perfume_id: string
+        }
+        Update: {
+          accord_id?: string
+          perfume_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfume_accords_accord_id_fkey"
+            columns: ["accord_id"]
+            isOneToOne: false
+            referencedRelation: "accords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfume_accords_perfume_id_fkey"
+            columns: ["perfume_id"]
+            isOneToOne: false
+            referencedRelation: "perfumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfume_notes: {
+        Row: {
+          note_id: string
+          perfume_id: string
+        }
+        Insert: {
+          note_id: string
+          perfume_id: string
+        }
+        Update: {
+          note_id?: string
+          perfume_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfume_notes_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfume_notes_perfume_id_fkey"
+            columns: ["perfume_id"]
+            isOneToOne: false
+            referencedRelation: "perfumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfume_seasons: {
+        Row: {
+          perfume_id: string
+          season_id: string
+        }
+        Insert: {
+          perfume_id: string
+          season_id: string
+        }
+        Update: {
+          perfume_id?: string
+          season_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfume_seasons_perfume_id_fkey"
+            columns: ["perfume_id"]
+            isOneToOne: false
+            referencedRelation: "perfumes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfume_seasons_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfume_similar: {
+        Row: {
+          perfume_id: string
+          similar_id: string
+        }
+        Insert: {
+          perfume_id: string
+          similar_id: string
+        }
+        Update: {
+          perfume_id?: string
+          similar_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfume_similar_perfume_id_fkey"
+            columns: ["perfume_id"]
+            isOneToOne: false
+            referencedRelation: "perfumes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfume_similar_similar_id_fkey"
+            columns: ["similar_id"]
+            isOneToOne: false
+            referencedRelation: "perfumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfumes: {
+        Row: {
+          brand_id: string | null
+          concentration: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          longevity: string | null
+          main_accord_id: string | null
+          name: string
+          rating: number | null
+          sillage: string | null
+          updated_at: string | null
+          votes: number | null
+          year: number | null
+        }
+        Insert: {
+          brand_id?: string | null
+          concentration?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          longevity?: string | null
+          main_accord_id?: string | null
+          name: string
+          rating?: number | null
+          sillage?: string | null
+          updated_at?: string | null
+          votes?: number | null
+          year?: number | null
+        }
+        Update: {
+          brand_id?: string | null
+          concentration?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          longevity?: string | null
+          main_accord_id?: string | null
+          name?: string
+          rating?: number | null
+          sillage?: string | null
+          updated_at?: string | null
+          votes?: number | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfumes_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfumes_main_accord_id_fkey"
+            columns: ["main_accord_id"]
+            isOneToOne: false
+            referencedRelation: "accords"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -256,6 +454,24 @@ export type Database = {
           preferred_language?: string | null
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      seasons: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -316,15 +532,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["collection_status"]
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_collections_perfume_id_fkey"
-            columns: ["perfume_id"]
-            isOneToOne: false
-            referencedRelation: "perfumes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_follows: {
         Row: {
@@ -467,7 +675,6 @@ export type Database = {
       app_role: "admin" | "user"
       collection_status: "owned" | "wishlist"
       follow_status: "pending" | "approved" | "rejected"
-      perfume_season: "spring" | "summer" | "fall" | "winter" | "all_season"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -598,7 +805,6 @@ export const Constants = {
       app_role: ["admin", "user"],
       collection_status: ["owned", "wishlist"],
       follow_status: ["pending", "approved", "rejected"],
-      perfume_season: ["spring", "summer", "fall", "winter", "all_season"],
     },
   },
 } as const
