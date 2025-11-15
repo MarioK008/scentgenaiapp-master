@@ -164,6 +164,39 @@ export type Database = {
         }
         Relationships: []
       }
+      import_logs: {
+        Row: {
+          created_at: string
+          error_details: Json | null
+          failed_rows: number
+          filename: string
+          id: string
+          successful_rows: number
+          table_name: string
+          total_rows: number
+        }
+        Insert: {
+          created_at?: string
+          error_details?: Json | null
+          failed_rows?: number
+          filename: string
+          id?: string
+          successful_rows?: number
+          table_name: string
+          total_rows?: number
+        }
+        Update: {
+          created_at?: string
+          error_details?: Json | null
+          failed_rows?: number
+          filename?: string
+          id?: string
+          successful_rows?: number
+          table_name?: string
+          total_rows?: number
+        }
+        Relationships: []
+      }
       knowledge_chunks: {
         Row: {
           chunk_index: number | null
