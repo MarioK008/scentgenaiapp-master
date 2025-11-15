@@ -345,9 +345,6 @@ const Profile = () => {
                       <p className="font-semibold">
                         {stats.favoritePerfume.brand} - {stats.favoritePerfume.name}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Rating: {stats.favoritePerfume.rating}/5
-                      </p>
                     </div>
                     {stats.favoritePerfume.image_url && (
                       <img
@@ -359,19 +356,54 @@ const Profile = () => {
                   </div>
                 )}
 
-                {stats.topNotes.length > 0 && (
-                  <div className="col-span-full p-4 rounded-lg bg-muted space-y-2">
+                {(stats.topNotes.top.length > 0 || stats.topNotes.heart.length > 0 || stats.topNotes.base.length > 0) && (
+                  <div className="col-span-full p-4 rounded-lg bg-muted space-y-3">
                     <p className="text-sm font-medium">Your Top Notes</p>
-                    <div className="flex flex-wrap gap-2">
-                      {stats.topNotes.map((note) => (
-                        <span
-                          key={note}
-                          className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm"
-                        >
-                          {note}
-                        </span>
-                      ))}
-                    </div>
+                    {stats.topNotes.top.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Top Notes</p>
+                        <div className="flex flex-wrap gap-2">
+                          {stats.topNotes.top.map((note) => (
+                            <span
+                              key={note}
+                              className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm"
+                            >
+                              {note}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {stats.topNotes.heart.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Heart Notes</p>
+                        <div className="flex flex-wrap gap-2">
+                          {stats.topNotes.heart.map((note) => (
+                            <span
+                              key={note}
+                              className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm"
+                            >
+                              {note}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {stats.topNotes.base.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Base Notes</p>
+                        <div className="flex flex-wrap gap-2">
+                          {stats.topNotes.base.map((note) => (
+                            <span
+                              key={note}
+                              className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm"
+                            >
+                              {note}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -260,25 +260,13 @@ const PublicProfile = () => {
                   <div>
                     <h3 className="font-semibold">{stats.favoritePerfume.name}</h3>
                     <p className="text-sm text-muted-foreground">{stats.favoritePerfume.brand}</p>
-                    <div className="flex items-center gap-1 mt-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < stats.favoritePerfume!.rating
-                              ? "fill-primary text-primary"
-                              : "text-muted"
-                          }`}
-                        />
-                      ))}
-                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {stats.topNotes.length > 0 && (
+          {(stats.topNotes.top.length > 0 || stats.topNotes.heart.length > 0 || stats.topNotes.base.length > 0) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -288,12 +276,43 @@ const PublicProfile = () => {
                 <CardDescription>Most common notes in their collection</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {stats.topNotes.map((note) => (
-                    <Badge key={note} variant="secondary" className="text-sm">
-                      {note}
-                    </Badge>
-                  ))}
+                <div className="space-y-3">
+                  {stats.topNotes.top.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">Top Notes</p>
+                      <div className="flex flex-wrap gap-2">
+                        {stats.topNotes.top.map((note) => (
+                          <Badge key={note} variant="secondary" className="text-sm">
+                            {note}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {stats.topNotes.heart.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">Heart Notes</p>
+                      <div className="flex flex-wrap gap-2">
+                        {stats.topNotes.heart.map((note) => (
+                          <Badge key={note} variant="secondary" className="text-sm">
+                            {note}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {stats.topNotes.base.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">Base Notes</p>
+                      <div className="flex flex-wrap gap-2">
+                        {stats.topNotes.base.map((note) => (
+                          <Badge key={note} variant="secondary" className="text-sm">
+                            {note}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

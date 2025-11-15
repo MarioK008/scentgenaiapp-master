@@ -18,15 +18,15 @@ interface CollectionItem {
   perfumes: {
     id: string;
     name: string;
-    brand: string;
+    brand?: { name: string };
     image_url: string | null;
-    top_notes: string[];
-    heart_notes: string[];
-    base_notes: string[];
-    season: string | null;
-    longevity: number | null;
-    sillage: number | null;
+    notes: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
+    seasons: Array<{ name: string }>;
+    longevity: string | null;
+    sillage: string | null;
     description: string | null;
+    year: number | null;
+    concentration: string | null;
   };
 }
 
@@ -50,43 +50,65 @@ const Collection = () => {
   }, [user]);
 
   const fetchCollection = async () => {
-    const { data, error } = await supabase
-      .from("user_collections")
-      .select(`
-        id,
-        perfume_id,
-        status,
-        rating,
-        perfumes!inner (
+    try {
+      const { data, error } = await supabase
+        .from("user_collections")
+        .select(`
+          id,
+          perfume_id,
+          status,
+          rating
+        `)
+        .order("added_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch full perfume data with relations
+      const perfumeIds = data?.map(item => item.perfume_id) || [];
+      
+      const { data: perfumesData, error: perfumesError } = await supabase
+        .from("perfumes")
+        .select(`
           id,
           name,
-          brand,
           image_url,
-          top_notes,
-          heart_notes,
-          base_notes,
-          season,
           longevity,
           sillage,
-          description
-        )
-      `)
-      .order("added_at", { ascending: false });
+          description,
+          year,
+          concentration,
+          brand:brands(name),
+          notes:perfume_notes(note:notes(name, type)),
+          seasons:perfume_seasons(season:seasons(name))
+        `)
+        .in("id", perfumeIds);
 
-    if (error) {
+      if (perfumesError) throw perfumesError;
+
+      // Combine collection items with perfume data
+      const enrichedCollection = data?.map(item => {
+        const perfume = perfumesData?.find(p => p.id === item.perfume_id);
+        return {
+          ...item,
+          perfumes: {
+            ...perfume,
+            brand: Array.isArray(perfume?.brand) ? perfume.brand[0] : perfume?.brand,
+            notes: perfume?.notes?.map((n: any) => Array.isArray(n.note) ? n.note[0] : n.note).filter(Boolean) || [],
+            seasons: perfume?.seasons?.map((s: any) => Array.isArray(s.season) ? s.season[0] : s.season).filter(Boolean) || [],
+          }
+        };
+      }) || [];
+
+      setCollection(enrichedCollection as CollectionItem[]);
+    } catch (error: any) {
       toast({
         title: "Error",
         description: "Failed to load collection",
         variant: "destructive",
       });
-    } else {
-      const transformedData = (data || []).map(item => ({
-        ...item,
-        perfumes: Array.isArray(item.perfumes) ? item.perfumes[0] : item.perfumes
-      }));
-      setCollection(transformedData as CollectionItem[]);
+    } finally {
+      setLoadingCollection(false);
     }
-    setLoadingCollection(false);
   };
 
   const handleRate = async (perfumeId: string, rating: number) => {

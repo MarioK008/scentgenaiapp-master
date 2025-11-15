@@ -14,15 +14,15 @@ import { Sparkles } from "lucide-react";
 interface Perfume {
   id: string;
   name: string;
-  brand: string;
+  brand?: { name: string };
   image_url: string | null;
-  top_notes: string[];
-  heart_notes: string[];
-  base_notes: string[];
-  season: string | null;
-  longevity: number | null;
-  sillage: number | null;
+  notes: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
+  seasons: Array<{ name: string }>;
+  longevity: string | null;
+  sillage: string | null;
   description: string | null;
+  year: number | null;
+  concentration: string | null;
 }
 
 const Recommendations = () => {
