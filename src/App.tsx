@@ -22,6 +22,7 @@ import VoiceChat from "./pages/VoiceChat";
 import VoiceHistory from "./pages/VoiceHistory";
 import KnowledgeManagement from "./pages/KnowledgeManagement";
 import AdminKnowledge from "./pages/AdminKnowledge";
+import AdminUsers from "./pages/AdminUsers";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 import Feed from "./pages/Feed";
@@ -65,6 +66,7 @@ const App = () => (
           <Route path="/admin/email-logs" element={<AdminRoute><AdminEmailLogs /></AdminRoute>} />
           <Route path="/admin/import-logs" element={<AdminRoute><ImportLogs /></AdminRoute>} />
           <Route path="/admin/knowledge" element={<AdminRoute><AdminKnowledge /></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
           
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
