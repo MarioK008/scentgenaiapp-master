@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,24 +26,14 @@ interface Stats {
 }
 
 export default function AdminWaitlist() {
-  const { user, isAdmin, loading } = useAuth();
-  const navigate = useNavigate();
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, notified: 0, pending: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate("/");
-    }
-  }, [user, isAdmin, loading, navigate]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchWaitlist();
-    }
-  }, [isAdmin]);
+    fetchWaitlist();
+  }, []);
 
   const fetchWaitlist = async () => {
     setIsLoading(true);
@@ -131,10 +119,6 @@ export default function AdminWaitlist() {
       setUpdating(null);
     }
   };
-
-  if (loading || !user) {
-    return null;
-  }
 
   return (
     <Layout>

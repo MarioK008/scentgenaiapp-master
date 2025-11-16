@@ -17,23 +17,23 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const navItems = [
+  // Separate navigation for admin vs regular users
+  const userNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/collection", label: "Collection", icon: Heart },
-    // { path: "/feed", label: "Feed", icon: Users }, // Temporalmente oculto
     { path: "/recommendations", label: "Recommendations", icon: Sparkles },
     { path: "/voice-assistant", label: "MyScentGenAI", icon: MessageSquare },
     { path: "/search", label: "Search", icon: Search },
   ];
 
-  if (isAdmin) {
-    navItems.push(
-      { path: "/admin", label: "Admin: Perfumes", icon: Shield },
-      { path: "/admin/waitlist", label: "Admin: Waitlist", icon: Shield },
-      { path: "/admin/email-templates", label: "Admin: Email Templates", icon: Shield },
-      { path: "/knowledge", label: "Admin: Knowledge", icon: Shield }
-    );
-  }
+  const adminNavItems = [
+    { path: "/admin", label: "Perfumes", icon: Shield },
+    { path: "/admin/waitlist", label: "Waitlist", icon: Users },
+    { path: "/admin/email-templates", label: "Email Templates", icon: MessageSquare },
+    { path: "/admin/knowledge", label: "Knowledge", icon: Sparkles },
+  ];
+
+  const navItems = isAdmin ? adminNavItems : userNavItems;
 
   return (
     <div className="min-h-screen gradient-subtle">

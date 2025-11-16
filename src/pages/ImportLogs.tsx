@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,22 +19,12 @@ interface ImportLog {
 }
 
 const ImportLogs = () => {
-  const { user, loading, isAdmin } = useAuth();
-  const navigate = useNavigate();
   const [logs, setLogs] = useState<ImportLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(true);
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate("/dashboard");
-    }
-  }, [user, loading, isAdmin, navigate]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchLogs();
-    }
-  }, [isAdmin]);
+    fetchLogs();
+  }, []);
 
   const fetchLogs = async () => {
     try {
@@ -55,7 +43,7 @@ const ImportLogs = () => {
     }
   };
 
-  if (loading || loadingLogs) {
+  if (loadingLogs) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -63,10 +51,6 @@ const ImportLogs = () => {
         </div>
       </Layout>
     );
-  }
-
-  if (!isAdmin) {
-    return null;
   }
 
   return (
