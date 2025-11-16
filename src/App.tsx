@@ -21,10 +21,13 @@ import VoiceLive from "./pages/VoiceLive";
 import VoiceChat from "./pages/VoiceChat";
 import VoiceHistory from "./pages/VoiceHistory";
 import KnowledgeManagement from "./pages/KnowledgeManagement";
+import AdminKnowledge from "./pages/AdminKnowledge";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 import Feed from "./pages/Feed";
 import NotFound from "./pages/NotFound";
+import { AdminRoute } from "./components/AdminRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -35,28 +38,35 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/collection" element={<Collection />} />
-          <Route path="/recommendations" element={<Recommendations />} />
-          <Route path="/voice-assistant" element={<VoiceAssistant />} />
-          <Route path="/voice-live" element={<VoiceLive />} />
-          <Route path="/voice-chat" element={<VoiceChat />} />
-          <Route path="/voice-history" element={<VoiceHistory />} />
-          <Route path="/knowledge" element={<KnowledgeManagement />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/user/:userId" element={<PublicProfile />} />
-          <Route path="/feed" element={<Feed />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/waitlist" element={<AdminWaitlist />} />
-          <Route path="/admin/email-templates" element={<EmailTemplates />} />
-          <Route path="/admin/email-logs" element={<AdminEmailLogs />} />
-          <Route path="/admin/import-logs" element={<ImportLogs />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          
+          {/* Protected User Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
+          <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
+          <Route path="/voice-assistant" element={<ProtectedRoute><VoiceAssistant /></ProtectedRoute>} />
+          <Route path="/voice-live" element={<ProtectedRoute><VoiceLive /></ProtectedRoute>} />
+          <Route path="/voice-chat" element={<ProtectedRoute><VoiceChat /></ProtectedRoute>} />
+          <Route path="/voice-history" element={<ProtectedRoute><VoiceHistory /></ProtectedRoute>} />
+          <Route path="/knowledge" element={<ProtectedRoute><KnowledgeManagement /></ProtectedRoute>} />
+          <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/user/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
+          <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+          
+          {/* Admin Only Routes */}
+          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+          <Route path="/admin/waitlist" element={<AdminRoute><AdminWaitlist /></AdminRoute>} />
+          <Route path="/admin/email-templates" element={<AdminRoute><EmailTemplates /></AdminRoute>} />
+          <Route path="/admin/email-logs" element={<AdminRoute><AdminEmailLogs /></AdminRoute>} />
+          <Route path="/admin/import-logs" element={<AdminRoute><ImportLogs /></AdminRoute>} />
+          <Route path="/admin/knowledge" element={<AdminRoute><AdminKnowledge /></AdminRoute>} />
+          
+          {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

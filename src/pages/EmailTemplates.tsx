@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,24 +27,14 @@ interface EmailTemplate {
 }
 
 export default function EmailTemplates() {
-  const { user, isAdmin, loading } = useAuth();
-  const navigate = useNavigate();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate("/dashboard");
-    }
-  }, [user, isAdmin, loading, navigate]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchTemplates();
-    }
-  }, [isAdmin]);
+    fetchTemplates();
+  }, []);
 
   const fetchTemplates = async () => {
     setIsLoading(true);
@@ -100,10 +88,6 @@ export default function EmailTemplates() {
       });
     }
   };
-
-  if (loading || !user) {
-    return null;
-  }
 
   return (
     <Layout>

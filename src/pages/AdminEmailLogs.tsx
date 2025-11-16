@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,18 +18,12 @@ interface EmailLog {
 }
 
 const AdminEmailLogs = () => {
-  const { isAdmin } = useAuth();
-  const navigate = useNavigate();
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAdmin) {
-      navigate("/dashboard");
-      return;
-    }
     fetchLogs();
-  }, [isAdmin, navigate]);
+  }, []);
 
   const fetchLogs = async () => {
     setLoading(true);

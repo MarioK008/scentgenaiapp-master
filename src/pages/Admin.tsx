@@ -1,6 +1,4 @@
-import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CSVImporter } from "@/components/CSVImporter";
@@ -8,23 +6,6 @@ import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 
 const Admin = () => {
-  const { user, loading, isAdmin } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate("/dashboard");
-    }
-  }, [user, loading, isAdmin, navigate]);
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (!isAdmin) {
-    return null;
-  }
-
   return (
     <Layout>
       <div className="space-y-6">
