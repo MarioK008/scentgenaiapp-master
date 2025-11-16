@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.81.1';
 import { sendEmail } from '../_shared/email-service.ts';
+import { checkRateLimit } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +22,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    // SECURITY: Rate limiting - 10 requests per IP per hour
+    await checkRateLimit(req, 'send-welcome-email', 10, 60);
+
     const { email, waitlistId, templateKey = 'welcome', variables = {} }: EmailRequest = await req.json();
     console.log(`Sending ${templateKey} email to: ${email}`);
 

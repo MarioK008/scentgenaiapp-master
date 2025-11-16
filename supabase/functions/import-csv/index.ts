@@ -182,6 +182,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    // SECURITY: Check file size (10MB limit)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_FILE_SIZE) {
+      return new Response(
+        JSON.stringify({ 
+          error: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.` 
+        }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const schema = TABLE_SCHEMAS[tableName];
     if (!schema) {
       return new Response(
@@ -197,6 +208,18 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'CSV file is empty' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: Check row count limit (10,000 rows max)
+    const MAX_ROWS = 10000;
+    if (rows.length - 1 > MAX_ROWS) { // -1 for header row
+      return new Response(
+        JSON.stringify({ 
+          error: `Too many rows. Maximum is ${MAX_ROWS} rows. Your file has ${rows.length - 1} data rows.`,
+          suggestion: 'Split your file into smaller chunks.'
+        }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

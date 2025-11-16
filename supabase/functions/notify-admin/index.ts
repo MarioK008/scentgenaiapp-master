@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { sendEmail } from '../_shared/email-service.ts';
+import { checkRateLimit } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +21,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    // SECURITY: Rate limiting - 20 requests per IP per hour (admin notifications)
+    await checkRateLimit(req, 'notify-admin', 20, 60);
+
     const { email, username, userId, timestamp }: AdminNotificationRequest = await req.json();
     console.log(`Sending admin notification for new user: ${email}`);
 

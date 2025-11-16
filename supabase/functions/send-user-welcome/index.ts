@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { sendEmail } from '../_shared/email-service.ts';
+import { checkRateLimit } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,6 +20,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    // SECURITY: Rate limiting - 10 requests per IP per hour
+    await checkRateLimit(req, 'send-user-welcome', 10, 60);
+
     const { email, username, userId }: WelcomeEmailRequest = await req.json();
     console.log(`Sending user welcome email to: ${email}`);
 

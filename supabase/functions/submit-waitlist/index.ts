@@ -13,6 +13,9 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: Rate limiting - 3 requests per IP per hour
+    await checkRateLimit(req, 'submit-waitlist', 3, 60);
+
     const { email } = await req.json();
 
     // Email validation
