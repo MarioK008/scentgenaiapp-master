@@ -31,6 +31,7 @@ const Layout = ({ children }: LayoutProps) => {
     { path: "/admin/waitlist", label: "Waitlist", icon: Users },
     { path: "/admin/email-templates", label: "Email Templates", icon: MessageSquare },
     { path: "/admin/knowledge", label: "Knowledge", icon: Sparkles },
+    { path: "/admin/users", label: "Users", icon: User },
   ];
 
   const navItems = isAdmin ? adminNavItems : userNavItems;
