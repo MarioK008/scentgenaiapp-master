@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { sendEmail } from '../_shared/email-service.ts';
+import { checkRateLimit } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +19,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    // SECURITY: Rate limiting - 3 requests per IP per hour (stricter for password resets)
+    await checkRateLimit(req, 'send-password-reset', 3, 60);
+
     const { email, resetUrl }: PasswordResetRequest = await req.json();
     console.log(`Sending password reset email to: ${email}`);
 

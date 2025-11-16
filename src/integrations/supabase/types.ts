@@ -526,6 +526,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          identifier: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          identifier: string
+          request_count?: number
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          identifier?: string
+          request_count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       seasons: {
         Row: {
           created_at: string | null
@@ -716,6 +743,15 @@ export type Database = {
       check_and_award_badges: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      check_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_identifier: string
+          p_max_requests: number
+          p_window_minutes: number
+        }
+        Returns: boolean
       }
       has_role: {
         Args: {
