@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import Layout from "@/components/Layout";
+import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,6 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
@@ -42,14 +41,12 @@ const AdminUsers = () => {
 
       if (profilesError) throw profilesError;
 
-      // Fetch all user roles
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
 
       if (rolesError) throw rolesError;
 
-      // Merge profiles with roles
       const usersWithRoles: UserWithRole[] = profiles?.map(profile => {
         const userRole = roles?.find(r => r.user_id === profile.id);
         return {
@@ -76,7 +73,6 @@ const AdminUsers = () => {
     try {
       const newRole = currentRole === 'admin' ? 'user' : 'admin';
 
-      // Update the role
       const { error } = await supabase
         .from("user_roles")
         .update({ role: newRole })
@@ -89,7 +85,6 @@ const AdminUsers = () => {
         description: `User ${newRole === 'admin' ? 'promoted to' : 'demoted from'} admin.`,
       });
 
-      // Refresh users list
       await fetchUsers();
     } catch (error) {
       console.error("Error updating role:", error);
@@ -119,32 +114,17 @@ const AdminUsers = () => {
     privateProfiles: users.filter(u => u.is_private).length,
   };
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading users...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
   return (
-    <Layout>
+    <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-              <Users className="w-10 h-10 text-primary" />
-              User Management
-            </h1>
-            <p className="text-muted-foreground">
-              Manage user accounts and assign admin roles
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+            <Users className="w-8 h-8 text-primary" />
+            User Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage user accounts and assign admin roles
+          </p>
         </div>
 
         {/* Statistics Cards */}
@@ -155,7 +135,7 @@ const AdminUsers = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.total}</div>
               <p className="text-xs text-muted-foreground">Registered accounts</p>
             </CardContent>
           </Card>
@@ -166,7 +146,7 @@ const AdminUsers = () => {
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.admins}</div>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.admins}</div>
               <p className="text-xs text-muted-foreground">Admin accounts</p>
             </CardContent>
           </Card>
@@ -177,7 +157,7 @@ const AdminUsers = () => {
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.regularUsers}</div>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.regularUsers}</div>
               <p className="text-xs text-muted-foreground">Standard accounts</p>
             </CardContent>
           </Card>
@@ -188,13 +168,13 @@ const AdminUsers = () => {
               <ShieldOff className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.privateProfiles}</div>
+              <div className="text-2xl font-bold">{loading ? "..." : stats.privateProfiles}</div>
               <p className="text-xs text-muted-foreground">Hidden profiles</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filters */}
+        {/* Search and User List */}
         <Card>
           <CardHeader>
             <CardTitle>User List</CardTitle>
@@ -213,120 +193,124 @@ const AdminUsers = () => {
                   className="pl-10"
                 />
               </div>
-              <Button variant="outline" onClick={fetchUsers}>
+              <Button variant="outline" onClick={fetchUsers} disabled={loading}>
                 Refresh
               </Button>
             </div>
 
-            {/* Users Table */}
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Privacy</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                        {searchQuery ? "No users found matching your search." : "No users found."}
-                      </TableCell>
+                      <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Privacy</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={user.avatar_url || undefined} />
-                              <AvatarFallback>
-                                {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">
-                                {user.username || "No username"}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                ID: {user.id.substring(0, 8)}...
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{user.email}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">
-                            {user.username || <span className="text-muted-foreground italic">Not set</span>}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                            {user.role === 'admin' ? (
-                              <div className="flex items-center gap-1">
-                                <Shield className="h-3 w-3" />
-                                Admin
-                              </div>
-                            ) : (
-                              'User'
-                            )}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.is_private ? 'outline' : 'secondary'}>
-                            {user.is_private ? 'Private' : 'Public'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            {format(new Date(user.created_at), 'MMM d, yyyy')}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant={user.role === 'admin' ? 'destructive' : 'default'}
-                            size="sm"
-                            onClick={() => toggleAdminRole(user.id, user.role)}
-                            disabled={updatingUserId === user.id}
-                          >
-                            {updatingUserId === user.id ? (
-                              <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                Updating...
-                              </div>
-                            ) : user.role === 'admin' ? (
-                              <div className="flex items-center gap-2">
-                                <ShieldOff className="h-4 w-4" />
-                                Revoke Admin
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <Shield className="h-4 w-4" />
-                                Make Admin
-                              </div>
-                            )}
-                          </Button>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          {searchQuery ? "No users found matching your search." : "No users found."}
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ) : (
+                      filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={user.avatar_url || undefined} />
+                                <AvatarFallback>
+                                  {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">
+                                  {user.username || "No username"}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  ID: {user.id.substring(0, 8)}...
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">{user.email}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">
+                              {user.username || <span className="text-muted-foreground italic">Not set</span>}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                              {user.role === 'admin' ? (
+                                <div className="flex items-center gap-1">
+                                  <Shield className="h-3 w-3" />
+                                  Admin
+                                </div>
+                              ) : (
+                                'User'
+                              )}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.is_private ? 'outline' : 'secondary'}>
+                              {user.is_private ? 'Private' : 'Public'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              {format(new Date(user.created_at), 'MMM d, yyyy')}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant={user.role === 'admin' ? 'destructive' : 'default'}
+                              size="sm"
+                              onClick={() => toggleAdminRole(user.id, user.role)}
+                              disabled={updatingUserId === user.id}
+                            >
+                              {updatingUserId === user.id ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                  Updating...
+                                </div>
+                              ) : user.role === 'admin' ? (
+                                <div className="flex items-center gap-2">
+                                  <ShieldOff className="h-4 w-4" />
+                                  Revoke Admin
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Shield className="h-4 w-4" />
+                                  Make Admin
+                                </div>
+                              )}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
 
-            {/* Results count */}
             {searchQuery && (
               <div className="mt-4 text-sm text-muted-foreground">
                 Showing {filteredUsers.length} of {users.length} users
@@ -334,30 +318,8 @@ const AdminUsers = () => {
             )}
           </CardContent>
         </Card>
-
-        {/* Info Card */}
-        <Card className="bg-primary/5 border-primary/20">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Admin Role Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
-            <p>
-              <strong>Admin privileges:</strong> Admins can access all admin panel features including perfume management, 
-              waitlist management, email templates, knowledge base, and user management.
-            </p>
-            <p>
-              <strong>Security:</strong> Role changes are protected by Row-Level Security policies and require admin authentication.
-            </p>
-            <p>
-              <strong>Best practice:</strong> Only assign admin roles to trusted users. Admin accounts have full control over the application.
-            </p>
-          </CardContent>
-        </Card>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 
