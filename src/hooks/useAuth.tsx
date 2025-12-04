@@ -8,58 +8,77 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminCheckComplete, setAdminCheckComplete] = useState(false);
   const navigate = useNavigate();
+
+  const checkAdminRole = async (userId: string): Promise<boolean> => {
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .single();
+      
+      const isAdminUser = !!data;
+      setIsAdmin(isAdminUser);
+      return isAdminUser;
+    } catch {
+      setIsAdmin(false);
+      return false;
+    } finally {
+      setAdminCheckComplete(true);
+    }
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
+          setAdminCheckComplete(false);
+          await checkAdminRole(session.user.id);
         } else {
           setIsAdmin(false);
+          setAdminCheckComplete(true);
         }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        await checkAdminRole(session.user.id);
+      } else {
+        setAdminCheckComplete(true);
       }
       setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const checkAdminRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .single();
-    
-    setIsAdmin(!!data);
-  };
 
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
 
+  const isFullyLoaded = !loading && adminCheckComplete;
+
   return {
     user,
     session,
     loading,
     isAdmin,
+    adminCheckComplete,
+    isFullyLoaded,
     signOut,
   };
 };

@@ -7,16 +7,16 @@ interface AdminRouteProps {
 }
 
 export const AdminRoute = ({ children }: AdminRouteProps) => {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, isAdmin, isFullyLoaded } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
+    if (isFullyLoaded && (!user || !isAdmin)) {
       navigate("/dashboard");
     }
-  }, [user, loading, isAdmin, navigate]);
+  }, [user, isFullyLoaded, isAdmin, navigate]);
 
-  if (loading) {
+  if (!isFullyLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
