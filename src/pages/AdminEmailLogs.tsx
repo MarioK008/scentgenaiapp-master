@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
+import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -73,11 +73,14 @@ const AdminEmailLogs = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Email Logs</h1>
-          <p className="text-muted-foreground">Track all emails sent by the system</p>
+    <Layout>
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Mail className="h-8 w-8 text-[#FF2E92]" />
+          <div>
+            <h1 className="text-3xl font-bold font-playfair text-foreground">Email Logs</h1>
+            <p className="text-muted-foreground">Track all emails sent by the system</p>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -167,9 +170,9 @@ const AdminEmailLogs = () => {
               </div>
             )}
           </CardContent>
-      </Card>
+        </Card>
       </div>
-    </AdminLayout>
+    </Layout>
   );
 };
 
