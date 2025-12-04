@@ -2,10 +2,8 @@ import { Logo } from "@/components/Logo";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Droplet, Wind, Flower2 } from "lucide-react";
-
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-[#0E2A47]">
+  return <div className="min-h-screen bg-[#0E2A47]">
       {/* Navigation */}
       <nav className="bg-[#1C3B63]/80 backdrop-blur-sm border-b border-[#FF2E92]/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,9 +59,8 @@ const Index = () => {
           <p className="text-lg text-[#B0C4DE] leading-relaxed mb-4">
             ScentGenAI is an AI-powered platform designed for people who care about fragrance.
           </p>
-          <p className="text-lg text-[#B0C4DE] leading-relaxed">
-            It helps you track what you own, learn what you love, and discover new perfumes with intelligence and style.
-          </p>
+          <p className="text-lg text-[#B0C4DE] leading-relaxed">It helps you track what you own, learn what you love, 
+and discover new perfumes with intelligence and style.</p>
         </div>
       </section>
 
@@ -231,22 +228,13 @@ const Index = () => {
 
             {/* Navigation Links */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-              <a 
-                href="#contact" 
-                className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors"
-              >
+              <a href="#contact" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
                 Contact
               </a>
-              <a 
-                href="#privacy" 
-                className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors"
-              >
+              <a href="#privacy" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
                 Privacy Policy
               </a>
-              <a 
-                href="#about" 
-                className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors"
-              >
+              <a href="#about" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
                 About Us
               </a>
             </div>
@@ -258,8 +246,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;

@@ -1,27 +1,20 @@
 import { cn } from "@/lib/utils";
 import logoImage from "@/assets/scentgenai-logo.png";
-
 interface LogoProps {
   variant?: "full" | "compact";
   className?: string;
 }
-
-export const Logo = ({ variant = "full", className }: LogoProps) => {
-  return (
-    <div className={cn("flex items-center gap-3", className)}>
+export const Logo = ({
+  variant = "full",
+  className
+}: LogoProps) => {
+  return <div className={cn("flex items-center gap-3", className)}>
       {/* Logo Image */}
-      <img 
-        src={logoImage} 
-        alt="ScentGenAI" 
-        className="h-12 w-auto transition-smooth"
-      />
+      <img alt="ScentGenAI" className="h-12 w-auto transition-smooth" src="/lovable-uploads/3ff6d377-1395-4f7c-baf5-a35fa58d7694.png" />
 
       {/* Text Logo - Only shown in full variant */}
-      {variant === "full" && (
-        <span className="font-playfair text-2xl font-bold text-foreground tracking-tight">
+      {variant === "full" && <span className="font-playfair text-2xl font-bold text-foreground tracking-tight">
           ScentGenAI
-        </span>
-      )}
-    </div>
-  );
+        </span>}
+    </div>;
 };
