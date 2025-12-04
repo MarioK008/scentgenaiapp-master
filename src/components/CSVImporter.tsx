@@ -22,11 +22,11 @@ const TABLES = [
 ];
 
 const TABLE_TEMPLATES: Record<string, string> = {
-  brands: "id,name\n",
-  notes: "id,name,type\n",
-  accords: "id,name\n",
-  seasons: "id,name\n",
-  perfumes: "id,name,brand_id,year,concentration,description,image_url,main_accord_id,rating,votes,longevity,sillage\n",
+  brands: "name\n",
+  notes: "name,type\n",
+  accords: "name\n",
+  seasons: "name\n",
+  perfumes: "name,brand_id,year,concentration,description,image_url,main_accord_id,rating,votes,longevity,sillage\n",
   perfume_notes: "perfume_id,note_id\n",
   perfume_accords: "perfume_id,accord_id\n",
   perfume_seasons: "perfume_id,season_id\n",
