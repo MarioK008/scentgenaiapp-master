@@ -16,19 +16,19 @@ interface TableSchema {
 const TABLE_SCHEMAS: TableSchema = {
   brands: {
     columns: ['id', 'name', 'created_at', 'updated_at'],
-    requiredColumns: ['id', 'name'],
+    requiredColumns: ['name'],
   },
   notes: {
     columns: ['id', 'name', 'type', 'created_at'],
-    requiredColumns: ['id', 'name', 'type'],
+    requiredColumns: ['name', 'type'],
   },
   accords: {
     columns: ['id', 'name', 'created_at'],
-    requiredColumns: ['id', 'name'],
+    requiredColumns: ['name'],
   },
   seasons: {
     columns: ['id', 'name', 'created_at'],
-    requiredColumns: ['id', 'name'],
+    requiredColumns: ['name'],
   },
   perfumes: {
     columns: ['id', 'name', 'brand_id', 'year', 'concentration', 'description', 'image_url', 'main_accord_id', 'rating', 'votes', 'longevity', 'sillage', 'created_at', 'updated_at'],
