@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Layout from "@/components/Layout";
+import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -45,16 +45,16 @@ const ImportLogs = () => {
 
   if (loadingLogs) {
     return (
-      <Layout>
+      <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          Loading...
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-4xl font-bold mb-2">Import Logs</h1>
@@ -135,9 +135,9 @@ const ImportLogs = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+      </Card>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 
