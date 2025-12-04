@@ -419,15 +419,21 @@ export type Database = {
         Row: {
           brand_id: string | null
           concentration: string | null
+          country: string | null
           created_at: string | null
           description: string | null
+          fragrantica_url: string | null
+          gender: string | null
           id: string
           image_url: string | null
           longevity: string | null
           main_accord_id: string | null
           name: string
           rating: number | null
+          rating_count: number | null
+          rating_value: number | null
           sillage: string | null
+          slug: string | null
           updated_at: string | null
           votes: number | null
           year: number | null
@@ -435,15 +441,21 @@ export type Database = {
         Insert: {
           brand_id?: string | null
           concentration?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
+          fragrantica_url?: string | null
+          gender?: string | null
           id?: string
           image_url?: string | null
           longevity?: string | null
           main_accord_id?: string | null
           name: string
           rating?: number | null
+          rating_count?: number | null
+          rating_value?: number | null
           sillage?: string | null
+          slug?: string | null
           updated_at?: string | null
           votes?: number | null
           year?: number | null
@@ -451,15 +463,21 @@ export type Database = {
         Update: {
           brand_id?: string | null
           concentration?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
+          fragrantica_url?: string | null
+          gender?: string | null
           id?: string
           image_url?: string | null
           longevity?: string | null
           main_accord_id?: string | null
           name?: string
           rating?: number | null
+          rating_count?: number | null
+          rating_value?: number | null
           sillage?: string | null
+          slug?: string | null
           updated_at?: string | null
           votes?: number | null
           year?: number | null
