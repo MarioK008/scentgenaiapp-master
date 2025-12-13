@@ -26,9 +26,7 @@ const VoiceAssistant = () => {
   return <Layout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent mb-4">
-            Voice Assistant
-          </h1>
+          
           <p className="text-muted-foreground text-lg">
             Choose how you want to interact with our perfume consultant
           </p>
