@@ -89,7 +89,7 @@ serve(async (req) => {
     // System message for perfume consultant with knowledge context
     const systemMessage = {
       role: 'system',
-      content: `Eres un consultor experto en perfumes. Ayuda a los usuarios a encontrar su fragancia perfecta preguntando sobre sus preferencias, ocasiones y aromas favoritos. Mantén las respuestas conversacionales y amigables. Responde siempre en español.${knowledgeContext ? '\n\nUtiliza el conocimiento proporcionado para dar respuestas más precisas y detalladas. Si citas información de las fuentes, menciona que proviene de la base de conocimientos.' : ''
+      content: `You are an expert perfume consultant for ScentGenAI. Help users find their perfect fragrance by asking about their preferences, occasions, and favorite scents. Keep responses conversational and friendly. Always respond in English.${knowledgeContext ? '\n\nUse the provided knowledge to give more precise and detailed answers. If you cite information from sources, mention it comes from the knowledge base.' : ''
       }${knowledgeContext}`
     };
 
