@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
-import PerfumeCard from "@/components/PerfumeCard";
+import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
+import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,29 +12,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles } from "lucide-react";
 
-interface Perfume {
-  id: string;
-  name: string;
-  brand?: { name: string };
-  image_url: string | null;
-  notes: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
-  seasons: Array<{ name: string }>;
-  longevity: string | null;
-  sillage: string | null;
-  description: string | null;
-  year: number | null;
-  concentration: string | null;
-}
-
 const Recommendations = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [recommendations, setRecommendations] = useState<Perfume[]>([]);
+  const [recommendations, setRecommendations] = useState<PerfumeData[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [mood, setMood] = useState("");
   const [occasion, setOccasion] = useState("");
   const [season, setSeason] = useState("");
+  const [selectedPerfume, setSelectedPerfume] = useState<PerfumeData | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -213,12 +201,20 @@ const Recommendations = () => {
                   key={perfume.id}
                   perfume={perfume}
                   onAddToCollection={handleAddToCollection}
+                  onClick={() => setSelectedPerfume(perfume)}
                 />
               ))}
             </div>
           </div>
         )}
       </div>
+
+      <PerfumeDetailModal
+        perfume={selectedPerfume}
+        isOpen={!!selectedPerfume}
+        onClose={() => setSelectedPerfume(null)}
+        onAddToCollection={handleAddToCollection}
+      />
     </Layout>
   );
 };

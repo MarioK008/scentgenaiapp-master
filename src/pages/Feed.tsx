@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
-import PerfumeCard from "@/components/PerfumeCard";
+import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
+import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,19 +20,7 @@ interface FeedItem {
     username: string;
     avatar_url: string | null;
   };
-  perfumes: {
-    id: string;
-    name: string;
-    brand?: { name: string };
-    image_url: string | null;
-    notes?: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
-    seasons?: Array<{ name: string }>;
-    longevity: string | null;
-    sillage: string | null;
-    description: string | null;
-    year: number | null;
-    concentration: string | null;
-  };
+  perfumes: PerfumeData;
 }
 
 const Feed = () => {
@@ -40,6 +29,7 @@ const Feed = () => {
   const { toast } = useToast();
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
+  const [selectedPerfume, setSelectedPerfume] = useState<PerfumeData | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -104,9 +94,10 @@ const Feed = () => {
           description,
           year,
           concentration,
-          brand:brands(name),
+          brand:brands!brand_id(name),
           notes:perfume_notes(note:notes(name, type)),
-          seasons:perfume_seasons(season:seasons(name))
+          seasons:perfume_seasons(season:seasons(name)),
+          accords:perfume_accords(accord:accords(name))
         `)
         .in("id", perfumeIds);
 
@@ -124,6 +115,7 @@ const Feed = () => {
             brand: Array.isArray(perfume?.brand) ? perfume.brand[0] : perfume?.brand,
             notes: perfume?.notes?.map((n: any) => Array.isArray(n.note) ? n.note[0] : n.note).filter(Boolean) || [],
             seasons: perfume?.seasons?.map((s: any) => Array.isArray(s.season) ? s.season[0] : s.season).filter(Boolean) || [],
+            accords: perfume?.accords?.map((a: any) => Array.isArray(a.accord) ? a.accord[0] : a.accord).filter(Boolean) || [],
           }
         };
       }) || [];
@@ -138,6 +130,39 @@ const Feed = () => {
       });
     } finally {
       setLoadingFeed(false);
+    }
+  };
+
+  const handleAddToCollection = async (perfumeId: string, status: "owned" | "wishlist") => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("user_collections")
+      .insert({
+        user_id: user.id,
+        perfume_id: perfumeId,
+        status,
+      });
+
+    if (error) {
+      if (error.code === "23505") {
+        toast({
+          title: "Already added",
+          description: "This perfume is already in your collection",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add to collection",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Success",
+        description: `Added to ${status === "owned" ? "collection" : "wishlist"}`,
+      });
     }
   };
 
@@ -223,6 +248,7 @@ const Feed = () => {
                     perfume={item.perfumes}
                     status={item.status}
                     showActions={false}
+                    onClick={() => setSelectedPerfume(item.perfumes)}
                   />
                 </div>
               </CardContent>
@@ -230,6 +256,13 @@ const Feed = () => {
           ))}
         </div>
       </div>
+
+      <PerfumeDetailModal
+        perfume={selectedPerfume}
+        isOpen={!!selectedPerfume}
+        onClose={() => setSelectedPerfume(null)}
+        onAddToCollection={handleAddToCollection}
+      />
     </Layout>
   );
 };

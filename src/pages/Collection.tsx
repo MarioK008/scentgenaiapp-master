@@ -2,81 +2,57 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
-import PerfumeCard from "@/components/PerfumeCard";
+import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
+import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Share2, ExternalLink } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
+
 interface CollectionItem {
   id: string;
   perfume_id: string;
   status: "owned" | "wishlist";
   rating: number | null;
-  perfumes: {
-    id: string;
-    name: string;
-    brand?: {
-      name: string;
-    };
-    image_url: string | null;
-    notes: Array<{
-      name: string;
-      type: 'top' | 'heart' | 'base';
-    }>;
-    seasons: Array<{
-      name: string;
-    }>;
-    longevity: string | null;
-    sillage: string | null;
-    description: string | null;
-    year: number | null;
-    concentration: string | null;
-  };
+  perfumes: PerfumeData;
 }
+
 const Collection = () => {
-  const {
-    user,
-    loading
-  } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [collection, setCollection] = useState<CollectionItem[]>([]);
   const [loadingCollection, setLoadingCollection] = useState(true);
+  const [selectedPerfume, setSelectedPerfume] = useState<{ perfume: PerfumeData; status: "owned" | "wishlist" } | null>(null);
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
   useEffect(() => {
     if (user) {
       fetchCollection();
     }
   }, [user]);
+
   const fetchCollection = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from("user_collections").select(`
-          id,
-          perfume_id,
-          status,
-          rating
-        `).order("added_at", {
-        ascending: false
-      });
+      const { data, error } = await supabase
+        .from("user_collections")
+        .select(`id, perfume_id, status, rating`)
+        .order("added_at", { ascending: false });
+
       if (error) throw error;
 
       // Fetch full perfume data with relations
       const perfumeIds = data?.map(item => item.perfume_id) || [];
-      const {
-        data: perfumesData,
-        error: perfumesError
-      } = await supabase.from("perfumes").select(`
+      const { data: perfumesData, error: perfumesError } = await supabase
+        .from("perfumes")
+        .select(`
           id,
           name,
           image_url,
@@ -85,10 +61,13 @@ const Collection = () => {
           description,
           year,
           concentration,
-          brand:brands(name),
+          brand:brands!brand_id(name),
           notes:perfume_notes(note:notes(name, type)),
-          seasons:perfume_seasons(season:seasons(name))
-        `).in("id", perfumeIds);
+          seasons:perfume_seasons(season:seasons(name)),
+          accords:perfume_accords(accord:accords(name))
+        `)
+        .in("id", perfumeIds);
+
       if (perfumesError) throw perfumesError;
 
       // Combine collection items with perfume data
@@ -100,10 +79,12 @@ const Collection = () => {
             ...perfume,
             brand: Array.isArray(perfume?.brand) ? perfume.brand[0] : perfume?.brand,
             notes: perfume?.notes?.map((n: any) => Array.isArray(n.note) ? n.note[0] : n.note).filter(Boolean) || [],
-            seasons: perfume?.seasons?.map((s: any) => Array.isArray(s.season) ? s.season[0] : s.season).filter(Boolean) || []
+            seasons: perfume?.seasons?.map((s: any) => Array.isArray(s.season) ? s.season[0] : s.season).filter(Boolean) || [],
+            accords: perfume?.accords?.map((a: any) => Array.isArray(a.accord) ? a.accord[0] : a.accord).filter(Boolean) || [],
           }
         };
       }) || [];
+
       setCollection(enrichedCollection as CollectionItem[]);
     } catch (error: any) {
       toast({
@@ -115,14 +96,16 @@ const Collection = () => {
       setLoadingCollection(false);
     }
   };
+
   const handleRate = async (perfumeId: string, rating: number) => {
     const item = collection.find(c => c.perfume_id === perfumeId);
     if (!item) return;
-    const {
-      error
-    } = await supabase.from("user_collections").update({
-      rating
-    }).eq("id", item.id);
+
+    const { error } = await supabase
+      .from("user_collections")
+      .update({ rating })
+      .eq("id", item.id);
+
     if (error) {
       toast({
         title: "Error",
@@ -139,31 +122,34 @@ const Collection = () => {
       // Check for new badges after rating
       if (user) {
         setTimeout(() => {
-          supabase.rpc("check_and_award_badges", {
-            p_user_id: user.id
-          });
+          supabase.rpc("check_and_award_badges", { p_user_id: user.id });
         }, 500);
       }
     }
   };
+
   if (loading || loadingCollection) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
+
   const ownedPerfumes = collection.filter(c => c.status === "owned");
   const wishlist = collection.filter(c => c.status === "wishlist");
+
   const handleShareProfile = () => {
     const profileUrl = `${window.location.origin}/user/${user?.id}`;
     navigator.clipboard.writeText(profileUrl);
     sonnerToast.success("Profile link copied to clipboard!");
   };
+
   const handleViewPublicProfile = () => {
     navigate(`/user/${user?.id}`);
   };
-  return <Layout>
+
+  return (
+    <Layout>
       <div className="space-y-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            
             <p className="text-muted-foreground mt-3 text-lg">Manage your perfume collection and wishlist</p>
           </div>
           <div className="flex gap-3">
@@ -189,28 +175,63 @@ const Collection = () => {
           </TabsList>
 
           <TabsContent value="owned" className="mt-8">
-            {ownedPerfumes.length === 0 ? <div className="gradient-accent border border-primary/20 rounded-[20px] p-12 text-center animate-fade-in">
+            {ownedPerfumes.length === 0 ? (
+              <div className="gradient-accent border border-primary/20 rounded-[20px] p-12 text-center animate-fade-in">
                 <p className="text-muted-foreground text-lg">No perfumes in your collection yet</p>
                 <Button variant="premium" className="mt-6" onClick={() => navigate("/search")}>
                   Start Exploring
                 </Button>
-              </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-                {ownedPerfumes.map(item => <PerfumeCard key={item.id} perfume={item.perfumes} userRating={item.rating || undefined} status="owned" onRate={handleRate} />)}
-              </div>}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                {ownedPerfumes.map(item => (
+                  <PerfumeCard
+                    key={item.id}
+                    perfume={item.perfumes}
+                    userRating={item.rating || undefined}
+                    status="owned"
+                    onRate={handleRate}
+                    onClick={() => setSelectedPerfume({ perfume: item.perfumes, status: "owned" })}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="wishlist" className="mt-8">
-            {wishlist.length === 0 ? <div className="gradient-accent border border-primary/20 rounded-[20px] p-12 text-center animate-fade-in">
+            {wishlist.length === 0 ? (
+              <div className="gradient-accent border border-primary/20 rounded-[20px] p-12 text-center animate-fade-in">
                 <p className="text-muted-foreground text-lg">Your wishlist is empty</p>
                 <Button variant="premium" className="mt-6" onClick={() => navigate("/search")}>
                   Find Perfumes
                 </Button>
-              </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-                {wishlist.map(item => <PerfumeCard key={item.id} perfume={item.perfumes} userRating={item.rating || undefined} status="wishlist" onRate={handleRate} />)}
-              </div>}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                {wishlist.map(item => (
+                  <PerfumeCard
+                    key={item.id}
+                    perfume={item.perfumes}
+                    userRating={item.rating || undefined}
+                    status="wishlist"
+                    onRate={handleRate}
+                    onClick={() => setSelectedPerfume({ perfume: item.perfumes, status: "wishlist" })}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>;
+
+      <PerfumeDetailModal
+        perfume={selectedPerfume?.perfume || null}
+        isOpen={!!selectedPerfume}
+        onClose={() => setSelectedPerfume(null)}
+        userStatus={selectedPerfume?.status}
+      />
+    </Layout>
+  );
 };
+
 export default Collection;

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import PerfumeCard from "@/components/PerfumeCard";
+import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
@@ -16,15 +17,7 @@ const Search = () => {
   const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes();
   const [filteredPerfumes, setFilteredPerfumes] = useState<Perfume[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Debug logging
-  console.log('Search page state:', { 
-    user: !!user, 
-    loading, 
-    loadingPerfumes, 
-    perfumesCount: perfumes.length,
-    perfumesError 
-  });
+  const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -134,11 +127,19 @@ const Search = () => {
                 key={perfume.id}
                 perfume={perfume}
                 onAddToCollection={handleAddToCollection}
+                onClick={() => setSelectedPerfume(perfume)}
               />
             ))}
           </div>
         )}
       </div>
+
+      <PerfumeDetailModal
+        perfume={selectedPerfume}
+        isOpen={!!selectedPerfume}
+        onClose={() => setSelectedPerfume(null)}
+        onAddToCollection={handleAddToCollection}
+      />
     </Layout>
   );
 };
