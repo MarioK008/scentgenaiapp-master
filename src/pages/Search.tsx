@@ -13,9 +13,18 @@ const Search = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { perfumes, loading: loadingPerfumes } = usePerfumes();
+  const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes();
   const [filteredPerfumes, setFilteredPerfumes] = useState<Perfume[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Debug logging
+  console.log('Search page state:', { 
+    user: !!user, 
+    loading, 
+    loadingPerfumes, 
+    perfumesCount: perfumes.length,
+    perfumesError 
+  });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -77,7 +86,17 @@ const Search = () => {
   };
 
   if (loading || loadingPerfumes) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-foreground">Loading perfumes...</div>;
+  }
+
+  if (perfumesError) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <p className="text-destructive">Error loading perfumes: {perfumesError}</p>
+        </div>
+      </Layout>
+    );
   }
 
   return (
