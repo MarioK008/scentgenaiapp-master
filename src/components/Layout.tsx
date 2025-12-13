@@ -20,7 +20,7 @@ const Layout = ({ children }: LayoutProps) => {
   // Separate navigation for admin vs regular users
   const userNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
-    { path: "/collection", label: "Collection", icon: Heart },
+    { path: "/collections", label: "Collections", icon: Heart },
     { path: "/recommendations", label: "Recommendations", icon: Sparkles },
     { path: "/voice-assistant", label: "MyScentGenAI", icon: MessageSquare },
     { path: "/search", label: "Search", icon: Search },
