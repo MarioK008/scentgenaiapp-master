@@ -52,8 +52,15 @@ export const usePerfumes = () => {
     setError(null);
     
     try {
-      console.log('Fetching perfumes...');
+      console.log('Fetching perfumes... (usePerfumes hook)');
       
+      // First, verify we can reach Supabase with a simple count
+      const { count, error: countError } = await supabase
+        .from("perfumes")
+        .select("*", { count: "exact", head: true });
+      
+      console.log('Perfumes count check:', { count, error: countError });
+
       // Fetch perfumes with brand and main accord
       const { data: perfumesData, error: perfumesError } = await supabase
         .from("perfumes")
@@ -64,7 +71,11 @@ export const usePerfumes = () => {
         `)
         .order("name");
 
-      console.log('Perfumes query result:', { count: perfumesData?.length, error: perfumesError });
+      console.log('Perfumes query result:', { 
+        count: perfumesData?.length, 
+        error: perfumesError,
+        firstPerfume: perfumesData?.[0]?.name 
+      });
 
       if (perfumesError) throw perfumesError;
 
