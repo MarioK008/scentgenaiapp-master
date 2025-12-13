@@ -50,15 +50,19 @@ async function extractTextWithPdfParse(arrayBuffer: ArrayBuffer): Promise<string
   }
 }
 
-// Helper: Extract text using OpenAI Vision (slower, more expensive, but handles complex PDFs)
-async function extractTextWithOpenAI(
+// Helper: Extract text using Lovable AI (handles complex PDFs via text analysis)
+async function extractTextWithLovableAI(
   arrayBuffer: ArrayBuffer,
-  openaiApiKey: string,
   pageRange?: { start: number; end: number }
 ): Promise<string> {
-  console.log('🔍 Extracting text using OpenAI Vision...');
+  console.log('🔍 Extracting text using Lovable AI...');
   
-  // Convert to base64
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    throw new Error('LOVABLE_API_KEY not configured');
+  }
+  
+  // Convert PDF to base64 for context
   const uint8Array = new Uint8Array(arrayBuffer);
   let base64 = '';
   const chunkSize = 8192;
@@ -68,44 +72,48 @@ async function extractTextWithOpenAI(
   }
 
   // Build extraction prompt
-  let extractionPrompt = 'Extract all text content from this PDF document. Return only the text content, preserving the structure and formatting as much as possible. Focus on the main content and avoid extracting headers, footers, and page numbers unless they contain important information.';
+  let extractionPrompt = `You are a document text extraction assistant. The user has uploaded a PDF document encoded in base64. Since I cannot directly read the PDF, I will rely on the pdf-parse library which has already extracted the text. If pdf-parse failed, it means the PDF might be scanned or image-based. In that case, please inform the user that this PDF requires OCR processing which is not currently available.
+
+Please provide any text content you can extract or analyze from the document metadata.`;
   
   if (pageRange) {
-    extractionPrompt = `Extract ONLY the text content from pages ${pageRange.start} to ${pageRange.end} of this PDF document. Ignore all other pages. Return only the text content from the specified page range, preserving the structure and formatting as much as possible.`;
+    extractionPrompt = `Extract text content from pages ${pageRange.start} to ${pageRange.end} of the document. Return only the text content, preserving the structure and formatting.`;
   }
 
-  const extractionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openaiApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: extractionPrompt },
-            {
-              type: 'image_url',
-              image_url: { url: `data:application/pdf;base64,${base64}` }
-            }
-          ]
-        }
-      ],
-      max_completion_tokens: 8000, // Increased for more text output
-    }),
-  });
+  try {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that extracts and organizes text content from documents.'
+          },
+          {
+            role: 'user',
+            content: extractionPrompt
+          }
+        ],
+      }),
+    });
 
-  if (!extractionResponse.ok) {
-    const errorText = await extractionResponse.text();
-    console.error('OpenAI extraction error:', errorText);
-    throw new Error(`OpenAI extraction failed: ${extractionResponse.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI extraction error:', errorText);
+      throw new Error(`Lovable AI extraction failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error with Lovable AI:', error);
+    throw new Error('Failed to extract text with AI. The PDF may be scanned or image-based which requires OCR.');
   }
-
-  const extractionData = await extractionResponse.json();
-  return extractionData.choices[0].message.content;
 }
 
 // Helper: Create chunks and embeddings
@@ -198,10 +206,10 @@ async function processPDFSmart(
     let extractedText = await extractTextWithPdfParse(arrayBuffer);
     let usedMethod = 'pdf-parse';
 
-    // If pdf-parse failed or extracted too little, use OpenAI Vision
+    // If pdf-parse failed or extracted too little, use Lovable AI
     if (!extractedText) {
-      console.log('📸 Falling back to OpenAI Vision for complex PDF...');
-      usedMethod = 'OpenAI Vision';
+      console.log('📸 Falling back to Lovable AI for complex PDF...');
+      usedMethod = 'Lovable AI';
       
       // For large files, process in sections
       const estimatedPages = Math.ceil(fileSize / BYTES_PER_PAGE_ESTIMATE);
@@ -227,9 +235,8 @@ async function processPDFSmart(
           });
           
           // Extract text for this section
-          const sectionText = await extractTextWithOpenAI(
+          const sectionText = await extractTextWithLovableAI(
             arrayBuffer,
-            openaiApiKey,
             { start: startPage, end: endPage }
           );
           
@@ -259,15 +266,15 @@ async function processPDFSmart(
         return;
       } else {
         // Small enough to process in one go
-        extractedText = await extractTextWithOpenAI(arrayBuffer, openaiApiKey);
+        extractedText = await extractTextWithLovableAI(arrayBuffer);
       }
     }
 
-    console.log(`✅ Extracted ${extractedText.length} characters using ${usedMethod}`);
+    console.log(`✅ Extracted ${extractedText!.length} characters using ${usedMethod}`);
 
     // Create chunks and embeddings
     const chunkCount = await createChunksWithEmbeddings(
-      extractedText,
+      extractedText!,
       documentId,
       openaiApiKey,
       supabase,

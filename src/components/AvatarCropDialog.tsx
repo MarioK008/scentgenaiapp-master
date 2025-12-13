@@ -132,11 +132,11 @@ export const AvatarCropDialog = ({
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
-            Cancelar
+            Cancel
           </Button>
           <Button onClick={handleCrop} disabled={loading || !completedCrop}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Aplicar y Subir
+            Apply & Upload
           </Button>
         </DialogFooter>
       </DialogContent>

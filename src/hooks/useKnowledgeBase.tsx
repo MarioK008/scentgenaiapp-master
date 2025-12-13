@@ -80,7 +80,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
 
       if (dbError) throw dbError;
 
-      toast.success('Documento subido, procesando...');
+      toast.success('Document uploaded, processing...');
 
       // Process the document
       await processDocument(document.id, filePath);
@@ -89,7 +89,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
       setTimeout(fetchDocuments, 2000);
     } catch (error: any) {
       console.error('Error uploading document:', error);
-      toast.error('Error al subir documento');
+      toast.error('Error uploading document');
     } finally {
       setUploading(false);
     }
@@ -99,7 +99,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
     setProcessing(documentId);
 
     try {
-      toast.info('Procesando documento... Esto puede tomar unos minutos');
+      toast.info('Processing document... This may take a few minutes');
 
       const { data, error } = await supabase.functions.invoke('process-pdf', {
         body: { documentId, filePath },
@@ -107,13 +107,13 @@ export const useKnowledgeBase = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      toast.success('Procesamiento iniciado en segundo plano');
+      toast.success('Processing started in background');
       
       // Start polling for updates
       setTimeout(fetchDocuments, 2000);
     } catch (error: any) {
       console.error('Error processing document:', error);
-      toast.error('Error al iniciar el procesamiento');
+      toast.error('Error starting document processing');
     } finally {
       setProcessing(null);
     }

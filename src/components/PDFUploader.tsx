@@ -16,7 +16,7 @@ export const PDFUploader = ({ onUpload, uploading }: PDFUploaderProps) => {
     if (!file) return;
     
     if (file.type !== 'application/pdf') {
-      alert('Por favor selecciona un archivo PDF válido');
+      alert('Please select a valid PDF file');
       return;
     }
     
@@ -29,7 +29,7 @@ export const PDFUploader = ({ onUpload, uploading }: PDFUploaderProps) => {
     if (!file) return;
     
     if (file.type !== 'application/pdf') {
-      alert('Por favor selecciona un archivo PDF válido');
+      alert('Please select a valid PDF file');
       return;
     }
     
@@ -49,18 +49,18 @@ export const PDFUploader = ({ onUpload, uploading }: PDFUploaderProps) => {
           className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors"
         >
           <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Subir documento PDF</h3>
+          <h3 className="text-lg font-semibold mb-2">Upload PDF Document</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Arrastra un PDF aquí o haz clic para seleccionar
+            Drag a PDF here or click to select
           </p>
           <p className="text-xs text-muted-foreground/70 mb-4">
-            Archivos grandes se procesarán automáticamente por secciones
+            Large files will be processed automatically in sections
           </p>
           <label htmlFor="pdf-upload">
             <Button disabled={uploading} asChild>
               <span>
                 <Upload className="w-4 h-4 mr-2" />
-                {uploading ? 'Subiendo...' : 'Seleccionar PDF'}
+                {uploading ? 'Uploading...' : 'Select PDF'}
               </span>
             </Button>
           </label>
