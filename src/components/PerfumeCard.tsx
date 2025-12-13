@@ -138,14 +138,12 @@ const PerfumeCard = ({
                     <Button
                       size="sm"
                       variant="hero"
-                      className="flex-1"
                       onClick={(e) => {
                         e.stopPropagation();
                         onAddToCollection(perfume.id, "owned");
                       }}
                     >
                       <Heart className="h-4 w-4" strokeWidth={1.5} />
-                      Add
                     </Button>
                     <Button
                       size="sm"
