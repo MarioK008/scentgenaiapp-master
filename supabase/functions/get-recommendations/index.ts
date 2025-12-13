@@ -149,6 +149,24 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Get seasons for results
+    const { data: allPerfumeSeasons } = await supabase
+      .from("perfume_seasons")
+      .select(`perfume_id, season:seasons(id, name)`);
+    
+    const seasonsByPerfume: Record<string, Array<{id: string, name: string}>> = {};
+    if (allPerfumeSeasons) {
+      for (const ps of allPerfumeSeasons) {
+        if (!seasonsByPerfume[ps.perfume_id]) {
+          seasonsByPerfume[ps.perfume_id] = [];
+        }
+        const seasonData = ps.season as unknown;
+        if (seasonData && typeof seasonData === 'object' && 'name' in seasonData && 'id' in seasonData) {
+          seasonsByPerfume[ps.perfume_id].push({ id: (seasonData as any).id, name: (seasonData as any).name });
+        }
+      }
+    }
+
     // Filter and score perfumes
     let recommendations = allPerfumes
       .filter(p => !userOwnedPerfumeIds.includes(p.id)) // Exclude owned perfumes
@@ -156,9 +174,9 @@ Deno.serve(async (req) => {
         let score = perfume.rating_value || perfume.rating || 0;
 
         const perfumeSeasons = perfumeSeasonMap[perfume.id] || [];
-        const notes = noteMap[perfume.id] || { top: [], heart: [], base: [] };
+        const notesObj = noteMap[perfume.id] || { top: [], heart: [], base: [] };
         const accords = accordMap[perfume.id] || [];
-        const allNotes = [...notes.top, ...notes.heart, ...notes.base];
+        const allNotes = [...notesObj.top, ...notesObj.heart, ...notesObj.base];
 
         // Season match
         if (season && season !== "all_season") {
@@ -225,11 +243,18 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Convert notes to flat array format expected by frontend
+        const notesArray: Array<{name: string; type: 'top' | 'heart' | 'base'}> = [
+          ...notesObj.top.map((n: string) => ({ name: n, type: 'top' as const })),
+          ...notesObj.heart.map((n: string) => ({ name: n, type: 'heart' as const })),
+          ...notesObj.base.map((n: string) => ({ name: n, type: 'base' as const })),
+        ];
+
         return { 
           ...perfume, 
           score,
-          notes,
-          accords
+          notes: notesArray,
+          seasons: seasonsByPerfume[perfume.id] || [],
         };
       });
 
