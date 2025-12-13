@@ -66,8 +66,8 @@ export const usePerfumes = () => {
         .from("perfumes")
         .select(`
           *,
-          brand:brands(id, name),
-          main_accord:accords(id, name)
+          brand:brands!brand_id(id, name),
+          main_accord:accords!main_accord_id(id, name)
         `)
         .order("name");
 
