@@ -43,7 +43,7 @@ const VoiceLive = () => {
       // Obtener el session token para autenticación
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        throw new Error('No estás autenticado');
+        throw new Error('You are not authenticated');
       }
 
       if (!audioContextRef.current) {
@@ -61,8 +61,8 @@ const VoiceLive = () => {
         console.log('Connected to voice assistant');
         setIsConnected(true);
         toast({
-          title: "Conectado",
-          description: "Puedes empezar a hablar",
+          title: "Connected",
+          description: "You can start speaking",
         });
         startRecording();
       };
@@ -108,7 +108,7 @@ const VoiceLive = () => {
             console.error('Server error:', data.message);
             toast({
               title: "Error",
-              description: data.message || "Error en la conexión",
+              description: data.message || "Connection error",
               variant: "destructive",
             });
           }
@@ -120,8 +120,8 @@ const VoiceLive = () => {
       wsRef.current.onerror = (error) => {
         console.error('WebSocket error:', error);
         toast({
-          title: "Error de conexión",
-          description: "No se pudo conectar con el asistente",
+          title: "Connection error",
+          description: "Could not connect to the assistant",
           variant: "destructive",
         });
       };
@@ -136,7 +136,7 @@ const VoiceLive = () => {
       console.error('Error starting conversation:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "No se pudo iniciar la conversación",
+        description: error instanceof Error ? error.message : "Could not start conversation",
         variant: "destructive",
       });
     }
@@ -158,7 +158,7 @@ const VoiceLive = () => {
       console.error('Error starting recording:', error);
       toast({
         title: "Error",
-        description: "No se pudo acceder al micrófono",
+        description: "Could not access microphone",
         variant: "destructive",
       });
     }
@@ -176,7 +176,7 @@ const VoiceLive = () => {
     // Save conversation if there are messages
     if (messages.length > 0) {
       try {
-        const title = `Conversación en vivo - ${new Date().toLocaleDateString()}`;
+        const title = `Live Conversation - ${new Date().toLocaleDateString()}`;
         await saveConversation(title, 'live', messages);
       } catch (error) {
         console.error('Error saving conversation:', error);
@@ -184,8 +184,8 @@ const VoiceLive = () => {
     }
 
     toast({
-      title: "Conversación finalizada",
-      description: "La conversación ha sido guardada",
+      title: "Conversation ended",
+      description: "The conversation has been saved",
     });
   };
 
@@ -207,38 +207,38 @@ const VoiceLive = () => {
           onClick={() => navigate('/voice-assistant')}
           className="mb-6"
         >
-          ← Volver
+          ← Back
         </Button>
 
         <Card>
           <CardHeader>
-            <CardTitle>🎤 Conversación en Vivo</CardTitle>
+            <CardTitle>🎤 Live Conversation</CardTitle>
             <CardDescription>
-              Habla naturalmente con el asistente de perfumes
+              Speak naturally with the perfume assistant
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-center gap-4">
               {!isConnected ? (
                 <Button onClick={startConversation} size="lg" className="w-full max-w-xs">
-                  Iniciar Conversación
+                  Start Conversation
                 </Button>
               ) : (
                 <>
                   <Button onClick={endConversation} variant="destructive" size="lg">
-                    Terminar Conversación
+                    End Conversation
                   </Button>
                   <div className="flex items-center gap-4">
                     {isListening && (
                       <div className="flex items-center gap-2 text-primary">
                         <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
-                        <span className="text-sm font-medium">Escuchando</span>
+                        <span className="text-sm font-medium">Listening</span>
                       </div>
                     )}
                     {isSpeaking && (
                       <div className="flex items-center gap-2 text-secondary">
                         <div className="w-3 h-3 rounded-full bg-secondary animate-pulse"></div>
-                        <span className="text-sm font-medium">Hablando</span>
+                        <span className="text-sm font-medium">Speaking</span>
                       </div>
                     )}
                   </div>
@@ -248,18 +248,18 @@ const VoiceLive = () => {
 
             {messages.length > 0 && (
               <div className="space-y-4 max-h-96 overflow-y-auto p-4 bg-muted/30 rounded-lg">
-                <h3 className="font-semibold text-sm text-muted-foreground">Transcripción:</h3>
+                <h3 className="font-semibold text-sm text-muted-foreground">Transcript:</h3>
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`p-3 rounded-lg ${msg.role === 'user' ? 'bg-primary/10 ml-8' : 'bg-secondary/10 mr-8'}`}>
                     <div className="text-xs text-muted-foreground mb-1">
-                      {msg.role === 'user' ? 'Tú' : 'Asistente'}
+                      {msg.role === 'user' ? 'You' : 'Assistant'}
                     </div>
                     <div className="text-sm">{msg.content}</div>
                   </div>
                 ))}
                 {currentTranscript && (
                   <div className="p-3 rounded-lg bg-secondary/10 mr-8 opacity-70">
-                    <div className="text-xs text-muted-foreground mb-1">Asistente (escribiendo...)</div>
+                    <div className="text-xs text-muted-foreground mb-1">Assistant (typing...)</div>
                     <div className="text-sm">{currentTranscript}</div>
                   </div>
                 )}

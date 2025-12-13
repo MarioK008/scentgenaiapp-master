@@ -168,7 +168,7 @@ const Recommendations = () => {
                     <SelectValue placeholder="Select occasion" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily Wear</SelectItem>
+                    <SelectItem value="casual">Daily / Casual</SelectItem>
                     <SelectItem value="work">Work</SelectItem>
                     <SelectItem value="evening">Evening</SelectItem>
                     <SelectItem value="date">Date Night</SelectItem>
