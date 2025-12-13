@@ -43,126 +43,200 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    console.log('Getting recommendations for:', { mood, occasion, season, userId });
+
     // Get user's collection to understand preferences
-    let userPreferences: any[] = [];
+    let userOwnedPerfumeIds: string[] = [];
     if (userId) {
-      const { data } = await supabase
+      const { data: userCollection } = await supabase
         .from("user_collections")
-        .select("perfumes(*), rating")
+        .select("perfume_id")
         .eq("user_id", userId)
-        .eq("status", "owned")
-        .order("rating", { ascending: false, nullsFirst: false });
+        .eq("status", "owned");
       
-      userPreferences = data || [];
+      userOwnedPerfumeIds = userCollection?.map(c => c.perfume_id) || [];
+      console.log('User owns:', userOwnedPerfumeIds.length, 'perfumes');
     }
 
-    // Build query to get perfumes
-    let query = supabase
+    // Get all perfumes with their related data using proper joins
+    const { data: allPerfumes, error } = await supabase
       .from("perfumes")
-      .select("*");
-
-    // Filter by season if provided
-    if (season && season !== "all_season") {
-      query = query.or(`season.eq.${season},season.eq.all_season`);
-    }
-
-    const { data: allPerfumes, error } = await query;
+      .select(`
+        *,
+        brand:brands(name),
+        main_accord:accords(name)
+      `);
 
     if (error) {
+      console.error('Error fetching perfumes:', error);
       throw error;
     }
 
-    // Simple recommendation logic
-    let recommendations = allPerfumes || [];
+    console.log('Fetched perfumes:', allPerfumes?.length);
 
-    // Filter out perfumes user already owns
-    if (userPreferences.length > 0) {
-      const ownedIds = userPreferences.map(p => p.perfumes.id);
-      recommendations = recommendations.filter(p => !ownedIds.includes(p.id));
+    if (!allPerfumes || allPerfumes.length === 0) {
+      return new Response(
+        JSON.stringify({ recommendations: [] }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     }
 
-    // Score perfumes based on criteria
-    recommendations = recommendations.map((perfume: any) => {
-      let score = 0;
-
-      // Season match
-      if (season && (perfume.season === season || perfume.season === "all_season")) {
-        score += 3;
+    // Get perfume seasons for filtering
+    let perfumeSeasonMap: Record<string, string[]> = {};
+    if (season && season !== "all_season") {
+      const { data: perfumeSeasons } = await supabase
+        .from("perfume_seasons")
+        .select(`
+          perfume_id,
+          season:seasons(name)
+        `);
+      
+      if (perfumeSeasons) {
+        for (const ps of perfumeSeasons) {
+          if (!perfumeSeasonMap[ps.perfume_id]) {
+            perfumeSeasonMap[ps.perfume_id] = [];
+          }
+          if (ps.season && typeof ps.season === 'object' && 'name' in ps.season) {
+            perfumeSeasonMap[ps.perfume_id].push((ps.season as any).name.toLowerCase());
+          }
+        }
       }
+    }
 
-      // Mood-based scoring
-      if (mood === "romantic" && perfume.top_notes?.some((note: string) => 
-        ["rose", "jasmine", "vanilla", "amber"].some(romantic => note.toLowerCase().includes(romantic))
-      )) {
-        score += 2;
+    // Get perfume notes for mood-based scoring
+    const { data: perfumeNotes } = await supabase
+      .from("perfume_notes")
+      .select(`
+        perfume_id,
+        note:notes(name, type)
+      `);
+    
+    // Build note map
+    const noteMap: Record<string, { top: string[], heart: string[], base: string[] }> = {};
+    if (perfumeNotes) {
+      for (const pn of perfumeNotes) {
+        if (!noteMap[pn.perfume_id]) {
+          noteMap[pn.perfume_id] = { top: [], heart: [], base: [] };
+        }
+        if (pn.note && typeof pn.note === 'object' && 'name' in pn.note && 'type' in pn.note) {
+          const note = pn.note as { name: string; type: string };
+          const noteType = note.type as 'top' | 'heart' | 'base';
+          if (noteMap[pn.perfume_id][noteType]) {
+            noteMap[pn.perfume_id][noteType].push(note.name.toLowerCase());
+          }
+        }
       }
+    }
 
-      if (mood === "energetic" && perfume.top_notes?.some((note: string) => 
-        ["citrus", "bergamot", "orange", "grapefruit", "lemon"].some(fresh => note.toLowerCase().includes(fresh))
-      )) {
-        score += 2;
+    // Get perfume accords for mood scoring
+    const { data: perfumeAccords } = await supabase
+      .from("perfume_accords")
+      .select(`
+        perfume_id,
+        accord:accords(name)
+      `);
+    
+    const accordMap: Record<string, string[]> = {};
+    if (perfumeAccords) {
+      for (const pa of perfumeAccords) {
+        if (!accordMap[pa.perfume_id]) {
+          accordMap[pa.perfume_id] = [];
+        }
+        if (pa.accord && typeof pa.accord === 'object' && 'name' in pa.accord) {
+          accordMap[pa.perfume_id].push((pa.accord as any).name.toLowerCase());
+        }
       }
+    }
 
-      if (mood === "calm" && perfume.top_notes?.some((note: string) => 
-        ["lavender", "chamomile", "sandalwood", "cedar"].some(calming => note.toLowerCase().includes(calming))
-      )) {
-        score += 2;
-      }
+    // Filter and score perfumes
+    let recommendations = allPerfumes
+      .filter(p => !userOwnedPerfumeIds.includes(p.id)) // Exclude owned perfumes
+      .map((perfume: any) => {
+        let score = perfume.rating_value || perfume.rating || 0;
 
-      if (mood === "confident" && perfume.base_notes?.some((note: string) => 
-        ["oud", "leather", "tobacco", "musk"].some(bold => note.toLowerCase().includes(bold))
-      )) {
-        score += 2;
-      }
+        const perfumeSeasons = perfumeSeasonMap[perfume.id] || [];
+        const notes = noteMap[perfume.id] || { top: [], heart: [], base: [] };
+        const accords = accordMap[perfume.id] || [];
+        const allNotes = [...notes.top, ...notes.heart, ...notes.base];
 
-      if (mood === "fresh" && perfume.top_notes?.some((note: string) => 
-        ["aquatic", "sea", "mint", "green", "cucumber"].some(fresh => note.toLowerCase().includes(fresh))
-      )) {
-        score += 2;
-      }
+        // Season match
+        if (season && season !== "all_season") {
+          if (perfumeSeasons.includes(season.toLowerCase())) {
+            score += 5;
+          }
+        }
 
-      // Occasion-based scoring
-      if (occasion === "work" && perfume.sillage && perfume.sillage <= 6) {
-        score += 2; // Prefer moderate sillage for work
-      }
+        // Mood-based scoring using notes and accords
+        if (mood === "romantic") {
+          const romanticTerms = ["rose", "jasmine", "vanilla", "amber", "floral", "sweet"];
+          if (allNotes.some(n => romanticTerms.some(t => n.includes(t))) ||
+              accords.some(a => romanticTerms.some(t => a.includes(t)))) {
+            score += 3;
+          }
+        }
 
-      if (occasion === "evening" && perfume.longevity && perfume.longevity >= 7) {
-        score += 2; // Prefer long-lasting for evening
-      }
+        if (mood === "energetic") {
+          const energeticTerms = ["citrus", "bergamot", "orange", "grapefruit", "lemon", "fresh"];
+          if (allNotes.some(n => energeticTerms.some(t => n.includes(t))) ||
+              accords.some(a => energeticTerms.some(t => a.includes(t)))) {
+            score += 3;
+          }
+        }
 
-      if (occasion === "date" && perfume.base_notes?.some((note: string) => 
-        ["vanilla", "amber", "musk", "sandalwood"].some(romantic => note.toLowerCase().includes(romantic))
-      )) {
-        score += 2;
-      }
+        if (mood === "calm") {
+          const calmTerms = ["lavender", "chamomile", "sandalwood", "cedar", "woody"];
+          if (allNotes.some(n => calmTerms.some(t => n.includes(t))) ||
+              accords.some(a => calmTerms.some(t => a.includes(t)))) {
+            score += 3;
+          }
+        }
 
-      // If user has preferences, boost similar notes
-      if (userPreferences.length > 0) {
-        const highRatedPerfumes = userPreferences.filter(p => p.rating && p.rating >= 4);
-        const preferredNotes = new Set(
-          highRatedPerfumes.flatMap(p => [
-            ...(p.perfumes.top_notes || []),
-            ...(p.perfumes.heart_notes || []),
-            ...(p.perfumes.base_notes || [])
-          ].map((n: string) => n.toLowerCase()))
-        );
+        if (mood === "confident") {
+          const confidentTerms = ["oud", "leather", "tobacco", "musk", "spicy"];
+          if (allNotes.some(n => confidentTerms.some(t => n.includes(t))) ||
+              accords.some(a => confidentTerms.some(t => a.includes(t)))) {
+            score += 3;
+          }
+        }
 
-        const perfumeNotes = [
-          ...(perfume.top_notes || []),
-          ...(perfume.heart_notes || []),
-          ...(perfume.base_notes || [])
-        ].map((n: string) => n.toLowerCase());
+        if (mood === "fresh") {
+          const freshTerms = ["aquatic", "sea", "mint", "green", "cucumber", "marine"];
+          if (allNotes.some(n => freshTerms.some(t => n.includes(t))) ||
+              accords.some(a => freshTerms.some(t => a.includes(t)))) {
+            score += 3;
+          }
+        }
 
-        const matchingNotes = perfumeNotes.filter((note: string) => preferredNotes.has(note));
-        score += matchingNotes.length;
-      }
+        // Occasion-based scoring using longevity/sillage strings
+        if (occasion === "work") {
+          // Prefer moderate projection for work
+          if (perfume.sillage && ["soft", "moderate", "intimate"].some(s => 
+            perfume.sillage.toLowerCase().includes(s))) {
+            score += 2;
+          }
+        }
 
-      return { ...perfume, score };
-    });
+        if (occasion === "evening" || occasion === "date" || occasion === "special") {
+          // Prefer longer lasting for events
+          if (perfume.longevity && ["long", "very long", "eternal"].some(l => 
+            perfume.longevity.toLowerCase().includes(l))) {
+            score += 2;
+          }
+        }
+
+        return { 
+          ...perfume, 
+          score,
+          notes,
+          accords
+        };
+      });
 
     // Sort by score and take top 6
     recommendations.sort((a: any, b: any) => b.score - a.score);
     recommendations = recommendations.slice(0, 6);
+
+    console.log('Returning', recommendations.length, 'recommendations');
 
     return new Response(
       JSON.stringify({ recommendations }),
