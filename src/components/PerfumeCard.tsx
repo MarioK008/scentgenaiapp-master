@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Star, Clock, Wind } from "lucide-react";
+import { Heart, Star, Clock, Wind, FolderPlus } from "lucide-react";
 
 export interface PerfumeData {
   id: string;
@@ -25,6 +25,7 @@ interface PerfumeCardProps {
   userRating?: number;
   status?: "owned" | "wishlist";
   onAddToCollection?: (perfumeId: string, status: "owned" | "wishlist") => void;
+  onAddToCustomCollection?: (perfume: PerfumeData) => void;
   onRate?: (perfumeId: string, rating: number) => void;
   showActions?: boolean;
   onClick?: () => void;
@@ -35,6 +36,7 @@ const PerfumeCard = ({
   userRating,
   status,
   onAddToCollection,
+  onAddToCustomCollection,
   onRate,
   showActions = true,
   onClick,
@@ -129,32 +131,50 @@ const PerfumeCard = ({
 
         {showActions && (
           <div className="space-y-2 pt-2">
-            {!status && onAddToCollection && (
+            {!status && (onAddToCollection || onAddToCustomCollection) && (
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="hero"
-                  className="flex-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddToCollection(perfume.id, "owned");
-                  }}
-                >
-                  <Heart className="h-4 w-4" strokeWidth={1.5} />
-                  Add
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost-gold"
-                  className="flex-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddToCollection(perfume.id, "wishlist");
-                  }}
-                >
-                  <Star className="h-4 w-4" strokeWidth={1.5} />
-                  Wishlist
-                </Button>
+                {onAddToCollection && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="hero"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToCollection(perfume.id, "owned");
+                      }}
+                    >
+                      <Heart className="h-4 w-4" strokeWidth={1.5} />
+                      Add
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost-gold"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToCollection(perfume.id, "wishlist");
+                      }}
+                    >
+                      <Star className="h-4 w-4" strokeWidth={1.5} />
+                      Wishlist
+                    </Button>
+                  </>
+                )}
+                {onAddToCustomCollection && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddToCustomCollection(perfume);
+                    }}
+                  >
+                    <FolderPlus className="h-4 w-4" strokeWidth={1.5} />
+                    Collection
+                  </Button>
+                )}
               </div>
             )}
 

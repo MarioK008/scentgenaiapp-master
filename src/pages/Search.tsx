@@ -143,6 +143,7 @@ const Search = () => {
                     handleAddToLegacyCollection(id, status);
                   }
                 }}
+                onAddToCustomCollection={() => setAddingPerfume(perfume)}
                 onClick={() => setSelectedPerfume(perfume)}
               />
             ))}
