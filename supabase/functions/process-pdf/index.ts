@@ -1,11 +1,22 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  documentId: z.string().uuid(),
+  filePath: z.string()
+    .min(1)
+    .max(500)
+    .regex(/^[a-zA-Z0-9_\-\/\.]+$/, 'Invalid file path characters')
+    .refine(path => !path.includes('..'), 'Path traversal not allowed'),
+});
 
 const PAGES_PER_SECTION = 50; // Process 50 pages at a time for large PDFs
 const BYTES_PER_PAGE_ESTIMATE = 50000; // Rough estimate: 50KB per page
@@ -323,8 +334,21 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
+    const body = await req.json();
+
+    // Validate input with Zod
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.issues);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { documentId, filePath } = validationResult.data;
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const { documentId, filePath } = await req.json();
 
     console.log('📄 Starting PDF processing:', filePath);
 

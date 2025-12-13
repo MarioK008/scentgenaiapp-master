@@ -1,16 +1,23 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface RequestBody {
-  mood?: string;
-  occasion?: string;
-  season?: string;
-  userId?: string;
-}
+// Define allowed values for mood, occasion, season
+const moodValues = ['romantic', 'energetic', 'calm', 'confident', 'fresh'] as const;
+const occasionValues = ['work', 'evening', 'date', 'casual', 'special'] as const;
+const seasonValues = ['spring', 'summer', 'fall', 'winter', 'all_season'] as const;
+
+// Input validation schema
+const requestSchema = z.object({
+  mood: z.enum(moodValues).optional(),
+  occasion: z.enum(occasionValues).optional(),
+  season: z.enum(seasonValues).optional(),
+  userId: z.string().uuid().optional(),
+});
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,11 +25,23 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const body = await req.json();
+
+    // Validate input with Zod
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.issues);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { mood, occasion, season, userId } = validationResult.data;
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { mood, occasion, season, userId }: RequestBody = await req.json();
 
     // Get user's collection to understand preferences
     let userPreferences: any[] = [];
@@ -153,6 +172,7 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error: any) {
+    console.error('Error in get-recommendations:', error);
     return new Response(
       JSON.stringify({ error: error?.message || "Unknown error" }),
       {
