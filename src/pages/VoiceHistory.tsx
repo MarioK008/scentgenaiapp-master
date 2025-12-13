@@ -55,14 +55,14 @@ const VoiceHistory = () => {
             variant="ghost" 
             onClick={() => navigate('/voice-assistant')}
           >
-            ← Volver
+            ← Back
           </Button>
         </div>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">📚 Mis Conversaciones</h1>
+          <h1 className="text-3xl font-bold mb-2">My Conversations</h1>
           <p className="text-muted-foreground">
-            {conversations.length} conversación{conversations.length !== 1 ? 'es' : ''} guardada{conversations.length !== 1 ? 's' : ''}
+            {conversations.length} saved conversation{conversations.length !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -70,10 +70,10 @@ const VoiceHistory = () => {
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground mb-4">
-                Aún no tienes conversaciones guardadas
+                You don't have any saved conversations yet
               </p>
               <Button onClick={() => navigate('/voice-assistant')}>
-                Iniciar una conversación
+                Start a conversation
               </Button>
             </CardContent>
           </Card>
@@ -94,12 +94,12 @@ const VoiceHistory = () => {
                       <div>
                         <CardTitle className="text-lg">{conversation.title}</CardTitle>
                         <CardDescription>
-                          {new Date(conversation.created_at).toLocaleString('es-ES', {
+                          {new Date(conversation.created_at).toLocaleString('en-US', {
                             dateStyle: 'medium',
                             timeStyle: 'short'
                           })}
                           {' • '}
-                          {conversation.messages.length} mensaje{conversation.messages.length !== 1 ? 's' : ''}
+                          {conversation.messages.length} message{conversation.messages.length !== 1 ? 's' : ''}
                         </CardDescription>
                       </div>
                     </div>
@@ -111,15 +111,15 @@ const VoiceHistory = () => {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar conversación?</AlertDialogTitle>
+                          <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción no se puede deshacer. La conversación será eliminada permanentemente.
+                            This action cannot be undone. The conversation will be permanently deleted.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction onClick={() => handleDelete(conversation.id)}>
-                            Eliminar
+                            Delete
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -131,14 +131,14 @@ const VoiceHistory = () => {
                     {conversation.messages.slice(0, 3).map((msg, idx) => (
                       <div key={idx} className={`text-sm p-2 rounded ${msg.role === 'user' ? 'bg-primary/5' : 'bg-secondary/5'}`}>
                         <span className="font-medium text-xs text-muted-foreground">
-                          {msg.role === 'user' ? 'Tú' : 'Asistente'}:
+                          {msg.role === 'user' ? 'You' : 'Assistant'}:
                         </span>{' '}
                         {msg.content.length > 150 ? msg.content.slice(0, 150) + '...' : msg.content}
                       </div>
                     ))}
                     {conversation.messages.length > 3 && (
                       <p className="text-xs text-muted-foreground text-center pt-2">
-                        ... y {conversation.messages.length - 3} mensaje{conversation.messages.length - 3 !== 1 ? 's' : ''} más
+                        ... and {conversation.messages.length - 3} more message{conversation.messages.length - 3 !== 1 ? 's' : ''}
                       </p>
                     )}
                   </div>
