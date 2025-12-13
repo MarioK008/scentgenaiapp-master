@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const OPENAI_PROMPT_ID = Deno.env.get("OPENAI_PROMPT_ID");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
 serve(async (req) => {
   console.log("🔌 New WebSocket connection request received");
@@ -16,19 +19,39 @@ serve(async (req) => {
     return new Response("Expected websocket", { status: 400 });
   }
 
+  // Extract and validate authentication token from URL
+  const url = new URL(req.url);
+  const token = url.searchParams.get("token");
+
+  if (!token) {
+    console.error("❌ No authentication token provided");
+    return new Response("Authentication required", { status: 401 });
+  }
+
+  // Validate token with Supabase
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+  if (authError || !user) {
+    console.error("❌ Invalid or expired token:", authError?.message);
+    return new Response("Invalid authentication token", { status: 401 });
+  }
+
+  console.log("✅ User authenticated:", user.id);
+
   const { socket, response } = Deno.upgradeWebSocket(req);
   let openaiWs: WebSocket | null = null;
   let sessionConfigured = false;
 
   socket.onopen = () => {
-    console.log("✅ Client WebSocket connected successfully");
+    console.log("✅ Client WebSocket connected successfully for user:", user.id);
     
     // Connect to OpenAI Realtime API with UPDATED model (2024-12-17)
-    const url = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
-    console.log("🔄 Attempting to connect to OpenAI:", url);
+    const openaiUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
+    console.log("🔄 Attempting to connect to OpenAI:", openaiUrl);
     
     try {
-      openaiWs = new WebSocket(url, [
+      openaiWs = new WebSocket(openaiUrl, [
         "realtime",
         `openai-insecure-api-key.${OPENAI_API_KEY}`,
         "openai-beta.realtime-v1"
@@ -116,7 +139,7 @@ Guidelines:
   };
 
   socket.onmessage = (event) => {
-    console.log("📨 Message from client");
+    console.log("📨 Message from client (user:", user.id, ")");
     // Forward client messages to OpenAI
     if (openaiWs && openaiWs.readyState === WebSocket.OPEN) {
       openaiWs.send(event.data);
@@ -126,7 +149,7 @@ Guidelines:
   };
 
   socket.onclose = () => {
-    console.log("🔌 Client WebSocket closed");
+    console.log("🔌 Client WebSocket closed for user:", user.id);
     if (openaiWs) {
       openaiWs.close();
     }

@@ -1,11 +1,24 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const messageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1).max(10000),
+});
+
+const requestSchema = z.object({
+  messages: z.array(messageSchema).min(1).max(50),
+  includeAudio: z.boolean().optional().default(false),
+  userId: z.string().uuid().optional(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,17 +26,26 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, includeAudio = false, userId } = await req.json();
+    const body = await req.json();
+    
+    // Validate input with Zod
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.issues);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { messages, includeAudio, userId } = validationResult.data;
+    
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY is not configured');
-    }
-
-    if (!messages || !Array.isArray(messages)) {
-      throw new Error('Invalid messages format');
     }
 
     console.log('Processing chat request with', messages.length, 'messages');
