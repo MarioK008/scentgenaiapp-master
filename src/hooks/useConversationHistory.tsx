@@ -57,7 +57,7 @@ export function useConversationHistory() {
       console.error('Error fetching conversations:', error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar las conversaciones",
+        description: "Could not load conversations",
         variant: "destructive",
       });
     } finally {
@@ -98,8 +98,8 @@ export function useConversationHistory() {
       setConversations(prev => [typedData, ...prev]);
       
       toast({
-        title: "Guardado",
-        description: "Conversación guardada correctamente",
+        title: "Saved",
+        description: "Conversation saved successfully",
       });
 
       return typedData;
@@ -107,7 +107,7 @@ export function useConversationHistory() {
       console.error('Error saving conversation:', error);
       toast({
         title: "Error",
-        description: "No se pudo guardar la conversación",
+        description: "Could not save conversation",
         variant: "destructive",
       });
       throw error;
@@ -126,14 +126,14 @@ export function useConversationHistory() {
       setConversations(prev => prev.filter(conv => conv.id !== id));
       
       toast({
-        title: "Eliminado",
-        description: "Conversación eliminada correctamente",
+        title: "Deleted",
+        description: "Conversation deleted successfully",
       });
     } catch (error) {
       console.error('Error deleting conversation:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar la conversación",
+        description: "Could not delete conversation",
         variant: "destructive",
       });
     }

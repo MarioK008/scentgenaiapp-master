@@ -42,10 +42,14 @@ serve(async (req) => {
   // Fetch perfumes from database BEFORE websocket upgrade to give AI context
   let perfumeContext = "";
   try {
-    const { data: perfumes } = await supabase
+    const { data: perfumes, error: perfumeError } = await supabase
       .from("perfumes")
-      .select("name, brand:brands(name), main_accord:accords(name)")
+      .select("name, brand:brands!brand_id(name), main_accord:accords!main_accord_id(name)")
       .limit(100);
+    
+    if (perfumeError) {
+      console.error("⚠️ Error fetching perfumes:", perfumeError);
+    }
     
     if (perfumes && perfumes.length > 0) {
       const perfumeList = perfumes.map((p: any) => {

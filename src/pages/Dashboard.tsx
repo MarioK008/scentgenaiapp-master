@@ -1,36 +1,39 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useCollectionStats } from "@/hooks/useCollectionStats";
 import Layout from "@/components/Layout";
 import { FollowRequests } from "@/components/FollowRequests";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, Search, TrendingUp, Share2, User } from "lucide-react";
 import { toast } from "sonner";
+
 const Dashboard = () => {
-  const {
-    user,
-    loading
-  } = useAuth();
+  const { user, loading } = useAuth();
+  const { stats, loading: statsLoading } = useCollectionStats(user?.id);
   const navigate = useNavigate();
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
+
   const handleShareProfile = () => {
     const profileUrl = `${window.location.origin}/user/${user?.id}`;
     navigator.clipboard.writeText(profileUrl);
     toast.success("Profile link copied to clipboard!");
   };
-  return <Layout>
+
+  return (
+    <Layout>
       <div className="space-y-8 animate-fade-in">
-        <div>
-          
-        </div>
+        <div></div>
 
         <FollowRequests />
 
@@ -93,9 +96,9 @@ const Dashboard = () => {
                 View Profile
               </Button>
               <Button variant="ghost-gold" className="w-full gap-2" onClick={e => {
-              e.stopPropagation();
-              handleShareProfile();
-            }}>
+                e.stopPropagation();
+                handleShareProfile();
+              }}>
                 <Share2 className="h-4 w-4" strokeWidth={1.5} />
                 Share Profile
               </Button>
@@ -113,25 +116,35 @@ const Dashboard = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
-                <p className="text-3xl font-bold text-primary font-playfair">0</p>
+                <p className="text-3xl font-bold text-primary font-playfair">
+                  {statsLoading ? '...' : stats.ownedCount}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">Perfumes Owned</p>
               </div>
               <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
-                <p className="text-3xl font-bold text-accent font-playfair">0</p>
+                <p className="text-3xl font-bold text-accent font-playfair">
+                  {statsLoading ? '...' : stats.wishlistCount}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">Wishlist Items</p>
               </div>
               <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
-                <p className="text-3xl font-bold text-primary font-playfair">0</p>
+                <p className="text-3xl font-bold text-primary font-playfair">
+                  {statsLoading ? '...' : stats.reviewsCount}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">Reviews</p>
               </div>
               <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
-                <p className="text-3xl font-bold text-accent font-playfair">0</p>
+                <p className="text-3xl font-bold text-accent font-playfair">
+                  {statsLoading ? '...' : stats.favoritesCount}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">Favorites</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    </Layout>;
+    </Layout>
+  );
 };
+
 export default Dashboard;
