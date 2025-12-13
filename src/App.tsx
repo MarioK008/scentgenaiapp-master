@@ -8,7 +8,7 @@ import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import Collection from "./pages/Collection";
+import Collections from "./pages/Collections";
 import Recommendations from "./pages/Recommendations";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
@@ -47,7 +47,7 @@ const App = () => (
           
           {/* Protected User Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
+          <Route path="/collections" element={<ProtectedRoute><Collections /></ProtectedRoute>} />
           <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
           <Route path="/voice-assistant" element={<ProtectedRoute><VoiceAssistant /></ProtectedRoute>} />
           <Route path="/voice-live" element={<ProtectedRoute><VoiceLive /></ProtectedRoute>} />

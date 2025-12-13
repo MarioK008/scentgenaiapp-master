@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import PerfumeCard from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
+import AddToCollectionDialog from "@/components/AddToCollectionDialog";
+import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
@@ -15,9 +18,13 @@ const Search = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes();
+  const { collections, createCollection, addToCollection } = useCustomCollections();
+  
   const [filteredPerfumes, setFilteredPerfumes] = useState<Perfume[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null);
+  const [addingPerfume, setAddingPerfume] = useState<Perfume | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -45,7 +52,7 @@ const Search = () => {
     setFilteredPerfumes(filtered);
   }, [searchQuery, perfumes]);
 
-  const handleAddToCollection = async (perfumeId: string, status: "owned" | "wishlist") => {
+  const handleAddToLegacyCollection = async (perfumeId: string, status: "owned" | "wishlist") => {
     if (!user) return;
 
     const { error } = await supabase
@@ -76,6 +83,11 @@ const Search = () => {
         description: `Added to ${status === "owned" ? "collection" : "wishlist"}`,
       });
     }
+  };
+
+  const handleAddToCustomCollection = async (collectionId: string) => {
+    if (!addingPerfume) return false;
+    return await addToCollection(collectionId, addingPerfume.id);
   };
 
   if (loading || loadingPerfumes) {
@@ -126,7 +138,11 @@ const Search = () => {
               <PerfumeCard
                 key={perfume.id}
                 perfume={perfume}
-                onAddToCollection={handleAddToCollection}
+                onAddToCollection={(id, status) => {
+                  if (status === "owned" || status === "wishlist") {
+                    handleAddToLegacyCollection(id, status);
+                  }
+                }}
                 onClick={() => setSelectedPerfume(perfume)}
               />
             ))}
@@ -138,7 +154,22 @@ const Search = () => {
         perfume={selectedPerfume}
         isOpen={!!selectedPerfume}
         onClose={() => setSelectedPerfume(null)}
-        onAddToCollection={handleAddToCollection}
+        onAddToCollection={handleAddToLegacyCollection}
+      />
+
+      <AddToCollectionDialog
+        isOpen={!!addingPerfume}
+        onClose={() => setAddingPerfume(null)}
+        collections={collections}
+        onAddToCollection={handleAddToCustomCollection}
+        onCreateNew={() => setShowCreateDialog(true)}
+        perfumeName={addingPerfume?.name}
+      />
+
+      <CreateCollectionDialog
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSubmit={createCollection}
       />
     </Layout>
   );
