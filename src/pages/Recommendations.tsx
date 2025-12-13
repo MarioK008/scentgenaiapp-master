@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
+import AddToCollectionDialog from "@/components/AddToCollectionDialog";
+import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -16,12 +19,15 @@ const Recommendations = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { collections, createCollection, addToCollection } = useCustomCollections();
   const [recommendations, setRecommendations] = useState<PerfumeData[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [mood, setMood] = useState("");
   const [occasion, setOccasion] = useState("");
   const [season, setSeason] = useState("");
   const [selectedPerfume, setSelectedPerfume] = useState<PerfumeData | null>(null);
+  const [addingPerfume, setAddingPerfume] = useState<PerfumeData | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -107,6 +113,11 @@ const Recommendations = () => {
         description: `Added to ${status === "owned" ? "collection" : "wishlist"}`,
       });
     }
+  };
+
+  const handleAddToCustomCollection = async (collectionId: string) => {
+    if (!addingPerfume) return false;
+    return await addToCollection(collectionId, addingPerfume.id);
   };
 
   if (loading) {
@@ -201,6 +212,7 @@ const Recommendations = () => {
                   key={perfume.id}
                   perfume={perfume}
                   onAddToCollection={handleAddToCollection}
+                  onAddToCustomCollection={() => setAddingPerfume(perfume)}
                   onClick={() => setSelectedPerfume(perfume)}
                 />
               ))}
@@ -214,6 +226,21 @@ const Recommendations = () => {
         isOpen={!!selectedPerfume}
         onClose={() => setSelectedPerfume(null)}
         onAddToCollection={handleAddToCollection}
+      />
+
+      <AddToCollectionDialog
+        isOpen={!!addingPerfume}
+        onClose={() => setAddingPerfume(null)}
+        collections={collections}
+        onAddToCollection={handleAddToCustomCollection}
+        onCreateNew={() => setShowCreateDialog(true)}
+        perfumeName={addingPerfume?.name}
+      />
+
+      <CreateCollectionDialog
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSubmit={createCollection}
       />
     </Layout>
   );
