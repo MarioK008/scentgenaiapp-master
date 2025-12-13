@@ -39,6 +39,27 @@ serve(async (req) => {
 
   console.log("✅ User authenticated:", user.id);
 
+  // Fetch perfumes from database BEFORE websocket upgrade to give AI context
+  let perfumeContext = "";
+  try {
+    const { data: perfumes } = await supabase
+      .from("perfumes")
+      .select("name, brand:brands(name), main_accord:accords(name)")
+      .limit(100);
+    
+    if (perfumes && perfumes.length > 0) {
+      const perfumeList = perfumes.map((p: any) => {
+        const brandName = p.brand ? (Array.isArray(p.brand) ? p.brand[0]?.name : p.brand.name) : "Unknown";
+        const accordName = p.main_accord ? (Array.isArray(p.main_accord) ? p.main_accord[0]?.name : p.main_accord.name) : "";
+        return `- ${p.name} by ${brandName}${accordName ? ` (${accordName})` : ""}`;
+      }).join("\n");
+      perfumeContext = `\n\nYou have access to these perfumes in our database:\n${perfumeList}\n\nWhen recommending, prefer suggesting perfumes from this list when relevant.`;
+      console.log(`📋 Loaded ${perfumes.length} perfumes into context`);
+    }
+  } catch (dbError) {
+    console.error("⚠️ Could not load perfumes:", dbError);
+  }
+
   const { socket, response } = Deno.upgradeWebSocket(req);
   let openaiWs: WebSocket | null = null;
   let sessionConfigured = false;
@@ -65,49 +86,50 @@ serve(async (req) => {
         const data = JSON.parse(event.data);
         console.log("📨 OpenAI event received:", data.type);
 
-        // Configure session after it's created - USE PROMPT ID if available
+        // Configure session after it's created
         if (data.type === "session.created" && !sessionConfigured) {
           sessionConfigured = true;
           console.log("⚙️ Configuring session with Prompt ID:", OPENAI_PROMPT_ID ? "✓ Using custom prompt" : "✗ Using fallback");
         
-        const sessionConfig = {
-          type: "session.update",
-          session: {
-            modalities: ["text", "audio"],
-            instructions: `You are ScentGenAI, an expert fragrance consultant helping users discover their perfect perfume. 
+          const sessionConfig = {
+            type: "session.update",
+            session: {
+              modalities: ["text", "audio"],
+              instructions: `You are ScentGenAI, an expert fragrance consultant helping users discover their perfect perfume.
 
-IMPORTANT: Always respond in English, regardless of what language the user speaks.
+CRITICAL: You MUST respond in English only, even if the user speaks Spanish or any other language. This is mandatory.
 
 Your role:
 - Ask thoughtful questions about their scent preferences, lifestyle, and occasions
-- Suggest specific perfumes from popular brands when appropriate
+- Suggest specific perfumes from our database when appropriate
 - Explain fragrance notes and families in simple terms
 - Help them understand what might work for them based on their answers
 - Be warm, friendly, and enthusiastic about fragrances
 
 Guidelines:
-- Keep responses concise and conversational
+- Keep responses concise and conversational (2-3 sentences max)
 - Ask one question at a time
 - Show genuine interest in their preferences
-- Recommend specific perfumes when you have enough information
+- Recommend specific perfumes from our database when you have enough information
 - Explain why certain scents might appeal to them
-- Always respond in English`,
-            voice: "alloy",
-            input_audio_format: "pcm16",
-            output_audio_format: "pcm16",
-            input_audio_transcription: {
-              model: "whisper-1"
-            },
-            turn_detection: {
-              type: "server_vad",
-              threshold: 0.6,
-              prefix_padding_ms: 500,
-              silence_duration_ms: 1500
-            },
-            temperature: 0.8,
-            max_response_output_tokens: "inf"
-          }
-        };
+- ALWAYS respond in English regardless of user's language${perfumeContext}`,
+              voice: "alloy",
+              input_audio_format: "pcm16",
+              output_audio_format: "pcm16",
+              input_audio_transcription: {
+                model: "whisper-1"
+              },
+              turn_detection: {
+                type: "server_vad",
+                threshold: 0.5,
+                prefix_padding_ms: 300,
+                silence_duration_ms: 800,
+                create_response: true
+              },
+              temperature: 0.8,
+              max_response_output_tokens: 150
+            }
+          };
 
           console.log("📤 Sending session configuration");
           openaiWs?.send(JSON.stringify(sessionConfig));

@@ -101,6 +101,16 @@ const VoiceLive = () => {
             setMessages(prev => [...prev, assistantMessage]);
             setCurrentTranscript("");
           } else if (data.type === 'input_audio_buffer.speech_started') {
+            // User started speaking - interrupt any ongoing AI response
+            if (isSpeaking) {
+              console.log('User interrupting - clearing audio queue and canceling response');
+              audioQueueRef.current?.clear();
+              // Cancel ongoing response
+              if (wsRef.current?.readyState === WebSocket.OPEN) {
+                wsRef.current.send(JSON.stringify({ type: 'response.cancel' }));
+              }
+              setIsSpeaking(false);
+            }
             setIsListening(true);
           } else if (data.type === 'input_audio_buffer.speech_stopped') {
             setIsListening(false);
