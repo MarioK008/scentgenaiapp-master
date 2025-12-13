@@ -23,7 +23,7 @@ const TABLES = [
 
 const TABLE_TEMPLATES: Record<string, string> = {
   brands: "name\n",
-  notes: "name,type\n",
+  notes: "name,type\nRose,top\nJasmine,heart\nSandalwood,base\n",
   accords: "name\n",
   seasons: "name\n",
   perfumes: "name,brand_id,year,concentration,description,image_url,main_accord_id,rating,votes,longevity,sillage\n",
