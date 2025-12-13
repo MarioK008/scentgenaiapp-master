@@ -5,29 +5,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Mic, MessageSquare, History, Brain } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
 const VoiceAssistant = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
-
+  const {
+    user,
+    loading
+  } = useAuth();
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
-
   if (loading) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-pulse text-lg">Loading...</div>
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent mb-4">
@@ -90,26 +86,9 @@ const VoiceAssistant = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-elegant transition-smooth cursor-pointer group gradient-accent border-primary/30 animate-scale-in" onClick={() => navigate('/knowledge')}>
-            <CardHeader className="space-y-4">
-              <div className="w-16 h-16 rounded-full bg-accent/30 flex items-center justify-center shadow-gold mx-auto">
-                <Brain className="w-8 h-8 text-accent" strokeWidth={1.5} />
-              </div>
-              <CardTitle className="text-xl text-center">Knowledge Base</CardTitle>
-              <CardDescription className="text-center">
-                Upload documents to enhance the assistant's knowledge about perfumes.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost-gold" className="w-full" onClick={() => navigate('/knowledge')}>
-                Manage Knowledge
-              </Button>
-            </CardContent>
-          </Card>
+          
         </div>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default VoiceAssistant;
