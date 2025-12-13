@@ -3,26 +3,31 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, Star, Clock, Wind } from "lucide-react";
 
+export interface PerfumeData {
+  id: string;
+  name: string;
+  brand?: { name: string } | string;
+  image_url?: string | null;
+  notes?: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
+  seasons?: Array<{ name: string }>;
+  accords?: Array<{ name: string }>;
+  longevity?: string | null;
+  sillage?: string | null;
+  description?: string | null;
+  rating?: number | null;
+  year?: number | null;
+  concentration?: string | null;
+  gender?: string | null;
+}
+
 interface PerfumeCardProps {
-  perfume: {
-    id: string;
-    name: string;
-    brand?: { name: string } | string;
-    image_url?: string;
-    notes?: Array<{ name: string; type: 'top' | 'heart' | 'base' }>;
-    seasons?: Array<{ name: string }>;
-    longevity?: string | null;
-    sillage?: string | null;
-    description?: string | null;
-    rating?: number | null;
-    year?: number | null;
-    concentration?: string | null;
-  };
+  perfume: PerfumeData;
   userRating?: number;
   status?: "owned" | "wishlist";
   onAddToCollection?: (perfumeId: string, status: "owned" | "wishlist") => void;
   onRate?: (perfumeId: string, rating: number) => void;
   showActions?: boolean;
+  onClick?: () => void;
 }
 
 const PerfumeCard = ({
@@ -32,9 +37,13 @@ const PerfumeCard = ({
   onAddToCollection,
   onRate,
   showActions = true,
+  onClick,
 }: PerfumeCardProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-elegant transition-smooth group animate-scale-in">
+    <Card 
+      className="overflow-hidden hover:shadow-elegant transition-smooth group animate-scale-in cursor-pointer"
+      onClick={onClick}
+    >
       <div className="h-56 gradient-card flex items-center justify-center relative overflow-hidden">
         {perfume.image_url ? (
           <img
@@ -126,7 +135,10 @@ const PerfumeCard = ({
                   size="sm"
                   variant="hero"
                   className="flex-1"
-                  onClick={() => onAddToCollection(perfume.id, "owned")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCollection(perfume.id, "owned");
+                  }}
                 >
                   <Heart className="h-4 w-4" strokeWidth={1.5} />
                   Add
@@ -135,7 +147,10 @@ const PerfumeCard = ({
                   size="sm"
                   variant="ghost-gold"
                   className="flex-1"
-                  onClick={() => onAddToCollection(perfume.id, "wishlist")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCollection(perfume.id, "wishlist");
+                  }}
                 >
                   <Star className="h-4 w-4" strokeWidth={1.5} />
                   Wishlist
@@ -144,7 +159,7 @@ const PerfumeCard = ({
             )}
 
             {onRate && (
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
                 <label className="text-xs font-semibold text-muted-foreground">Your Rating</label>
                 <div className="flex gap-1.5">
                   {[1, 2, 3, 4, 5].map((rating) => (
