@@ -22,19 +22,38 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Trash2, Lock, Star, Heart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signOut } = useAuth();
-  const { profile, loading: profileLoading, uploading, updateProfile, uploadAvatar, deleteAvatar } = useProfile();
-  const { stats, loading: statsLoading } = useProfileStats(user?.id);
-  const { badges, allBadges, checkBadges } = useBadges(user?.id);
-  const { theme, setTheme } = useTheme();
-
+  const {
+    user,
+    loading: authLoading,
+    signOut
+  } = useAuth();
+  const {
+    profile,
+    loading: profileLoading,
+    uploading,
+    updateProfile,
+    uploadAvatar,
+    deleteAvatar
+  } = useProfile();
+  const {
+    stats,
+    loading: statsLoading
+  } = useProfileStats(user?.id);
+  const {
+    badges,
+    allBadges,
+    checkBadges
+  } = useBadges(user?.id);
+  const {
+    theme,
+    setTheme
+  } = useTheme();
   const [formData, setFormData] = useState({
     username: "",
     bio: "",
-    location: "",
+    location: ""
   });
 
   // Sync form data when profile loads
@@ -43,84 +62,76 @@ const Profile = () => {
       setFormData({
         username: profile.username || "",
         bio: profile.bio || "",
-        location: profile.location || "",
+        location: profile.location || ""
       });
     }
   }, [profile]);
-
-  const [notificationSettings, setNotificationSettings] = useState(
-    profile?.notification_settings || {
-      email: true,
-      newsletter: false,
-      weekly_recommendations: true,
-    }
-  );
-
+  const [notificationSettings, setNotificationSettings] = useState(profile?.notification_settings || {
+    email: true,
+    newsletter: false,
+    weekly_recommendations: true
+  });
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string>("");
-  
   const handleAvatarUpload = async (file: File) => {
     // Create a URL for the image to crop
     const imageUrl = URL.createObjectURL(file);
     setImageToCrop(imageUrl);
     setCropDialogOpen(true);
   };
-
   const handleCropComplete = async (croppedBlob: Blob) => {
     await uploadAvatar(croppedBlob);
     setCropDialogOpen(false);
     URL.revokeObjectURL(imageToCrop);
     setImageToCrop("");
   };
-
   if (authLoading || profileLoading) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
-
   if (!user || !profile) {
     navigate("/auth");
     return null;
   }
-
   const handleSave = async () => {
     await updateProfile({
       username: formData.username,
       bio: formData.bio,
       location: formData.location,
-      notification_settings: notificationSettings,
+      notification_settings: notificationSettings
     });
   };
-
   const handleLanguageChange = async (language: string) => {
-    await updateProfile({ preferred_language: language });
+    await updateProfile({
+      preferred_language: language
+    });
   };
-
   const handleDarkModeToggle = async (enabled: boolean) => {
-    await updateProfile({ dark_mode_enabled: enabled });
+    await updateProfile({
+      dark_mode_enabled: enabled
+    });
     setTheme(enabled ? "dark" : "light");
   };
-
   const handleNotificationToggle = async (key: keyof typeof notificationSettings) => {
     const newSettings = {
       ...notificationSettings,
-      [key]: !notificationSettings[key],
+      [key]: !notificationSettings[key]
     };
     setNotificationSettings(newSettings);
-    await updateProfile({ notification_settings: newSettings });
+    await updateProfile({
+      notification_settings: newSettings
+    });
   };
-
   const handlePrivacyToggle = async (isPrivate: boolean) => {
-    await updateProfile({ is_private: isPrivate });
+    await updateProfile({
+      is_private: isPrivate
+    });
     toast.success(isPrivate ? "Profile is now private" : "Profile is now public");
   };
-
   const handleDeleteAccount = async () => {
     try {
       // Note: User deletion should be handled by a backend endpoint
@@ -132,13 +143,11 @@ const Profile = () => {
       toast.error("Error deleting account");
     }
   };
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8 animate-fade-in">
         {/* Header */}
         <div>
-          <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent">My Profile</h1>
+          
           <p className="text-muted-foreground mt-3 text-lg">Manage your account settings and preferences</p>
         </div>
 
@@ -150,24 +159,16 @@ const Profile = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center gap-6">
-              <UserAvatar
-                avatarUrl={profile.avatar_url}
-                username={profile.username || profile.email}
-                size="lg"
-                editable
-                onUpload={handleAvatarUpload}
-              />
+              <UserAvatar avatarUrl={profile.avatar_url} username={profile.username || profile.email} size="lg" editable onUpload={handleAvatarUpload} />
               <div className="flex-1 space-y-2">
                 <p className="text-sm font-medium">Profile Picture</p>
                 <p className="text-sm text-muted-foreground">
                   Click on the avatar to upload a new picture. Max 2MB (JPG, PNG, WEBP)
                 </p>
-                {profile.avatar_url && (
-                  <Button variant="destructive" size="sm" onClick={deleteAvatar}>
+                {profile.avatar_url && <Button variant="destructive" size="sm" onClick={deleteAvatar}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Remove Photo
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
 
@@ -176,12 +177,10 @@ const Profile = () => {
             <div className="grid gap-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  placeholder="Your username"
-                />
+                <Input id="username" value={formData.username} onChange={e => setFormData({
+                ...formData,
+                username: e.target.value
+              })} placeholder="Your username" />
               </div>
 
               <div className="space-y-2">
@@ -192,14 +191,10 @@ const Profile = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="Tell us about yourself..."
-                  maxLength={200}
-                  rows={3}
-                />
+                <Textarea id="bio" value={formData.bio} onChange={e => setFormData({
+                ...formData,
+                bio: e.target.value
+              })} placeholder="Tell us about yourself..." maxLength={200} rows={3} />
                 <p className="text-xs text-muted-foreground text-right">
                   {formData.bio.length}/200 characters
                 </p>
@@ -207,12 +202,10 @@ const Profile = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="Your location"
-                />
+                <Input id="location" value={formData.location} onChange={e => setFormData({
+                ...formData,
+                location: e.target.value
+              })} placeholder="Your location" />
               </div>
             </div>
 
@@ -251,10 +244,7 @@ const Profile = () => {
                 <Label>Dark Mode</Label>
                 <p className="text-sm text-muted-foreground">Toggle dark mode theme</p>
               </div>
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={handleDarkModeToggle}
-              />
+              <Switch checked={theme === "dark"} onCheckedChange={handleDarkModeToggle} />
             </div>
 
             <Separator />
@@ -266,10 +256,7 @@ const Profile = () => {
                   Require approval before others can see your collection
                 </p>
               </div>
-              <Switch
-                checked={profile.is_private || false}
-                onCheckedChange={handlePrivacyToggle}
-              />
+              <Switch checked={profile.is_private || false} onCheckedChange={handlePrivacyToggle} />
             </div>
 
             <Separator />
@@ -282,10 +269,7 @@ const Profile = () => {
                   <p className="text-sm font-medium">Email Notifications</p>
                   <p className="text-sm text-muted-foreground">Receive email updates</p>
                 </div>
-                <Switch
-                  checked={notificationSettings.email}
-                  onCheckedChange={() => handleNotificationToggle("email")}
-                />
+                <Switch checked={notificationSettings.email} onCheckedChange={() => handleNotificationToggle("email")} />
               </div>
 
               <div className="flex items-center justify-between">
@@ -293,10 +277,7 @@ const Profile = () => {
                   <p className="text-sm font-medium">Newsletter</p>
                   <p className="text-sm text-muted-foreground">Subscribe to our newsletter</p>
                 </div>
-                <Switch
-                  checked={notificationSettings.newsletter}
-                  onCheckedChange={() => handleNotificationToggle("newsletter")}
-                />
+                <Switch checked={notificationSettings.newsletter} onCheckedChange={() => handleNotificationToggle("newsletter")} />
               </div>
 
               <div className="flex items-center justify-between">
@@ -304,10 +285,7 @@ const Profile = () => {
                   <p className="text-sm font-medium">Weekly Recommendations</p>
                   <p className="text-sm text-muted-foreground">Get personalized perfume suggestions</p>
                 </div>
-                <Switch
-                  checked={notificationSettings.weekly_recommendations}
-                  onCheckedChange={() => handleNotificationToggle("weekly_recommendations")}
-                />
+                <Switch checked={notificationSettings.weekly_recommendations} onCheckedChange={() => handleNotificationToggle("weekly_recommendations")} />
               </div>
             </div>
           </CardContent>
@@ -320,12 +298,9 @@ const Profile = () => {
             <CardDescription>Your perfume collection insights</CardDescription>
           </CardHeader>
           <CardContent>
-            {statsLoading ? (
-              <div className="flex items-center justify-center py-8">
+            {statsLoading ? <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 p-4 rounded-lg bg-muted">
                   <div className="p-2 rounded-full bg-primary/10">
                     <Sparkles className="h-6 w-6 text-primary" />
@@ -346,8 +321,7 @@ const Profile = () => {
                   </div>
                 </div>
 
-                {stats.favoritePerfume && (
-                  <div className="col-span-full flex items-center gap-3 p-4 rounded-lg bg-muted">
+                {stats.favoritePerfume && <div className="col-span-full flex items-center gap-3 p-4 rounded-lg bg-muted">
                     <div className="p-2 rounded-full bg-primary/10">
                       <Star className="h-6 w-6 text-primary" />
                     </div>
@@ -357,85 +331,49 @@ const Profile = () => {
                         {stats.favoritePerfume.brand} - {stats.favoritePerfume.name}
                       </p>
                     </div>
-                    {stats.favoritePerfume.image_url && (
-                      <img
-                        src={stats.favoritePerfume.image_url}
-                        alt={stats.favoritePerfume.name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
-                    )}
-                  </div>
-                )}
+                    {stats.favoritePerfume.image_url && <img src={stats.favoritePerfume.image_url} alt={stats.favoritePerfume.name} className="w-16 h-16 object-cover rounded-lg" />}
+                  </div>}
 
-                {(stats.topNotes.top.length > 0 || stats.topNotes.heart.length > 0 || stats.topNotes.base.length > 0) && (
-                  <div className="col-span-full p-4 rounded-lg bg-muted space-y-3">
+                {(stats.topNotes.top.length > 0 || stats.topNotes.heart.length > 0 || stats.topNotes.base.length > 0) && <div className="col-span-full p-4 rounded-lg bg-muted space-y-3">
                     <p className="text-sm font-medium">Your Top Notes</p>
-                    {stats.topNotes.top.length > 0 && (
-                      <div className="space-y-1">
+                    {stats.topNotes.top.length > 0 && <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Top Notes</p>
                         <div className="flex flex-wrap gap-2">
-                          {stats.topNotes.top.map((note) => (
-                            <span
-                              key={note}
-                              className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm"
-                            >
+                          {stats.topNotes.top.map(note => <span key={note} className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm">
                               {note}
-                            </span>
-                          ))}
+                            </span>)}
                         </div>
-                      </div>
-                    )}
-                    {stats.topNotes.heart.length > 0 && (
-                      <div className="space-y-1">
+                      </div>}
+                    {stats.topNotes.heart.length > 0 && <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Heart Notes</p>
                         <div className="flex flex-wrap gap-2">
-                          {stats.topNotes.heart.map((note) => (
-                            <span
-                              key={note}
-                              className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm"
-                            >
+                          {stats.topNotes.heart.map(note => <span key={note} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">
                               {note}
-                            </span>
-                          ))}
+                            </span>)}
                         </div>
-                      </div>
-                    )}
-                    {stats.topNotes.base.length > 0 && (
-                      <div className="space-y-1">
+                      </div>}
+                    {stats.topNotes.base.length > 0 && <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Base Notes</p>
                         <div className="flex flex-wrap gap-2">
-                          {stats.topNotes.base.map((note) => (
-                            <span
-                              key={note}
-                              className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm"
-                            >
+                          {stats.topNotes.base.map(note => <span key={note} className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm">
                               {note}
-                            </span>
-                          ))}
+                            </span>)}
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                      </div>}
+                  </div>}
+              </div>}
           </CardContent>
         </Card>
 
         {/* Badges */}
-        <BadgeDisplay
-          badges={allBadges.map(badge => {
-            const earnedBadge = badges.find(b => b.badges.id === badge.id);
-            return {
-              ...badge,
-              earned: badge.earned,
-              earned_at: earnedBadge?.earned_at,
-            };
-          })}
-          title="Achievements"
-          description="Track your progress and earn badges"
-          showProgress={true}
-        />
+        <BadgeDisplay badges={allBadges.map(badge => {
+        const earnedBadge = badges.find(b => b.badges.id === badge.id);
+        return {
+          ...badge,
+          earned: badge.earned,
+          earned_at: earnedBadge?.earned_at
+        };
+      })} title="Achievements" description="Track your progress and earn badges" showProgress={true} />
 
         {/* Security */}
         <Card>
@@ -449,10 +387,7 @@ const Profile = () => {
                 <Label>Password</Label>
                 <p className="text-sm text-muted-foreground">Change your password</p>
               </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setChangePasswordDialogOpen(true)}
-              >
+              <Button variant="outline" onClick={() => setChangePasswordDialogOpen(true)}>
                 <Lock className="h-4 w-4 mr-2" />
                 Change Password
               </Button>
@@ -504,28 +439,16 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        <ChangePasswordDialog
-          open={changePasswordDialogOpen}
-          onOpenChange={setChangePasswordDialogOpen}
-          userEmail={profile.email}
-        />
+        <ChangePasswordDialog open={changePasswordDialogOpen} onOpenChange={setChangePasswordDialogOpen} userEmail={profile.email} />
 
-        <AvatarCropDialog
-          open={cropDialogOpen}
-          onOpenChange={(open) => {
-            setCropDialogOpen(open);
-            if (!open && imageToCrop) {
-              URL.revokeObjectURL(imageToCrop);
-              setImageToCrop("");
-            }
-          }}
-          imageUrl={imageToCrop}
-          onCropComplete={handleCropComplete}
-          loading={uploading}
-        />
+        <AvatarCropDialog open={cropDialogOpen} onOpenChange={open => {
+        setCropDialogOpen(open);
+        if (!open && imageToCrop) {
+          URL.revokeObjectURL(imageToCrop);
+          setImageToCrop("");
+        }
+      }} imageUrl={imageToCrop} onCropComplete={handleCropComplete} loading={uploading} />
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Profile;
