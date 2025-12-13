@@ -35,9 +35,6 @@ const Dashboard = () => {
           <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent">
             Welcome back!
           </h1>
-          <p className="text-muted-foreground mt-3 text-lg">
-            Discover new perfumes and manage your collection
-          </p>
         </div>
 
         <FollowRequests />
