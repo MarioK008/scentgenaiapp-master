@@ -7,34 +7,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, Search, TrendingUp, Share2, User } from "lucide-react";
 import { toast } from "sonner";
-
 const Dashboard = () => {
-  const { user, loading } = useAuth();
+  const {
+    user,
+    loading
+  } = useAuth();
   const navigate = useNavigate();
-
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
-
   const handleShareProfile = () => {
     const profileUrl = `${window.location.origin}/user/${user?.id}`;
     navigator.clipboard.writeText(profileUrl);
     toast.success("Profile link copied to clipboard!");
   };
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="space-y-8 animate-fade-in">
         <div>
-          <h1 className="text-5xl font-bold font-playfair gradient-primary bg-clip-text text-transparent">
-            Welcome back!
-          </h1>
+          
         </div>
 
         <FollowRequests />
@@ -97,14 +92,10 @@ const Dashboard = () => {
               <Button variant="hero" className="w-full">
                 View Profile
               </Button>
-              <Button 
-                variant="ghost-gold" 
-                className="w-full gap-2" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleShareProfile();
-                }}
-              >
+              <Button variant="ghost-gold" className="w-full gap-2" onClick={e => {
+              e.stopPropagation();
+              handleShareProfile();
+            }}>
                 <Share2 className="h-4 w-4" strokeWidth={1.5} />
                 Share Profile
               </Button>
@@ -141,8 +132,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Dashboard;
