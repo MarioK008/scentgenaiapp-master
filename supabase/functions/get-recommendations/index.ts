@@ -59,12 +59,13 @@ Deno.serve(async (req) => {
     }
 
     // Get all perfumes with their related data using proper joins
+    // Use explicit FK reference to disambiguate accords relationship
     const { data: allPerfumes, error } = await supabase
       .from("perfumes")
       .select(`
         *,
         brand:brands(name),
-        main_accord:accords(name)
+        main_accord:accords!perfumes_main_accord_id_fkey(name)
       `);
 
     if (error) {

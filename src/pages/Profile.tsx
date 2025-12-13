@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -32,10 +32,21 @@ const Profile = () => {
   const { theme, setTheme } = useTheme();
 
   const [formData, setFormData] = useState({
-    username: profile?.username || "",
-    bio: profile?.bio || "",
-    location: profile?.location || "",
+    username: "",
+    bio: "",
+    location: "",
   });
+
+  // Sync form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        username: profile.username || "",
+        bio: profile.bio || "",
+        location: profile.location || "",
+      });
+    }
+  }, [profile]);
 
   const [notificationSettings, setNotificationSettings] = useState(
     profile?.notification_settings || {
