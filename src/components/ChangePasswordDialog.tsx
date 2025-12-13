@@ -146,12 +146,12 @@ export const ChangePasswordDialog = ({
         throw updateError;
       }
 
-      toast.success("Contraseña actualizada correctamente");
+      toast.success("Password updated successfully");
       resetForm();
       onOpenChange(false);
     } catch (error) {
       console.error("Error changing password:", error);
-      toast.error("Error al cambiar la contraseña");
+      toast.error("Error changing password");
     } finally {
       setLoading(false);
     }

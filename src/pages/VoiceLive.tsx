@@ -193,7 +193,7 @@ const VoiceLive = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-pulse text-lg">Cargando...</div>
+          <div className="animate-pulse text-lg">Loading...</div>
         </div>
       </Layout>
     );

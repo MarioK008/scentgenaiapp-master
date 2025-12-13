@@ -35,7 +35,7 @@ export const DocumentList = ({ documents, processing, onDelete }: DocumentListPr
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -52,22 +52,22 @@ export const DocumentList = ({ documents, processing, onDelete }: DocumentListPr
     if (doc.processing_status?.error) {
       return `Error: ${doc.processing_status.error}`;
     }
-    if (!doc.processing_status) return 'Procesando...';
+    if (!doc.processing_status) return 'Processing...';
     
     const { total_sections, current_section, method } = doc.processing_status;
     
     if (total_sections && total_sections > 1) {
-      return `Sección ${current_section || 1} de ${total_sections}${method ? ` (${method})` : ''}`;
+      return `Section ${current_section || 1} of ${total_sections}${method ? ` (${method})` : ''}`;
     }
     
-    return `Extrayendo texto${method ? ` (${method})` : ''}...`;
+    return `Extracting text${method ? ` (${method})` : ''}...`;
   };
 
   if (documents.length === 0) {
     return (
       <Card>
         <CardContent className="pt-6 text-center text-muted-foreground">
-          No hay documentos cargados aún
+          No documents uploaded yet
         </CardContent>
       </Card>
     );
@@ -76,7 +76,7 @@ export const DocumentList = ({ documents, processing, onDelete }: DocumentListPr
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Documentos de la Base de Conocimiento</CardTitle>
+        <CardTitle>Knowledge Base Documents</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {documents.map((doc) => (
@@ -123,7 +123,7 @@ export const DocumentList = ({ documents, processing, onDelete }: DocumentListPr
               {processing === doc.id || (!doc.processed && doc.processing_status && !doc.processing_status.error) ? (
                 <Badge variant="secondary">
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  Procesando
+                  Processing
                 </Badge>
               ) : doc.processing_status?.error ? (
                 <Badge variant="destructive">
@@ -132,12 +132,12 @@ export const DocumentList = ({ documents, processing, onDelete }: DocumentListPr
               ) : doc.processed ? (
                 <Badge variant="default" className="bg-green-600">
                   <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Procesado
+                  Processed
                 </Badge>
               ) : (
                 <Badge variant="outline">
                   <Clock className="w-3 h-3 mr-1" />
-                  Pendiente
+                  Pending
                 </Badge>
               )}
               <Button

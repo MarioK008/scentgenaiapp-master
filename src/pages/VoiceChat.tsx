@@ -129,7 +129,7 @@ const VoiceChat = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-pulse text-lg">Cargando...</div>
+          <div className="animate-pulse text-lg">Loading...</div>
         </div>
       </Layout>
     );
@@ -170,11 +170,11 @@ const VoiceChat = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Tu mensaje:</label>
+                <label className="text-sm font-medium mb-2 block">Your message:</label>
                 <Textarea
                   value={editableText}
                   onChange={(e) => setEditableText(e.target.value)}
-                  placeholder="Escribe aquí o usa el botón de dictar..."
+                  placeholder="Type here or use the dictate button..."
                   className="min-h-32"
                   disabled={isRecording || isTranscribing}
                 />
