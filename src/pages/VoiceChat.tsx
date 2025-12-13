@@ -62,7 +62,7 @@ const VoiceChat = () => {
     if (!editableText.trim()) {
       toast({
         title: "Error",
-        description: "Escribe o dicta un mensaje primero",
+        description: "Please type or dictate a message first",
         variant: "destructive",
       });
       return;
@@ -104,7 +104,7 @@ const VoiceChat = () => {
 
       // Save conversation after each exchange
       if (messages.length === 0) {
-        const title = `Chat con dictado - ${new Date().toLocaleDateString()}`;
+        const title = `Dictated Chat - ${new Date().toLocaleDateString()}`;
         await saveConversation(title, 'dictated', [...messages, userMessage, assistantMessage]);
       }
 
@@ -112,7 +112,7 @@ const VoiceChat = () => {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: "No se pudo enviar el mensaje",
+        description: "Failed to send message",
         variant: "destructive",
       });
     } finally {
@@ -143,24 +143,24 @@ const VoiceChat = () => {
           onClick={() => navigate('/voice-assistant')}
           className="mb-6"
         >
-          ← Volver
+          ← Back
         </Button>
 
         <Card>
           <CardHeader>
-            <CardTitle>✍️ Chat con Dictado</CardTitle>
+            <CardTitle>✍️ Dictated Chat</CardTitle>
             <CardDescription>
-              Graba tu mensaje, edítalo y envíalo cuando estés listo
+              Record your message, edit it, and send when ready
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {messages.length > 0 && (
               <div className="space-y-4 max-h-96 overflow-y-auto p-4 bg-muted/30 rounded-lg">
-                <h3 className="font-semibold text-sm text-muted-foreground">Historial de chat:</h3>
+                <h3 className="font-semibold text-sm text-muted-foreground">Chat history:</h3>
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`p-3 rounded-lg ${msg.role === 'user' ? 'bg-primary/10 ml-8' : 'bg-secondary/10 mr-8'}`}>
                     <div className="text-xs text-muted-foreground mb-1">
-                      {msg.role === 'user' ? 'Tú' : 'Asistente'}
+                      {msg.role === 'user' ? 'You' : 'Assistant'}
                     </div>
                     <div className="text-sm">{msg.content}</div>
                   </div>
@@ -188,7 +188,7 @@ const VoiceChat = () => {
                   className="flex-1"
                 >
                   <Mic className="w-4 h-4 mr-2" />
-                  {isRecording ? "Detener Grabación" : isTranscribing ? "Transcribiendo..." : "Dictar"}
+                  {isRecording ? "Stop Recording" : isTranscribing ? "Transcribing..." : "Dictate"}
                 </Button>
                 
                 <Button
@@ -197,7 +197,7 @@ const VoiceChat = () => {
                   disabled={!editableText && !isRecording}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Limpiar
+                  Clear
                 </Button>
                 
                 <Button
@@ -206,7 +206,7 @@ const VoiceChat = () => {
                   className="flex-1"
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  {isSending ? "Enviando..." : "Enviar"}
+                  {isSending ? "Sending..." : "Send"}
                 </Button>
               </div>
             </div>
