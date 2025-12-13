@@ -42,13 +42,13 @@ const Dashboard = () => {
             <CardHeader className="space-y-3">
               <div className="flex items-center gap-3">
                 <Heart className="h-6 w-6 text-primary group-hover:scale-110 transition-bounce" strokeWidth={1.5} />
-                <CardTitle className="text-2xl">My Collection</CardTitle>
+                <CardTitle className="text-2xl">My Favorites</CardTitle>
               </div>
-              <CardDescription className="text-base">Browse and manage your perfumes</CardDescription>
+              <CardDescription className="text-base">Browse and manage your favorite perfumes</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="hero" className="w-full">
-                View Collection
+                View Favorites
               </Button>
             </CardContent>
           </Card>
@@ -119,7 +119,7 @@ const Dashboard = () => {
                 <p className="text-3xl font-bold text-primary font-playfair">
                   {statsLoading ? '...' : stats.ownedCount}
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">Perfumes Owned</p>
+                <p className="text-sm text-muted-foreground mt-1">Favorites</p>
               </div>
               <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
                 <p className="text-3xl font-bold text-accent font-playfair">

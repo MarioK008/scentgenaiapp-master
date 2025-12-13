@@ -194,7 +194,7 @@ const Collections = () => {
     : collectionPerfumes;
 
   const currentTitle = activeView === "owned"
-    ? "My Collection"
+    ? "My Favorites"
     : activeView === "wishlist"
     ? "Wishlist"
     : selectedCollection?.name || "Collection";
@@ -225,7 +225,7 @@ const Collections = () => {
               >
                 <Heart className="h-5 w-5 text-primary" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">My Collection</p>
+                  <p className="font-medium truncate">My Favorites</p>
                   <p className="text-xs text-muted-foreground">{legacyOwned.length} perfumes</p>
                 </div>
               </button>

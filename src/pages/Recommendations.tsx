@@ -110,7 +110,7 @@ const Recommendations = () => {
     } else {
       toast({
         title: "Success",
-        description: `Added to ${status === "owned" ? "collection" : "wishlist"}`,
+        description: `Added to ${status === "owned" ? "favorites" : "wishlist"}`,
       });
     }
   };
