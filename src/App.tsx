@@ -14,6 +14,7 @@ import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import AdminWaitlist from "./pages/AdminWaitlist";
 import AdminEmailLogs from "./pages/AdminEmailLogs";
+import AdminImages from "./pages/AdminImages";
 import EmailTemplates from "./pages/EmailTemplates";
 import ImportLogs from "./pages/ImportLogs";
 import VoiceAssistant from "./pages/VoiceAssistant";
@@ -67,6 +68,7 @@ const App = () => (
           <Route path="/admin/import-logs" element={<AdminRoute><ImportLogs /></AdminRoute>} />
           <Route path="/admin/knowledge" element={<AdminRoute><AdminKnowledge /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+          <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
           
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
