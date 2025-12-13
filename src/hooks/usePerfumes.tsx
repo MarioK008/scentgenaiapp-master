@@ -52,6 +52,8 @@ export const usePerfumes = () => {
     setError(null);
     
     try {
+      console.log('Fetching perfumes...');
+      
       // Fetch perfumes with brand and main accord
       const { data: perfumesData, error: perfumesError } = await supabase
         .from("perfumes")
@@ -62,17 +64,27 @@ export const usePerfumes = () => {
         `)
         .order("name");
 
+      console.log('Perfumes query result:', { count: perfumesData?.length, error: perfumesError });
+
       if (perfumesError) throw perfumesError;
 
+      if (!perfumesData || perfumesData.length === 0) {
+        console.log('No perfumes found in database');
+        setPerfumes([]);
+        return;
+      }
+
       // Fetch all notes for these perfumes
-      const perfumeIds = perfumesData?.map(p => p.id) || [];
+      const perfumeIds = perfumesData.map(p => p.id);
       
       const { data: notesData, error: notesError } = await supabase
         .from("perfume_notes")
         .select("perfume_id, note:notes(id, name, type)")
         .in("perfume_id", perfumeIds);
 
-      if (notesError) throw notesError;
+      if (notesError) {
+        console.error('Notes query error:', notesError);
+      }
 
       // Fetch all seasons for these perfumes
       const { data: seasonsData, error: seasonsError } = await supabase
@@ -80,7 +92,9 @@ export const usePerfumes = () => {
         .select("perfume_id, season:seasons(id, name)")
         .in("perfume_id", perfumeIds);
 
-      if (seasonsError) throw seasonsError;
+      if (seasonsError) {
+        console.error('Seasons query error:', seasonsError);
+      }
 
       // Fetch all accords for these perfumes
       const { data: accordsData, error: accordsError } = await supabase
@@ -88,27 +102,30 @@ export const usePerfumes = () => {
         .select("perfume_id, accord:accords(id, name)")
         .in("perfume_id", perfumeIds);
 
-      if (accordsError) throw accordsError;
+      if (accordsError) {
+        console.error('Accords query error:', accordsError);
+      }
 
       // Combine all data
-      const enrichedPerfumes = perfumesData?.map(perfume => ({
+      const enrichedPerfumes = perfumesData.map(perfume => ({
         ...perfume,
         brand: Array.isArray(perfume.brand) ? perfume.brand[0] : perfume.brand,
         main_accord: Array.isArray(perfume.main_accord) ? perfume.main_accord[0] : perfume.main_accord,
-        notes: notesData
-          ?.filter(n => n.perfume_id === perfume.id)
+        notes: (notesData || [])
+          .filter(n => n.perfume_id === perfume.id)
           .map(n => Array.isArray(n.note) ? n.note[0] : n.note)
-          .filter(Boolean) || [],
-        seasons: seasonsData
-          ?.filter(s => s.perfume_id === perfume.id)
+          .filter(Boolean),
+        seasons: (seasonsData || [])
+          .filter(s => s.perfume_id === perfume.id)
           .map(s => Array.isArray(s.season) ? s.season[0] : s.season)
-          .filter(Boolean) || [],
-        accords: accordsData
-          ?.filter(a => a.perfume_id === perfume.id)
+          .filter(Boolean),
+        accords: (accordsData || [])
+          .filter(a => a.perfume_id === perfume.id)
           .map(a => Array.isArray(a.accord) ? a.accord[0] : a.accord)
-          .filter(Boolean) || [],
-      })) || [];
+          .filter(Boolean),
+      }));
 
+      console.log('Enriched perfumes count:', enrichedPerfumes.length);
       setPerfumes(enrichedPerfumes);
     } catch (err: any) {
       setError(err.message);
