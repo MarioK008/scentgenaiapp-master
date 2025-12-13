@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { ImageIcon, RefreshCw, Sparkles, CheckCircle, XCircle } from "lucide-react";
+import { ImageIcon, RefreshCw, Sparkles, CheckCircle, XCircle, FlaskConical } from "lucide-react";
 import Layout from "@/components/Layout";
 
 interface GenerationResult {
@@ -58,8 +58,8 @@ const AdminImages = () => {
     return data.results || [];
   };
 
-  // Generate all missing images
-  const handleGenerateAll = async () => {
+  // Generate images for specified count of perfumes
+  const handleGenerate = async (count?: number) => {
     if (!stats?.perfumesWithoutImages.length) {
       toast({
         title: "No images to generate",
@@ -70,19 +70,22 @@ const AdminImages = () => {
 
     setIsGenerating(true);
     setResults([]);
-    setProgress({ current: 0, total: stats.perfumesWithoutImages.length });
 
     const allIds = stats.perfumesWithoutImages.map((p) => p.id);
+    const idsToProcess = count ? allIds.slice(0, count) : allIds;
+    
+    setProgress({ current: 0, total: idsToProcess.length });
+
     const batchSize = 5;
     const allResults: GenerationResult[] = [];
 
     try {
-      for (let i = 0; i < allIds.length; i += batchSize) {
-        const batch = allIds.slice(i, i + batchSize);
+      for (let i = 0; i < idsToProcess.length; i += batchSize) {
+        const batch = idsToProcess.slice(i, i + batchSize);
         const batchResults = await generateBatch(batch);
         allResults.push(...batchResults);
         setResults([...allResults]);
-        setProgress({ current: Math.min(i + batchSize, allIds.length), total: allIds.length });
+        setProgress({ current: Math.min(i + batchSize, idsToProcess.length), total: idsToProcess.length });
 
         // Check for rate limiting
         const rateLimited = batchResults.some((r) => r.error?.includes("Rate limited"));
@@ -96,7 +99,7 @@ const AdminImages = () => {
         }
 
         // Delay between batches
-        if (i + batchSize < allIds.length) {
+        if (i + batchSize < idsToProcess.length) {
           await new Promise((resolve) => setTimeout(resolve, 2000));
         }
       }
@@ -104,7 +107,7 @@ const AdminImages = () => {
       const successCount = allResults.filter((r) => r.success).length;
       toast({
         title: "Generation Complete",
-        description: `Successfully generated ${successCount}/${allIds.length} images`,
+        description: `Successfully generated ${successCount}/${idsToProcess.length} images`,
       });
 
       queryClient.invalidateQueries({ queryKey: ["perfume-image-stats"] });
@@ -214,25 +217,45 @@ const AdminImages = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button
-              size="lg"
-              variant="premium"
-              onClick={handleGenerateAll}
-              disabled={isGenerating || !stats?.withoutImages}
-              className="w-full md:w-auto"
-            >
-              {isGenerating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  Generate All Missing Images ({stats?.withoutImages || 0})
-                </>
-              )}
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => handleGenerate(5)}
+                disabled={isGenerating || !stats?.withoutImages}
+              >
+                {isGenerating && progress.total === 5 ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <FlaskConical className="h-4 w-4 mr-2" />
+                    Test with 5 Perfumes
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                size="lg"
+                variant="premium"
+                onClick={() => handleGenerate()}
+                disabled={isGenerating || !stats?.withoutImages}
+              >
+                {isGenerating && progress.total > 5 ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Generate All ({stats?.withoutImages || 0})
+                  </>
+                )}
+              </Button>
+            </div>
 
             {isGenerating && progress.total > 0 && (
               <div className="space-y-2">
