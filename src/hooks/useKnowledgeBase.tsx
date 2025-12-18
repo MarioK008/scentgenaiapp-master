@@ -119,6 +119,33 @@ export const useKnowledgeBase = (userId: string | undefined) => {
     }
   };
 
+  const retryProcessing = async (documentId: string, filePath: string) => {
+    // First, clear any existing chunks and reset status
+    try {
+      // Delete existing chunks for this document
+      await supabase
+        .from('knowledge_chunks')
+        .delete()
+        .eq('document_id', documentId);
+      
+      // Reset document status
+      await supabase
+        .from('knowledge_documents')
+        .update({ 
+          processed: false, 
+          processing_status: null,
+          chunk_count: 0 
+        })
+        .eq('id', documentId);
+
+      // Re-process the document
+      await processDocument(documentId, filePath);
+    } catch (error) {
+      console.error('Error retrying processing:', error);
+      toast.error('Failed to retry processing');
+    }
+  };
+
   const deleteDocument = async (documentId: string, filePath: string) => {
     try {
       // Delete from storage
@@ -151,6 +178,7 @@ export const useKnowledgeBase = (userId: string | undefined) => {
     processing,
     uploadDocument,
     deleteDocument,
+    retryProcessing,
     refetch: fetchDocuments,
   };
 };

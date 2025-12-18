@@ -14,6 +14,7 @@ const requestSchema = z.object({
   userId: z.string().uuid().optional(),
   matchThreshold: z.number().min(0).max(1).optional().default(0.78),
   matchCount: z.number().int().min(1).max(100).optional().default(5),
+  globalSearch: z.boolean().optional().default(false), // Search all documents, not just user's
 });
 
 serve(async (req) => {
@@ -42,11 +43,11 @@ serve(async (req) => {
       );
     }
 
-    const { query, userId, matchThreshold, matchCount } = validationResult.data;
+    const { query, userId, matchThreshold, matchCount, globalSearch } = validationResult.data;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    console.log('🔍 Searching knowledge base for:', query);
+    console.log('🔍 Searching knowledge base for:', query, globalSearch ? '(global search)' : `(user: ${userId})`);
 
     // Generate embedding for the query
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
@@ -70,13 +71,14 @@ serve(async (req) => {
     const queryEmbedding = embeddingData.data[0].embedding;
 
     // Search for similar chunks using the database function
+    // If globalSearch is true, pass null to search all documents
     const { data: matches, error: searchError } = await supabase.rpc(
       'match_knowledge_chunks',
       {
         query_embedding: queryEmbedding,
         match_threshold: matchThreshold,
         match_count: matchCount,
-        filter_user_id: userId || null,
+        filter_user_id: globalSearch ? null : (userId || null),
       }
     );
 

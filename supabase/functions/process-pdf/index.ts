@@ -8,13 +8,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Input validation schema
+// Input validation schema - allow more characters in file paths (spaces, parentheses, etc.)
 const requestSchema = z.object({
   documentId: z.string().uuid(),
   filePath: z.string()
     .min(1)
     .max(500)
-    .regex(/^[a-zA-Z0-9_\-\/\.]+$/, 'Invalid file path characters')
     .refine(path => !path.includes('..'), 'Path traversal not allowed'),
 });
 
