@@ -1,4 +1,4 @@
-import { FileText, Trash2, Loader2, CheckCircle2, Clock } from 'lucide-react';
+import { FileText, Trash2, Loader2, CheckCircle2, Clock, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,9 +25,10 @@ interface DocumentListProps {
   documents: Document[];
   processing: string | null;
   onDelete: (id: string, filePath: string) => void;
+  onRetry?: (id: string, filePath: string) => void;
 }
 
-export const DocumentList = ({ documents, processing, onDelete }: DocumentListProps) => {
+export const DocumentList = ({ documents, processing, onDelete, onRetry }: DocumentListProps) => {
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return 'Unknown';
     const mb = bytes / (1024 * 1024);
@@ -126,19 +127,45 @@ export const DocumentList = ({ documents, processing, onDelete }: DocumentListPr
                   Processing
                 </Badge>
               ) : doc.processing_status?.error ? (
-                <Badge variant="destructive">
-                  Error
-                </Badge>
+                <>
+                  <Badge variant="destructive">
+                    Error
+                  </Badge>
+                  {onRetry && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRetry(doc.id, doc.file_path)}
+                      className="gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Retry
+                    </Button>
+                  )}
+                </>
               ) : doc.processed ? (
                 <Badge variant="default" className="bg-green-600">
                   <CheckCircle2 className="w-3 h-3 mr-1" />
                   Processed
                 </Badge>
               ) : (
-                <Badge variant="outline">
-                  <Clock className="w-3 h-3 mr-1" />
-                  Pending
-                </Badge>
+                <>
+                  <Badge variant="outline">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Pending
+                  </Badge>
+                  {onRetry && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRetry(doc.id, doc.file_path)}
+                      className="gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Process
+                    </Button>
+                  )}
+                </>
               )}
               <Button
                 variant="ghost"

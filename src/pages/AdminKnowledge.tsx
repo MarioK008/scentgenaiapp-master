@@ -15,6 +15,7 @@ const AdminKnowledge = () => {
     processing,
     uploadDocument,
     deleteDocument,
+    retryProcessing,
   } = useKnowledgeBase(user?.id);
 
   if (loading) {
@@ -114,7 +115,8 @@ const AdminKnowledge = () => {
               <DocumentList 
                 documents={documents} 
                 processing={processing} 
-                onDelete={deleteDocument} 
+                onDelete={deleteDocument}
+                onRetry={retryProcessing}
               />
             </CardContent>
           </Card>

@@ -56,25 +56,26 @@ serve(async (req) => {
     const lastUserMessage = messages.filter(m => m.role === 'user').pop();
     let knowledgeContext = '';
 
-    if (lastUserMessage && userId) {
-      console.log('🔍 Searching knowledge base...');
+    // Always search knowledge base (global search to include admin-uploaded documents)
+    if (lastUserMessage) {
+      console.log('🔍 Searching knowledge base (global)...');
       
       try {
         const { data: searchResults } = await supabase.functions.invoke('search-knowledge', {
           body: {
             query: lastUserMessage.content,
-            userId: userId,
-            matchCount: 3,
+            globalSearch: true, // Search all documents, including admin-uploaded ones
+            matchCount: 5, // Increased to get more context
           },
         });
 
         if (searchResults?.matches && searchResults.matches.length > 0) {
           console.log(`✅ Found ${searchResults.matches.length} relevant knowledge chunks`);
           
-          knowledgeContext = '\n\nCONOCIMIENTO RELEVANTE DE LA BASE DE DATOS:\n' + 
+          knowledgeContext = '\n\nRELEVANT KNOWLEDGE FROM DATABASE:\n' + 
             searchResults.matches
               .map((match: any, idx: number) => 
-                `[Fuente ${idx + 1}: ${match.document_title} - Similitud: ${(match.similarity * 100).toFixed(0)}%]\n${match.content}`
+                `[Source ${idx + 1}: ${match.document_title} - Relevance: ${(match.similarity * 100).toFixed(0)}%]\n${match.content}`
               )
               .join('\n\n');
         } else {
