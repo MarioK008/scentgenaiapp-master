@@ -646,6 +646,33 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_trends: {
+        Row: {
+          citations: Json | null
+          content: string
+          created_at: string
+          id: string
+          query: string
+          user_id: string
+        }
+        Insert: {
+          citations?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          query: string
+          user_id: string
+        }
+        Update: {
+          citations?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          query?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seasons: {
         Row: {
           created_at: string | null
