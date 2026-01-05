@@ -115,7 +115,6 @@ Photography style requirements:
             prompt: prompt,
             n: 1,
             size: "1024x1024",
-            response_format: "b64_json",
           }),
         });
 
@@ -134,10 +133,11 @@ Photography style requirements:
         }
 
         const aiData = await aiResponse.json();
+        // gpt-image-1 returns base64 data in data[0].b64_json
         const base64Data = aiData.data?.[0]?.b64_json;
 
         if (!base64Data) {
-          console.error(`No image data returned for ${id}`);
+          console.error(`No image data returned for ${id}:`, JSON.stringify(aiData));
           results.push({ id, success: false, error: "No image generated" });
           continue;
         }
