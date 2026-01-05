@@ -14,10 +14,10 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
 
-    if (!openaiApiKey) {
-      throw new Error("OPENAI_API_KEY is not configured");
+    if (!lovableApiKey) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -103,38 +103,55 @@ Photography style requirements:
 
         console.log(`Generating image for: ${brandName} - ${perfume.name}`);
 
-        // Call OpenAI to generate the image
-        const aiResponse = await fetch("https://api.openai.com/v1/images/generations", {
+        // Call Lovable AI to generate the image
+        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${openaiApiKey}`,
+            Authorization: `Bearer ${lovableApiKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-image-1",
-            prompt: prompt,
-            n: 1,
-            size: "1024x1024",
+            model: "google/gemini-2.5-flash-image-preview",
+            messages: [
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            modalities: ["image", "text"],
           }),
         });
 
         if (!aiResponse.ok) {
           const errorText = await aiResponse.text();
-          console.error(`OpenAI API error for ${id}:`, aiResponse.status, errorText);
+          console.error(`Lovable AI error for ${id}:`, aiResponse.status, errorText);
           
           if (aiResponse.status === 429) {
             results.push({ id, success: false, error: "Rate limited, try again later" });
-            // If rate limited, stop processing more
             break;
           }
           
-          results.push({ id, success: false, error: `OpenAI API error: ${aiResponse.status}` });
+          if (aiResponse.status === 402) {
+            results.push({ id, success: false, error: "Payment required - add credits to workspace" });
+            break;
+          }
+          
+          results.push({ id, success: false, error: `Lovable AI error: ${aiResponse.status}` });
           continue;
         }
 
         const aiData = await aiResponse.json();
-        // gpt-image-1 returns base64 data in data[0].b64_json
-        const base64Data = aiData.data?.[0]?.b64_json;
+        // Lovable AI returns images in choices[0].message.images[0].image_url.url as base64
+        const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        
+        if (!imageUrl || !imageUrl.startsWith("data:image")) {
+          console.error(`No image data returned for ${id}:`, JSON.stringify(aiData));
+          results.push({ id, success: false, error: "No image generated" });
+          continue;
+        }
+        
+        // Extract base64 data from data URL (remove "data:image/png;base64," prefix)
+        const base64Data = imageUrl.split(",")[1];
 
         if (!base64Data) {
           console.error(`No image data returned for ${id}:`, JSON.stringify(aiData));
