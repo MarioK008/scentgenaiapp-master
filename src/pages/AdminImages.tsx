@@ -15,6 +15,14 @@ interface GenerationResult {
   error?: string;
 }
 
+interface PerfumeWithImage {
+  id: string;
+  name: string;
+  image_url: string;
+  updated_at: string;
+  brand: { name: string }[] | null;
+}
+
 const AdminImages = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -41,6 +49,22 @@ const AdminImages = () => {
         withoutImages: withoutImages.length,
         perfumesWithoutImages: withoutImages,
       };
+    },
+  });
+
+  // Fetch recently generated images
+  const { data: recentImages, isLoading: imagesLoading } = useQuery({
+    queryKey: ["recent-perfume-images"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("perfumes")
+        .select("id, name, image_url, updated_at, brand:brands!brand_id(name)")
+        .not("image_url", "is", null)
+        .order("updated_at", { ascending: false })
+        .limit(12);
+
+      if (error) throw error;
+      return data as PerfumeWithImage[];
     },
   });
 
@@ -111,6 +135,7 @@ const AdminImages = () => {
       });
 
       queryClient.invalidateQueries({ queryKey: ["perfume-image-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-perfume-images"] });
       queryClient.invalidateQueries({ queryKey: ["perfumes"] });
     } catch (error) {
       console.error("Generation error:", error);
@@ -136,6 +161,7 @@ const AdminImages = () => {
     onSuccess: () => {
       toast({ title: "Image regenerated successfully" });
       queryClient.invalidateQueries({ queryKey: ["perfume-image-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-perfume-images"] });
       queryClient.invalidateQueries({ queryKey: ["perfumes"] });
     },
     onError: (error) => {
@@ -279,6 +305,72 @@ const AdminImages = () => {
                     ❌ {failCount} images failed to generate
                   </p>
                 )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recently Generated Images Gallery */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5 text-primary" />
+              Recently Generated Images
+            </CardTitle>
+            <CardDescription>
+              Preview of the most recently updated perfume images
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {imagesLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-lg bg-muted animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : recentImages && recentImages.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {recentImages.map((perfume) => (
+                  <div
+                    key={perfume.id}
+                    className="group relative aspect-square rounded-lg overflow-hidden bg-muted border border-border/50 hover:border-primary/50 transition-colors"
+                  >
+                    <img
+                      src={perfume.image_url}
+                      alt={perfume.name}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <p className="text-sm font-medium truncate">{perfume.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {perfume.brand?.[0]?.name || "Unknown brand"}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+                      onClick={() => regenerateMutation.mutate(perfume.id)}
+                      disabled={regenerateMutation.isPending}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <ImageIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">No generated images yet</p>
+                <p className="text-sm text-muted-foreground/70">
+                  Use the batch generation above to create images
+                </p>
               </div>
             )}
           </CardContent>
