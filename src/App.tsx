@@ -27,6 +27,7 @@ import AdminUsers from "./pages/AdminUsers";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 import Feed from "./pages/Feed";
+import Trends from "./pages/Trends";
 import NotFound from "./pages/NotFound";
 import { AdminRoute } from "./components/AdminRoute";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/user/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
           <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+          <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
           
           {/* Admin Only Routes */}
           <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
