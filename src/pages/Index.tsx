@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -228,15 +229,15 @@ and discover new perfumes with intelligence and style.</p>
 
             {/* Navigation Links */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-              <a href="#contact" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
+              <a href="mailto:support@scentgenai.com" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
                 Contact
               </a>
-              <a href="#privacy" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
+              <Link to="/privacy" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
                 Privacy Policy
-              </a>
-              <a href="#about" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
-                About Us
-              </a>
+              </Link>
+              <Link to="/terms" className="text-[#B0C4DE] hover:text-[#FF2E92] transition-colors">
+                Terms of Service
+              </Link>
             </div>
 
             {/* Copyright */}
