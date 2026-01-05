@@ -20,6 +20,17 @@ const requestSchema = z.object({
   userId: z.string().uuid().optional(),
 });
 
+// Smart query classification - detect if user is asking about trends/news vs foundational knowledge
+function classifyQuery(query: string): { isTrendQuery: boolean; isKnowledgeQuery: boolean } {
+  const trendKeywords = /\b(trend|trending|new release|latest|news|2024|2025|2026|popular now|current|recent|just launched|upcoming|spring|summer|fall|winter|season|this year|bestseller|best seller|hot right now|what's new|new perfume|new fragrance|limited edition|celebrity|collaboration)\b/i;
+  const knowledgeKeywords = /\b(what is|how to|explain|difference between|history|ingredient|note|accord|family|olfactive|chemistry|extraction|distillation|base note|top note|heart note|middle note|sillage|longevity|projection|concentration|eau de|parfum|toilette|cologne|perfumer|nose|house|maison)\b/i;
+  
+  const isTrendQuery = trendKeywords.test(query);
+  const isKnowledgeQuery = knowledgeKeywords.test(query);
+  
+  return { isTrendQuery, isKnowledgeQuery };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -55,43 +66,106 @@ serve(async (req) => {
     // Extract last user message for knowledge search
     const lastUserMessage = messages.filter(m => m.role === 'user').pop();
     let knowledgeContext = '';
+    let trendsContext = '';
+    let sources: { type: 'knowledge' | 'trends'; title: string }[] = [];
 
-    // Always search knowledge base (global search to include admin-uploaded documents)
     if (lastUserMessage) {
-      console.log('🔍 Searching knowledge base (global)...');
-      
-      try {
-        const { data: searchResults } = await supabase.functions.invoke('search-knowledge', {
-          body: {
-            query: lastUserMessage.content,
-            globalSearch: true, // Search all documents, including admin-uploaded ones
-            matchCount: 5, // Increased to get more context
-          },
-        });
+      const queryClassification = classifyQuery(lastUserMessage.content);
+      console.log(`📊 Query classification:`, queryClassification);
 
-        if (searchResults?.matches && searchResults.matches.length > 0) {
-          console.log(`✅ Found ${searchResults.matches.length} relevant knowledge chunks`);
-          
-          knowledgeContext = '\n\nRELEVANT KNOWLEDGE FROM DATABASE:\n' + 
-            searchResults.matches
-              .map((match: any, idx: number) => 
-                `[Source ${idx + 1}: ${match.document_title} - Relevance: ${(match.similarity * 100).toFixed(0)}%]\n${match.content}`
-              )
-              .join('\n\n');
-        } else {
-          console.log('ℹ️ No relevant knowledge found');
-        }
-      } catch (error) {
-        console.error('⚠️ Knowledge search error:', error);
-        // Continue without knowledge context
+      // Parallel fetch both knowledge and trends if needed
+      const fetchPromises: Promise<void>[] = [];
+
+      // Always search knowledge base for foundational info or mixed queries
+      if (queryClassification.isKnowledgeQuery || !queryClassification.isTrendQuery) {
+        fetchPromises.push(
+          (async () => {
+            console.log('🔍 Searching knowledge base (global)...');
+            try {
+              const { data: searchResults } = await supabase.functions.invoke('search-knowledge', {
+                body: {
+                  query: lastUserMessage.content,
+                  globalSearch: true,
+                  matchCount: 5,
+                },
+              });
+
+              if (searchResults?.matches && searchResults.matches.length > 0) {
+                console.log(`✅ Found ${searchResults.matches.length} relevant knowledge chunks`);
+                
+                knowledgeContext = searchResults.matches
+                  .map((match: any, idx: number) => {
+                    sources.push({ type: 'knowledge', title: match.document_title });
+                    return `[Knowledge Source ${idx + 1}: ${match.document_title}]\n${match.content}`;
+                  })
+                  .join('\n\n');
+              } else {
+                console.log('ℹ️ No relevant knowledge found');
+              }
+            } catch (error) {
+              console.error('⚠️ Knowledge search error:', error);
+            }
+          })()
+        );
       }
+
+      // Search trends for current/news queries
+      if (queryClassification.isTrendQuery) {
+        fetchPromises.push(
+          (async () => {
+            console.log('🌐 Searching real-time trends...');
+            try {
+              const { data: trendsResults } = await supabase.functions.invoke('search-trends', {
+                body: {
+                  query: lastUserMessage.content,
+                  searchRecency: 'month',
+                },
+              });
+
+              if (trendsResults?.content) {
+                console.log(`✅ Trends search complete`);
+                sources.push({ type: 'trends', title: 'Web Search (Perplexity)' });
+                
+                trendsContext = `[Real-time Web Search]\n${trendsResults.content}`;
+                
+                if (trendsResults.citations?.length > 0) {
+                  trendsContext += `\n\nSources: ${trendsResults.citations.slice(0, 3).join(', ')}`;
+                }
+              }
+            } catch (error) {
+              console.error('⚠️ Trends search error:', error);
+            }
+          })()
+        );
+      }
+
+      // Wait for all searches to complete
+      await Promise.all(fetchPromises);
     }
 
-    // System message for perfume consultant with knowledge context
+    // Build combined context
+    let combinedContext = '';
+    if (knowledgeContext) {
+      combinedContext += '\n\n📚 KNOWLEDGE BASE INFORMATION:\n' + knowledgeContext;
+    }
+    if (trendsContext) {
+      combinedContext += '\n\n🌐 CURRENT TRENDS & NEWS:\n' + trendsContext;
+    }
+
+    // System message for perfume consultant with combined context
     const systemMessage = {
       role: 'system',
-      content: `You are an expert perfume consultant for ScentGenAI. Help users find their perfect fragrance by asking about their preferences, occasions, and favorite scents. Keep responses conversational and friendly. Always respond in English.${knowledgeContext ? '\n\nUse the provided knowledge to give more precise and detailed answers. If you cite information from sources, mention it comes from the knowledge base.' : ''
-      }${knowledgeContext}`
+      content: `You are an expert perfume consultant for ScentGenAI. Help users find their perfect fragrance by asking about their preferences, occasions, and favorite scents. Keep responses conversational and friendly. Always respond in English.
+
+${combinedContext ? `You have access to both a curated knowledge base and real-time web search results. Use this information to give accurate, detailed answers.
+
+When answering:
+- For foundational perfumery questions (ingredients, techniques, history), prioritize knowledge base information
+- For trends, new releases, or current news, prioritize web search results
+- Always attribute information to its source when relevant (e.g., "According to recent news..." or "From our knowledge base...")
+- If information conflicts, note the discrepancy and provide the most reliable answer
+
+${combinedContext}` : 'Answer based on your general knowledge about perfumery.'}`
     };
 
     // Call GPT-4o
@@ -118,7 +192,7 @@ serve(async (req) => {
     const chatData = await chatResponse.json();
     const textResponse = chatData.choices[0].message.content;
 
-    console.log('Chat response generated successfully');
+    console.log('Chat response generated successfully. Sources used:', sources.map(s => s.type).join(', ') || 'none');
 
     let audioResponse = null;
 
@@ -152,7 +226,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         text: textResponse,
-        audio: audioResponse 
+        audio: audioResponse,
+        sources: sources.length > 0 ? sources : undefined,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
