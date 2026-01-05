@@ -6,6 +6,95 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Retry configuration
+const MAX_RETRIES = 3;
+const INITIAL_DELAY_MS = 2000;
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function generateImageWithRetry(
+  prompt: string,
+  lovableApiKey: string,
+  perfumeId: string
+): Promise<{ success: boolean; base64Data?: string; error?: string; shouldStop?: boolean }> {
+  let lastError = "";
+  
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`Attempt ${attempt}/${MAX_RETRIES} for perfume ${perfumeId}`);
+      
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image-preview",
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json();
+        const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        
+        if (imageUrl && imageUrl.startsWith("data:image")) {
+          const base64Data = imageUrl.split(",")[1];
+          if (base64Data) {
+            return { success: true, base64Data };
+          }
+        }
+        lastError = "No image data in response";
+        console.error(`No image data returned for ${perfumeId}:`, JSON.stringify(aiData));
+      } else {
+        const errorText = await aiResponse.text();
+        console.error(`Lovable AI error (attempt ${attempt}) for ${perfumeId}:`, aiResponse.status, errorText);
+        
+        // Non-retryable errors
+        if (aiResponse.status === 402) {
+          return { success: false, error: "Payment required - add credits to workspace", shouldStop: true };
+        }
+        
+        if (aiResponse.status === 429) {
+          lastError = "Rate limited";
+          // Exponential backoff for rate limits
+          const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt - 1);
+          console.log(`Rate limited, waiting ${delayMs}ms before retry...`);
+          await sleep(delayMs);
+          continue;
+        }
+        
+        // Other server errors - retry with backoff
+        if (aiResponse.status >= 500) {
+          lastError = `Server error: ${aiResponse.status}`;
+          const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt - 1);
+          console.log(`Server error, waiting ${delayMs}ms before retry...`);
+          await sleep(delayMs);
+          continue;
+        }
+        
+        // Client errors (4xx except 429, 402) - don't retry
+        return { success: false, error: `Lovable AI error: ${aiResponse.status}` };
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : "Unknown error";
+      console.error(`Network error (attempt ${attempt}) for ${perfumeId}:`, lastError);
+      
+      if (attempt < MAX_RETRIES) {
+        const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt - 1);
+        console.log(`Waiting ${delayMs}ms before retry...`);
+        await sleep(delayMs);
+      }
+    }
+  }
+  
+  return { success: false, error: `Failed after ${MAX_RETRIES} attempts: ${lastError}` };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -72,12 +161,6 @@ serve(async (req) => {
           .filter(Boolean)
           .slice(0, 3) || [];
 
-        const heartNotes = notesData
-          ?.filter((n: any) => n.note?.type === "heart")
-          .map((n: any) => n.note?.name)
-          .filter(Boolean)
-          .slice(0, 3) || [];
-
         const brandName = (perfume.brand as any)?.name || "Unknown";
         const accordName = (perfume.main_accord as any)?.name || "";
         const genderText = perfume.gender === "unisex" ? "unisex" : perfume.gender === "female" ? "feminine" : "masculine";
@@ -103,64 +186,20 @@ Photography style requirements:
 
         console.log(`Generating image for: ${brandName} - ${perfume.name}`);
 
-        // Call Lovable AI to generate the image
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image-preview",
-            messages: [
-              {
-                role: "user",
-                content: prompt,
-              },
-            ],
-            modalities: ["image", "text"],
-          }),
-        });
-
-        if (!aiResponse.ok) {
-          const errorText = await aiResponse.text();
-          console.error(`Lovable AI error for ${id}:`, aiResponse.status, errorText);
-          
-          if (aiResponse.status === 429) {
-            results.push({ id, success: false, error: "Rate limited, try again later" });
+        // Call Lovable AI with retry logic
+        const imageResult = await generateImageWithRetry(prompt, lovableApiKey, id);
+        
+        if (!imageResult.success) {
+          results.push({ id, success: false, error: imageResult.error });
+          if (imageResult.shouldStop) {
+            console.log("Stopping batch due to non-recoverable error");
             break;
           }
-          
-          if (aiResponse.status === 402) {
-            results.push({ id, success: false, error: "Payment required - add credits to workspace" });
-            break;
-          }
-          
-          results.push({ id, success: false, error: `Lovable AI error: ${aiResponse.status}` });
-          continue;
-        }
-
-        const aiData = await aiResponse.json();
-        // Lovable AI returns images in choices[0].message.images[0].image_url.url as base64
-        const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-        
-        if (!imageUrl || !imageUrl.startsWith("data:image")) {
-          console.error(`No image data returned for ${id}:`, JSON.stringify(aiData));
-          results.push({ id, success: false, error: "No image generated" });
-          continue;
-        }
-        
-        // Extract base64 data from data URL (remove "data:image/png;base64," prefix)
-        const base64Data = imageUrl.split(",")[1];
-
-        if (!base64Data) {
-          console.error(`No image data returned for ${id}:`, JSON.stringify(aiData));
-          results.push({ id, success: false, error: "No image generated" });
           continue;
         }
 
         // Convert base64 to binary
-        const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+        const binaryData = Uint8Array.from(atob(imageResult.base64Data!), (c) => c.charCodeAt(0));
 
         // Upload to storage bucket
         const fileName = `${id}.png`;
@@ -201,7 +240,7 @@ Photography style requirements:
 
         // Small delay between generations to avoid rate limiting
         if (idsToProcess.length > 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await sleep(1500);
         }
       } catch (err) {
         console.error(`Error processing perfume ${id}:`, err);
