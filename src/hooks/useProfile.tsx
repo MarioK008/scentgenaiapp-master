@@ -19,6 +19,10 @@ interface Profile {
   };
   bio: string | null;
   location: string | null;
+  onboarding_completed: boolean;
+  preferred_families: string[];
+  preferred_occasions: string[];
+  preferred_seasons: string[];
 }
 
 export const useProfile = () => {

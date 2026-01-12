@@ -2,8 +2,10 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCollectionStats } from "@/hooks/useCollectionStats";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import Layout from "@/components/Layout";
 import { FollowRequests } from "@/components/FollowRequests";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, Search, TrendingUp, Share2, User } from "lucide-react";
@@ -12,6 +14,7 @@ import { toast } from "sonner";
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const { stats, loading: statsLoading } = useCollectionStats(user?.id);
+  const { showOnboarding, loading: onboardingLoading, saving, savePreferences, skipOnboarding } = useOnboarding();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +35,14 @@ const Dashboard = () => {
 
   return (
     <Layout>
+      {/* Onboarding Wizard */}
+      <OnboardingWizard
+        open={showOnboarding && !onboardingLoading}
+        onComplete={savePreferences}
+        onSkip={skipOnboarding}
+        saving={saving}
+      />
+
       <div className="space-y-8 animate-fade-in">
         <div></div>
 

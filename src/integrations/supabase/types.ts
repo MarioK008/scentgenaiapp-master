@@ -585,7 +585,11 @@ export type Database = {
           is_private: boolean | null
           location: string | null
           notification_settings: Json | null
+          onboarding_completed: boolean | null
+          preferred_families: string[] | null
           preferred_language: string | null
+          preferred_occasions: string[] | null
+          preferred_seasons: string[] | null
           updated_at: string | null
           username: string | null
         }
@@ -599,7 +603,11 @@ export type Database = {
           is_private?: boolean | null
           location?: string | null
           notification_settings?: Json | null
+          onboarding_completed?: boolean | null
+          preferred_families?: string[] | null
           preferred_language?: string | null
+          preferred_occasions?: string[] | null
+          preferred_seasons?: string[] | null
           updated_at?: string | null
           username?: string | null
         }
@@ -613,7 +621,11 @@ export type Database = {
           is_private?: boolean | null
           location?: string | null
           notification_settings?: Json | null
+          onboarding_completed?: boolean | null
+          preferred_families?: string[] | null
           preferred_language?: string | null
+          preferred_occasions?: string[] | null
+          preferred_seasons?: string[] | null
           updated_at?: string | null
           username?: string | null
         }
