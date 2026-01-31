@@ -16,7 +16,7 @@ async function sleep(ms: number): Promise<void> {
 
 async function generateImageWithRetry(
   prompt: string,
-  lovableApiKey: string,
+  openaiApiKey: string,
   perfumeId: string
 ): Promise<{ success: boolean; base64Data?: string; error?: string; shouldStop?: boolean }> {
   let lastError = "";
@@ -25,38 +25,38 @@ async function generateImageWithRetry(
     try {
       console.log(`Attempt ${attempt}/${MAX_RETRIES} for perfume ${perfumeId}`);
       
-      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const aiResponse = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${lovableApiKey}`,
+          Authorization: `Bearer ${openaiApiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image-preview",
-          messages: [{ role: "user", content: prompt }],
-          modalities: ["image", "text"],
+          model: "dall-e-3",
+          prompt: prompt,
+          size: "1024x1024",
+          quality: "standard",
+          response_format: "b64_json",
+          n: 1,
         }),
       });
 
       if (aiResponse.ok) {
         const aiData = await aiResponse.json();
-        const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        const base64Data = aiData.data?.[0]?.b64_json;
         
-        if (imageUrl && imageUrl.startsWith("data:image")) {
-          const base64Data = imageUrl.split(",")[1];
-          if (base64Data) {
-            return { success: true, base64Data };
-          }
+        if (base64Data) {
+          return { success: true, base64Data };
         }
         lastError = "No image data in response";
         console.error(`No image data returned for ${perfumeId}:`, JSON.stringify(aiData));
       } else {
         const errorText = await aiResponse.text();
-        console.error(`Lovable AI error (attempt ${attempt}) for ${perfumeId}:`, aiResponse.status, errorText);
+        console.error(`OpenAI DALL-E error (attempt ${attempt}) for ${perfumeId}:`, aiResponse.status, errorText);
         
         // Non-retryable errors
-        if (aiResponse.status === 402) {
-          return { success: false, error: "Payment required - add credits to workspace", shouldStop: true };
+        if (aiResponse.status === 401) {
+          return { success: false, error: "Invalid API key", shouldStop: true };
         }
         
         if (aiResponse.status === 429) {
@@ -77,8 +77,13 @@ async function generateImageWithRetry(
           continue;
         }
         
-        // Client errors (4xx except 429, 402) - don't retry
-        return { success: false, error: `Lovable AI error: ${aiResponse.status}` };
+        // Content policy violation - don't retry
+        if (aiResponse.status === 400) {
+          return { success: false, error: `Content policy violation or invalid request` };
+        }
+        
+        // Client errors (4xx except 429) - don't retry
+        return { success: false, error: `OpenAI DALL-E error: ${aiResponse.status}` };
       }
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Unknown error";
@@ -103,10 +108,10 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
 
-    if (!lovableApiKey) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!openaiApiKey) {
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -186,8 +191,8 @@ Photography style requirements:
 
         console.log(`Generating image for: ${brandName} - ${perfume.name}`);
 
-        // Call Lovable AI with retry logic
-        const imageResult = await generateImageWithRetry(prompt, lovableApiKey, id);
+        // Call OpenAI DALL-E 3 with retry logic
+        const imageResult = await generateImageWithRetry(prompt, openaiApiKey, id);
         
         if (!imageResult.success) {
           results.push({ id, success: false, error: imageResult.error });

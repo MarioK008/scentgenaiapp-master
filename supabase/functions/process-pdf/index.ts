@@ -60,17 +60,13 @@ async function extractTextWithPdfParse(arrayBuffer: ArrayBuffer): Promise<string
   }
 }
 
-// Helper: Extract text using Lovable AI (handles complex PDFs via text analysis)
-async function extractTextWithLovableAI(
+// Helper: Extract text using OpenAI GPT-4o (handles complex PDFs via text analysis)
+async function extractTextWithOpenAI(
   arrayBuffer: ArrayBuffer,
+  openaiApiKey: string,
   pageRange?: { start: number; end: number }
 ): Promise<string> {
-  console.log('🔍 Extracting text using Lovable AI...');
-  
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) {
-    throw new Error('LOVABLE_API_KEY not configured');
-  }
+  console.log('🔍 Extracting text using OpenAI GPT-4o...');
   
   // Convert PDF to base64 for context
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -91,14 +87,14 @@ Please provide any text content you can extract or analyze from the document met
   }
 
   try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -114,14 +110,14 @@ Please provide any text content you can extract or analyze from the document met
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI extraction error:', errorText);
-      throw new Error(`Lovable AI extraction failed: ${response.status}`);
+      console.error('OpenAI extraction error:', errorText);
+      throw new Error(`OpenAI extraction failed: ${response.status}`);
     }
 
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('Error with Lovable AI:', error);
+    console.error('Error with OpenAI:', error);
     throw new Error('Failed to extract text with AI. The PDF may be scanned or image-based which requires OCR.');
   }
 }
@@ -216,10 +212,10 @@ async function processPDFSmart(
     let extractedText = await extractTextWithPdfParse(arrayBuffer);
     let usedMethod = 'pdf-parse';
 
-    // If pdf-parse failed or extracted too little, use Lovable AI
+    // If pdf-parse failed or extracted too little, use OpenAI GPT-4o
     if (!extractedText) {
-      console.log('📸 Falling back to Lovable AI for complex PDF...');
-      usedMethod = 'Lovable AI';
+      console.log('📸 Falling back to OpenAI GPT-4o for complex PDF...');
+      usedMethod = 'OpenAI GPT-4o';
       
       // For large files, process in sections
       const estimatedPages = Math.ceil(fileSize / BYTES_PER_PAGE_ESTIMATE);
@@ -245,8 +241,9 @@ async function processPDFSmart(
           });
           
           // Extract text for this section
-          const sectionText = await extractTextWithLovableAI(
+          const sectionText = await extractTextWithOpenAI(
             arrayBuffer,
+            openaiApiKey,
             { start: startPage, end: endPage }
           );
           
@@ -276,7 +273,7 @@ async function processPDFSmart(
         return;
       } else {
         // Small enough to process in one go
-        extractedText = await extractTextWithLovableAI(arrayBuffer);
+        extractedText = await extractTextWithOpenAI(arrayBuffer, openaiApiKey);
       }
     }
 
