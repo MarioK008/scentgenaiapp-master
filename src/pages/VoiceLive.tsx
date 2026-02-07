@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedPage } from "@/components/AnimatedPage";
+import { PageSkeleton } from "@/components/skeletons/PageSkeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AudioRecorder, encodeAudioForAPI, AudioQueue } from "@/utils/RealtimeAudio";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
+import { ArrowLeft, Mic, MicOff, Volume2 } from "lucide-react";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -202,82 +205,124 @@ const VoiceLive = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-pulse text-lg">Loading...</div>
-        </div>
+        <PageSkeleton variant="branded" />
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <AnimatedPage className="max-w-4xl mx-auto space-y-6">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/voice-assistant')}
-          className="mb-6"
+          className="gap-2"
         >
-          ← Back
+          <ArrowLeft className="h-4 w-4" />
+          Back to MyScentGenAI
         </Button>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>🎤 Live Conversation</CardTitle>
-            <CardDescription>
-              Speak naturally with the perfume assistant
+        <Card className="border-primary/20 overflow-hidden">
+          <CardHeader className="text-center pb-8">
+            <CardTitle className="text-3xl flex items-center justify-center gap-3">
+              <span className="text-4xl">🎤</span>
+              Live Conversation
+            </CardTitle>
+            <CardDescription className="text-lg">
+              Speak naturally with your AI perfume consultant
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-center gap-4">
+          <CardContent className="space-y-8">
+            {/* Connection controls */}
+            <div className="flex flex-col items-center gap-6">
               {!isConnected ? (
-                <Button onClick={startConversation} size="lg" className="w-full max-w-xs">
+                <Button 
+                  onClick={startConversation} 
+                  size="lg" 
+                  variant="premium"
+                  className="w-full max-w-xs h-14 text-lg"
+                >
+                  <Mic className="h-6 w-6 mr-2" />
                   Start Conversation
                 </Button>
               ) : (
-                <>
-                  <Button onClick={endConversation} variant="destructive" size="lg">
+                <div className="flex flex-col items-center gap-6 w-full">
+                  {/* Status indicators */}
+                  <div className="flex items-center justify-center gap-8">
+                    <div className={`flex items-center gap-3 px-4 py-2 rounded-full transition-all ${
+                      isListening ? 'bg-primary/20 text-primary' : 'bg-muted/30 text-muted-foreground'
+                    }`}>
+                      {isListening ? (
+                        <Mic className="w-5 h-5 animate-pulse" />
+                      ) : (
+                        <MicOff className="w-5 h-5" />
+                      )}
+                      <span className="font-medium">
+                        {isListening ? 'Listening...' : 'Not listening'}
+                      </span>
+                    </div>
+                    
+                    <div className={`flex items-center gap-3 px-4 py-2 rounded-full transition-all ${
+                      isSpeaking ? 'bg-accent/20 text-accent' : 'bg-muted/30 text-muted-foreground'
+                    }`}>
+                      <Volume2 className={`w-5 h-5 ${isSpeaking ? 'animate-pulse' : ''}`} />
+                      <span className="font-medium">
+                        {isSpeaking ? 'Speaking...' : 'Silent'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={endConversation} 
+                    variant="destructive" 
+                    size="lg"
+                    className="h-12"
+                  >
                     End Conversation
                   </Button>
-                  <div className="flex items-center gap-4">
-                    {isListening && (
-                      <div className="flex items-center gap-2 text-primary">
-                        <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
-                        <span className="text-sm font-medium">Listening</span>
-                      </div>
-                    )}
-                    {isSpeaking && (
-                      <div className="flex items-center gap-2 text-secondary">
-                        <div className="w-3 h-3 rounded-full bg-secondary animate-pulse"></div>
-                        <span className="text-sm font-medium">Speaking</span>
-                      </div>
-                    )}
-                  </div>
-                </>
+                </div>
               )}
             </div>
 
+            {/* Transcript */}
             {messages.length > 0 && (
-              <div className="space-y-4 max-h-96 overflow-y-auto p-4 bg-muted/30 rounded-lg">
-                <h3 className="font-semibold text-sm text-muted-foreground">Transcript:</h3>
+              <div className="space-y-4 max-h-96 overflow-y-auto p-4 glass rounded-2xl">
+                <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Transcript</h3>
                 {messages.map((msg, idx) => (
-                  <div key={idx} className={`p-3 rounded-lg ${msg.role === 'user' ? 'bg-primary/10 ml-8' : 'bg-secondary/10 mr-8'}`}>
-                    <div className="text-xs text-muted-foreground mb-1">
+                  <div 
+                    key={idx} 
+                    className={`p-4 rounded-xl animate-fade-in ${
+                      msg.role === 'user' 
+                        ? 'bg-primary/10 ml-8 border-l-2 border-primary/50' 
+                        : 'bg-secondary/50 mr-8 border-l-2 border-accent/50'
+                    }`}
+                  >
+                    <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wide font-medium">
                       {msg.role === 'user' ? 'You' : 'Assistant'}
                     </div>
-                    <div className="text-sm">{msg.content}</div>
+                    <div className="text-sm leading-relaxed">{msg.content}</div>
                   </div>
                 ))}
                 {currentTranscript && (
-                  <div className="p-3 rounded-lg bg-secondary/10 mr-8 opacity-70">
-                    <div className="text-xs text-muted-foreground mb-1">Assistant (typing...)</div>
-                    <div className="text-sm">{currentTranscript}</div>
+                  <div className="p-4 rounded-xl bg-secondary/30 mr-8 opacity-70 border-l-2 border-accent/30">
+                    <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wide font-medium">
+                      Assistant (typing...)
+                    </div>
+                    <div className="text-sm leading-relaxed">{currentTranscript}</div>
                   </div>
                 )}
               </div>
             )}
+
+            {/* Tips */}
+            {!isConnected && messages.length === 0 && (
+              <div className="text-center text-sm text-muted-foreground">
+                💡 Click "Start Conversation" and speak naturally about fragrances
+              </div>
+            )}
           </CardContent>
         </Card>
-      </div>
+      </AnimatedPage>
     </Layout>
   );
 };

@@ -181,4 +181,56 @@ All colors MUST be HSL.
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Skeleton shimmer effect */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--card)) 25%,
+      hsl(var(--muted)) 50%,
+      hsl(var(--card)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Premium card hover lift */
+  .card-hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-elegant);
+  }
+
+  /* Image zoom on hover */
+  .image-zoom {
+    transition: transform 0.4s ease;
+  }
+  
+  .image-zoom:hover {
+    transform: scale(1.05);
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Touch-friendly targets for mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

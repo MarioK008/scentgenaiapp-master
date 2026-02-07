@@ -7,6 +7,9 @@ import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import { AnimatedPage } from "@/components/AnimatedPage";
+import { EmptyState } from "@/components/EmptyState";
+import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
 import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 
 const Recommendations = () => {
   const { user, loading } = useAuth();
@@ -127,33 +130,42 @@ const Recommendations = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <Layout>
+        <div className="space-y-8">
+          <div className="h-10 w-64 rounded-lg skeleton-shimmer" />
+          <div className="rounded-[20px] border border-border/50 bg-card p-6">
+            <div className="h-48 skeleton-shimmer rounded-lg" />
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
-            <Sparkles className="h-8 w-8 text-accent" />
-            AI Recommendations
+      <AnimatedPage className="space-y-10">
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-playfair flex items-center gap-3">
+            <Sparkles className="h-10 w-10 text-accent" strokeWidth={1.5} />
+            <span>AI Recommendations</span>
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Get personalized fragrance suggestions based on your preferences
           </p>
         </div>
 
-        <Card>
+        <Card className="border-accent/20">
           <CardHeader>
-            <CardTitle>Tell us what you're looking for</CardTitle>
-            <CardDescription>Select your preferences to get AI-powered recommendations</CardDescription>
+            <CardTitle className="text-2xl">Tell us what you're looking for</CardTitle>
+            <CardDescription className="text-base">Select your preferences to get AI-powered recommendations</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Mood</Label>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Mood</Label>
                 <Select value={mood} onValueChange={setMood}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-xl">
                     <SelectValue placeholder="Select mood" />
                   </SelectTrigger>
                   <SelectContent>
@@ -166,10 +178,10 @@ const Recommendations = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Occasion</Label>
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Occasion</Label>
                 <Select value={occasion} onValueChange={setOccasion}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-xl">
                     <SelectValue placeholder="Select occasion" />
                   </SelectTrigger>
                   <SelectContent>
@@ -182,10 +194,10 @@ const Recommendations = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Season</Label>
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Season</Label>
                 <Select value={season} onValueChange={setSeason}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-xl">
                     <SelectValue placeholder="Select season" />
                   </SelectTrigger>
                   <SelectContent>
@@ -202,30 +214,65 @@ const Recommendations = () => {
             <Button
               onClick={handleGetRecommendations}
               disabled={loadingRecs}
+              variant="hero"
+              size="lg"
               className="w-full"
             >
-              {loadingRecs ? "Getting recommendations..." : "Get Recommendations"}
+              {loadingRecs ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Finding perfect matches...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5 mr-2" />
+                  Get Recommendations
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
 
+        {loadingRecs && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-playfair">Finding your perfect matches...</h2>
+            <PerfumeCardSkeletonGrid count={6} />
+          </div>
+        )}
+
+        {!loadingRecs && recommendations.length === 0 && (mood || occasion || season) && (
+          <EmptyState
+            variant="recommendations"
+            title="Ready to discover"
+            description="Select your preferences above and click the button to get personalized recommendations"
+          />
+        )}
+
         {recommendations.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Recommended for you</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendations.map((perfume) => (
-                <PerfumeCard
+          <div className="space-y-6">
+            <h2 className="text-2xl md:text-3xl font-playfair">Recommended for you</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {recommendations.map((perfume, index) => (
+                <div
                   key={perfume.id}
-                  perfume={perfume}
-                  onAddToCollection={handleAddToCollection}
-                  onAddToCustomCollection={() => setAddingPerfume(perfume)}
-                  onClick={() => setSelectedPerfume(perfume)}
-                />
+                  className="animate-fade-in opacity-0"
+                  style={{ 
+                    animationDelay: `${index * 100}ms`,
+                    animationFillMode: "forwards"
+                  }}
+                >
+                  <PerfumeCard
+                    perfume={perfume}
+                    onAddToCollection={handleAddToCollection}
+                    onAddToCustomCollection={() => setAddingPerfume(perfume)}
+                    onClick={() => setSelectedPerfume(perfume)}
+                  />
+                </div>
               ))}
             </div>
           </div>
         )}
-      </div>
+      </AnimatedPage>
 
       <PerfumeDetailModal
         perfume={selectedPerfume}
