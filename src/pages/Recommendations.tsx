@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
 import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
@@ -20,6 +21,11 @@ const Recommendations = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { collections, createCollection, addToCollection } = useCustomCollections();
+
+  useSEO({ 
+    title: 'AI Recommendations', 
+    description: 'Get personalized fragrance suggestions powered by AI' 
+  });
   const [recommendations, setRecommendations] = useState<PerfumeData[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [mood, setMood] = useState("");

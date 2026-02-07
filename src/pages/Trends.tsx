@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,11 @@ const Trends = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const { savedTrends, isLoading: loadingSaved, saveTrend, deleteTrend, isTrendSaved } = useSavedTrends();
+
+  useSEO({ 
+    title: 'Fragrance Trends', 
+    description: 'Discover the latest perfume trends and releases' 
+  });
 
   const searchTrends = async (query: string) => {
     setIsLoading(true);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
 import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
@@ -36,6 +37,11 @@ const Collections = () => {
     getCollectionItems,
     removeFromCollection,
   } = useCustomCollections();
+
+  useSEO({ 
+    title: 'My Collection', 
+    description: 'Browse and organize your favorite perfumes' 
+  });
 
   const [selectedCollection, setSelectedCollection] = useState<CustomCollection | null>(null);
   const [collectionPerfumes, setCollectionPerfumes] = useState<PerfumeData[]>([]);

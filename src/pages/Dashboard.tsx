@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCollectionStats } from "@/hooks/useCollectionStats";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
 import { FollowRequests } from "@/components/FollowRequests";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
@@ -16,6 +17,11 @@ const Dashboard = () => {
   const { stats, loading: statsLoading } = useCollectionStats(user?.id);
   const { showOnboarding, loading: onboardingLoading, saving, savePreferences, skipOnboarding } = useOnboarding();
   const navigate = useNavigate();
+
+  useSEO({ 
+    title: 'Dashboard', 
+    description: 'Manage your fragrance collection and get personalized recommendations' 
+  });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -125,7 +131,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               <div className="text-center p-4 rounded-[20px] bg-card/50 backdrop-blur-sm">
                 <p className="text-3xl font-bold text-primary font-playfair">
                   {statsLoading ? '...' : stats.ownedCount}
