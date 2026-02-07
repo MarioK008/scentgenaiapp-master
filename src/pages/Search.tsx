@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
 import PerfumeCard from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
@@ -19,6 +20,11 @@ const Search = () => {
   const { toast } = useToast();
   const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes();
   const { collections, createCollection, addToCollection } = useCustomCollections();
+
+  useSEO({ 
+    title: 'Search Perfumes', 
+    description: 'Find perfumes by name, brand, or fragrance notes' 
+  });
   
   const [filteredPerfumes, setFilteredPerfumes] = useState<Perfume[]>([]);
   const [searchQuery, setSearchQuery] = useState("");

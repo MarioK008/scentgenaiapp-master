@@ -52,7 +52,7 @@ const Layout = ({ children }: LayoutProps) => {
             </Link>
 
             {/* Navigation Items */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide max-w-[50vw] sm:max-w-none">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,12 @@ const VoiceAssistant = () => {
     user,
     loading
   } = useAuth();
+
+  useSEO({ 
+    title: 'MyScentGenAI', 
+    description: 'Chat with your AI perfume consultant' 
+  });
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");

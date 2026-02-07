@@ -23,13 +23,40 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', matches: [] }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY not configured');
     }
+
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: authData, error: authError } = await authClient.auth.getClaims(token);
+    
+    if (authError || !authData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token', matches: [] }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = authData.claims.sub as string;
+    console.log('Authenticated user:', authenticatedUserId);
 
     const body = await req.json();
 
@@ -43,7 +70,9 @@ serve(async (req) => {
       );
     }
 
-    const { query, userId, matchThreshold, matchCount, globalSearch } = validationResult.data;
+    const { query, matchThreshold, matchCount, globalSearch } = validationResult.data;
+    // Use authenticated userId for non-global searches
+    const userId = globalSearch ? null : authenticatedUserId;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -78,7 +107,7 @@ serve(async (req) => {
         query_embedding: queryEmbedding,
         match_threshold: matchThreshold,
         match_count: matchCount,
-        filter_user_id: globalSearch ? null : (userId || null),
+        filter_user_id: userId,
       }
     );
 

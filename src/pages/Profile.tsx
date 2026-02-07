@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileStats } from "@/hooks/useProfileStats";
 import { useBadges } from "@/hooks/useBadges";
+import { useSEO } from "@/hooks/useSEO";
 import { useTheme } from "next-themes";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,11 @@ const Profile = () => {
     loading: authLoading,
     signOut
   } = useAuth();
+
+  useSEO({ 
+    title: 'Profile Settings', 
+    description: 'Manage your ScentGenAI profile and preferences' 
+  });
   const {
     profile,
     loading: profileLoading,

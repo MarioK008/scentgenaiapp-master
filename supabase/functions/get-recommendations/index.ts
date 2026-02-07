@@ -25,6 +25,36 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: authData, error: authError } = await authClient.auth.getClaims(token);
+    
+    if (authError || !authData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const authenticatedUserId = authData.claims.sub as string;
+    console.log('Authenticated user:', authenticatedUserId);
+
     const body = await req.json();
 
     // Validate input with Zod
@@ -37,11 +67,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { mood, occasion, season, userId } = validationResult.data;
+    const { mood, occasion, season } = validationResult.data;
+    // Use authenticated userId instead of body userId
+    const userId = authenticatedUserId;
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Getting recommendations for:', { mood, occasion, season, userId });
 
