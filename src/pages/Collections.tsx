@@ -6,6 +6,9 @@ import Layout from "@/components/Layout";
 import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import { AnimatedPage } from "@/components/AnimatedPage";
+import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { useCustomCollections, CustomCollection } from "@/hooks/useCustomCollections";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Share2, ExternalLink, FolderOpen, Heart, Star } from "lucide-react";
+import { Plus, Trash2, Share2, ExternalLink, Heart, Star } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 
 const Collections = () => {
@@ -190,7 +193,21 @@ const Collections = () => {
   };
 
   if (authLoading || collectionsLoading || loadingLegacy) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <Layout>
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="lg:w-64 shrink-0 space-y-4">
+            <div className="h-8 w-32 rounded-lg skeleton-shimmer" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 w-full rounded-xl skeleton-shimmer" />
+            ))}
+          </div>
+          <div className="flex-1">
+            <PerfumeCardSkeletonGrid count={6} />
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   const currentPerfumes = activeView === "owned" 
@@ -205,31 +222,37 @@ const Collections = () => {
     ? "Wishlist"
     : selectedCollection?.name || "Collection";
 
+  const emptyVariant = activeView === "owned" ? "collection" : activeView === "wishlist" ? "wishlist" : "collection";
+
   return (
     <Layout>
-      <div className="flex flex-col lg:flex-row gap-6 animate-fade-in">
+      <AnimatedPage className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
         <div className="lg:w-64 shrink-0">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-lg">Collections</h2>
-            <Button variant="ghost" size="icon" onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4" />
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-playfair">Collections</h2>
+            <Button variant="ghost" size="icon" onClick={() => setShowCreateDialog(true)} className="touch-target">
+              <Plus className="h-5 w-5" />
             </Button>
           </div>
 
-          <ScrollArea className="lg:h-[calc(100vh-200px)]">
-            <div className="space-y-1 pr-2">
+          <ScrollArea className="lg:h-[calc(100vh-240px)]">
+            <div className="space-y-2 pr-2">
               {/* Default Collections */}
               <button
                 onClick={() => {
                   setActiveView("owned");
                   setSelectedCollection(null);
                 }}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
-                  activeView === "owned" ? "bg-primary/10 border border-primary/30" : "hover:bg-secondary/50"
+                className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-smooth text-left touch-target ${
+                  activeView === "owned" ? "glass border-primary/30" : "hover:bg-secondary/50"
                 }`}
               >
-                <Heart className="h-5 w-5 text-primary" />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  activeView === "owned" ? "gradient-primary shadow-elegant" : "bg-primary/10"
+                }`}>
+                  <Heart className="h-5 w-5 text-primary-foreground" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">My Favorites</p>
                   <p className="text-xs text-muted-foreground">{legacyOwned.length} perfumes</p>
@@ -241,11 +264,15 @@ const Collections = () => {
                   setActiveView("wishlist");
                   setSelectedCollection(null);
                 }}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
-                  activeView === "wishlist" ? "bg-accent/10 border border-accent/30" : "hover:bg-secondary/50"
+                className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-smooth text-left touch-target ${
+                  activeView === "wishlist" ? "glass border-accent/30" : "hover:bg-secondary/50"
                 }`}
               >
-                <Star className="h-5 w-5 text-accent" />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  activeView === "wishlist" ? "bg-accent shadow-gold" : "bg-accent/10"
+                }`}>
+                  <Star className="h-5 w-5 text-accent-foreground" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">Wishlist</p>
                   <p className="text-xs text-muted-foreground">{legacyWishlist.length} perfumes</p>
@@ -253,8 +280,8 @@ const Collections = () => {
               </button>
 
               {collections.length > 0 && (
-                <div className="border-t border-border my-3 pt-3">
-                  <p className="text-xs text-muted-foreground mb-2 px-1">Custom Collections</p>
+                <div className="border-t border-border/50 my-4 pt-4">
+                  <p className="text-xs text-muted-foreground mb-3 px-1 uppercase tracking-wide">Custom Collections</p>
                 </div>
               )}
 
@@ -262,9 +289,9 @@ const Collections = () => {
               {collections.map((collection) => (
                 <div
                   key={collection.id}
-                  className={`group flex items-center gap-3 p-3 rounded-xl transition-all ${
+                  className={`group flex items-center gap-3 p-4 rounded-2xl transition-smooth ${
                     activeView === "custom" && selectedCollection?.id === collection.id
-                      ? "bg-secondary border border-border"
+                      ? "glass border-border"
                       : "hover:bg-secondary/50"
                   }`}
                 >
@@ -273,9 +300,9 @@ const Collections = () => {
                       setActiveView("custom");
                       setSelectedCollection(collection);
                     }}
-                    className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                    className="flex items-center gap-3 flex-1 min-w-0 text-left touch-target"
                   >
-                    <span className="text-xl">{collection.icon}</span>
+                    <span className="text-2xl">{collection.icon}</span>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{collection.name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -302,19 +329,19 @@ const Collections = () => {
 
         {/* Main Content */}
         <div className="flex-1">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-display">{currentTitle}</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-3xl md:text-4xl font-playfair">{currentTitle}</h1>
+              <p className="text-muted-foreground mt-1">
                 {currentPerfumes.length} {currentPerfumes.length === 1 ? "perfume" : "perfumes"}
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost-gold" onClick={handleShareProfile} size="sm">
+              <Button variant="ghost-gold" onClick={handleShareProfile} size="sm" className="touch-target">
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button variant="premium" onClick={() => navigate(`/user/${user?.id}`)} size="sm">
+              <Button variant="premium" onClick={() => navigate(`/user/${user?.id}`)} size="sm" className="touch-target">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Public View
               </Button>
@@ -322,37 +349,36 @@ const Collections = () => {
           </div>
 
           {loadingPerfumes ? (
-            <div className="flex items-center justify-center py-12">Loading...</div>
+            <PerfumeCardSkeletonGrid count={6} />
           ) : currentPerfumes.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium mb-2">No perfumes yet</p>
-                <p className="text-muted-foreground text-center mb-4">
-                  {activeView === "custom"
-                    ? "Add perfumes to this collection from the Search page"
-                    : "Start exploring to add perfumes to your collection"}
-                </p>
-                <Button onClick={() => navigate("/search")}>
-                  Explore Perfumes
-                </Button>
-              </CardContent>
-            </Card>
+            <EmptyState
+              variant={emptyVariant}
+              actionLabel="Explore Perfumes"
+              onAction={() => navigate("/search")}
+            />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {currentPerfumes.map((perfume) => (
-                <PerfumeCard
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+              {currentPerfumes.map((perfume, index) => (
+                <div
                   key={perfume.id}
-                  perfume={perfume}
-                  status={activeView === "owned" ? "owned" : activeView === "wishlist" ? "wishlist" : undefined}
-                  showActions={false}
-                  onClick={() => setSelectedPerfume(perfume)}
-                />
+                  className="animate-fade-in opacity-0"
+                  style={{ 
+                    animationDelay: `${Math.min(index * 50, 300)}ms`,
+                    animationFillMode: "forwards"
+                  }}
+                >
+                  <PerfumeCard
+                    perfume={perfume}
+                    status={activeView === "owned" ? "owned" : activeView === "wishlist" ? "wishlist" : undefined}
+                    showActions={false}
+                    onClick={() => setSelectedPerfume(perfume)}
+                  />
+                </div>
               ))}
             </div>
           )}
         </div>
-      </div>
+      </AnimatedPage>
 
       <PerfumeDetailModal
         perfume={selectedPerfume}

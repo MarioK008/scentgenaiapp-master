@@ -4,12 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
+import { AnimatedPage } from "@/components/AnimatedPage";
+import { EmptyState } from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FeedItem {
   id: string;
@@ -22,6 +23,31 @@ interface FeedItem {
   };
   perfumes: PerfumeData;
 }
+
+const FeedItemSkeleton = () => (
+  <Card className="overflow-hidden">
+    <CardHeader>
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="max-w-sm">
+        <div className="rounded-[20px] border border-border/50 bg-card overflow-hidden">
+          <Skeleton className="aspect-[3/4]" />
+          <div className="p-5 space-y-4">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 const Feed = () => {
   const { user, loading } = useAuth();
@@ -167,67 +193,79 @@ const Feed = () => {
   };
 
   if (loading || loadingFeed) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <Layout>
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <div className="h-10 w-32 rounded-lg skeleton-shimmer" />
+            <div className="h-5 w-64 rounded-lg skeleton-shimmer" />
+          </div>
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <FeedItemSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   if (feedItems.length === 0) {
     return (
       <Layout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Feed</h1>
-            <p className="text-muted-foreground">
+        <AnimatedPage className="space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-5xl font-playfair">Feed</h1>
+            <p className="text-lg text-muted-foreground">
               See what perfumes your followed users are adding
             </p>
           </div>
 
-          <Card className="text-center py-12">
-            <CardContent className="space-y-4">
-              <Users className="h-12 w-12 mx-auto text-muted-foreground" />
-              <div>
-                <CardTitle className="mb-2">No Updates Yet</CardTitle>
-                <CardDescription>
-                  Follow other users to see their collection updates here
-                </CardDescription>
-              </div>
-              <Button onClick={() => navigate("/search")}>
-                Discover Perfumes
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+          <EmptyState
+            variant="feed"
+            actionLabel="Discover Perfumes"
+            onAction={() => navigate("/search")}
+          />
+        </AnimatedPage>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Feed</h1>
-          <p className="text-muted-foreground">
+      <AnimatedPage className="space-y-8">
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-playfair">Feed</h1>
+          <p className="text-lg text-muted-foreground">
             Recent additions from users you follow
           </p>
         </div>
 
         <div className="space-y-6">
-          {feedItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden">
+          {feedItems.map((item, index) => (
+            <Card 
+              key={item.id} 
+              className="overflow-hidden animate-fade-in opacity-0"
+              style={{ 
+                animationDelay: `${index * 100}ms`,
+                animationFillMode: "forwards"
+              }}
+            >
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <Avatar
-                    className="h-10 w-10 cursor-pointer"
+                    className="h-12 w-12 cursor-pointer ring-2 ring-transparent hover:ring-primary/50 transition-smooth"
                     onClick={() => navigate(`/user/${item.user_id}`)}
                   >
                     <AvatarImage src={item.profiles.avatar_url || undefined} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary">
                       {item.profiles.username?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className="font-semibold cursor-pointer hover:underline"
+                        className="font-semibold cursor-pointer hover:text-primary transition-smooth"
                         onClick={() => navigate(`/user/${item.user_id}`)}
                       >
                         {item.profiles.username}
@@ -237,7 +275,11 @@ const Feed = () => {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(item.added_at).toLocaleDateString()}
+                      {new Date(item.added_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
                     </p>
                   </div>
                 </div>
@@ -255,7 +297,7 @@ const Feed = () => {
             </Card>
           ))}
         </div>
-      </div>
+      </AnimatedPage>
 
       <PerfumeDetailModal
         perfume={selectedPerfume}

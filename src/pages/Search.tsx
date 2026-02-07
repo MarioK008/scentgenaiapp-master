@@ -7,6 +7,9 @@ import PerfumeCard from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import { AnimatedPage } from "@/components/AnimatedPage";
+import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -97,36 +100,51 @@ const Search = () => {
   };
 
   if (loading || loadingPerfumes) {
-    return <div className="min-h-screen flex items-center justify-center text-foreground">Loading perfumes...</div>;
+    return (
+      <Layout>
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <div className="h-10 w-64 rounded-lg skeleton-shimmer" />
+            <div className="h-5 w-96 rounded-lg skeleton-shimmer" />
+          </div>
+          <div className="h-12 w-full rounded-xl skeleton-shimmer" />
+          <PerfumeCardSkeletonGrid count={6} />
+        </div>
+      </Layout>
+    );
   }
 
   if (perfumesError) {
     return (
       <Layout>
-        <div className="text-center py-12">
-          <p className="text-destructive">Error loading perfumes: {perfumesError}</p>
-        </div>
+        <EmptyState
+          variant="search"
+          title="Error loading perfumes"
+          description={perfumesError}
+          actionLabel="Try Again"
+          onAction={() => window.location.reload()}
+        />
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Search Perfumes</h1>
-          <p className="text-muted-foreground">
+      <AnimatedPage className="space-y-8">
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-playfair">Search Perfumes</h1>
+          <p className="text-lg text-muted-foreground">
             Find perfumes by name, brand, notes, or description
           </p>
         </div>
 
         <div className="relative">
-          <SearchIcon className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             placeholder="Search for perfumes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-12 h-14 text-lg rounded-2xl glass"
           />
         </div>
 
@@ -135,27 +153,39 @@ const Search = () => {
         </div>
 
         {filteredPerfumes.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No perfumes found matching your search.</p>
-          </div>
+          <EmptyState
+            variant="search"
+            title="No fragrances found"
+            description="Try adjusting your search terms or explore our recommendations"
+            actionLabel="Get Recommendations"
+            onAction={() => navigate("/recommendations")}
+          />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPerfumes.map((perfume) => (
-              <PerfumeCard
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {filteredPerfumes.map((perfume, index) => (
+              <div
                 key={perfume.id}
-                perfume={perfume}
-                onAddToCollection={(id, status) => {
-                  if (status === "owned" || status === "wishlist") {
-                    handleAddToLegacyCollection(id, status);
-                  }
+                className="animate-fade-in opacity-0"
+                style={{ 
+                  animationDelay: `${Math.min(index * 50, 300)}ms`,
+                  animationFillMode: "forwards"
                 }}
-                onAddToCustomCollection={() => setAddingPerfume(perfume)}
-                onClick={() => setSelectedPerfume(perfume)}
-              />
+              >
+                <PerfumeCard
+                  perfume={perfume}
+                  onAddToCollection={(id, status) => {
+                    if (status === "owned" || status === "wishlist") {
+                      handleAddToLegacyCollection(id, status);
+                    }
+                  }}
+                  onAddToCustomCollection={() => setAddingPerfume(perfume)}
+                  onClick={() => setSelectedPerfume(perfume)}
+                />
+              </div>
             ))}
           </div>
         )}
-      </div>
+      </AnimatedPage>
 
       <PerfumeDetailModal
         perfume={selectedPerfume}

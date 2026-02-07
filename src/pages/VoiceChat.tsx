@@ -4,12 +4,14 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { AnimatedPage } from "@/components/AnimatedPage";
+import { PageSkeleton } from "@/components/skeletons/PageSkeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useVoiceTranscription } from "@/hooks/useVoiceTranscription";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 import { supabase } from "@/integrations/supabase/client";
-import { Mic, Send, Trash2 } from "lucide-react";
+import { Mic, Send, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -128,41 +130,50 @@ const VoiceChat = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-pulse text-lg">Loading...</div>
-        </div>
+        <PageSkeleton variant="minimal" />
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <AnimatedPage className="max-w-4xl mx-auto space-y-6">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/voice-assistant')}
-          className="mb-6"
+          className="gap-2"
         >
-          ← Back
+          <ArrowLeft className="h-4 w-4" />
+          Back to MyScentGenAI
         </Button>
 
-        <Card>
+        <Card className="border-accent/20">
           <CardHeader>
-            <CardTitle>✍️ Dictated Chat</CardTitle>
-            <CardDescription>
-              Record your message, edit it, and send when ready
+            <CardTitle className="text-2xl flex items-center gap-3">
+              <span className="text-3xl">✍️</span>
+              Dictate & Edit
+            </CardTitle>
+            <CardDescription className="text-base">
+              Record your message, review and edit it, then send when you're ready
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {messages.length > 0 && (
-              <div className="space-y-4 max-h-96 overflow-y-auto p-4 bg-muted/30 rounded-lg">
-                <h3 className="font-semibold text-sm text-muted-foreground">Chat history:</h3>
+              <div className="space-y-4 max-h-96 overflow-y-auto p-4 glass rounded-2xl">
+                <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Chat History</h3>
                 {messages.map((msg, idx) => (
-                  <div key={idx} className={`p-3 rounded-lg ${msg.role === 'user' ? 'bg-primary/10 ml-8' : 'bg-secondary/10 mr-8'}`}>
-                    <div className="text-xs text-muted-foreground mb-1">
+                  <div 
+                    key={idx} 
+                    className={`p-4 rounded-xl ${
+                      msg.role === 'user' 
+                        ? 'bg-primary/10 ml-8 border-l-2 border-primary/50' 
+                        : 'bg-secondary/50 mr-8 border-l-2 border-accent/50'
+                    }`}
+                  >
+                    <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wide font-medium">
                       {msg.role === 'user' ? 'You' : 'Assistant'}
                     </div>
-                    <div className="text-sm">{msg.content}</div>
+                    <div className="text-sm leading-relaxed">{msg.content}</div>
                   </div>
                 ))}
               </div>
@@ -170,49 +181,62 @@ const VoiceChat = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Your message:</label>
+                <label className="text-sm font-medium mb-3 block">Your message</label>
                 <Textarea
                   value={editableText}
                   onChange={(e) => setEditableText(e.target.value)}
                   placeholder="Type here or use the dictate button..."
-                  className="min-h-32"
+                  className="min-h-32 rounded-xl text-base"
                   disabled={isRecording || isTranscribing}
                 />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button
                   onClick={handleDictate}
-                  variant={isRecording ? "destructive" : "secondary"}
+                  variant={isRecording ? "destructive" : "outline"}
                   disabled={isTranscribing}
-                  className="flex-1"
+                  className="flex-1 h-12 touch-target"
+                  size="lg"
                 >
-                  <Mic className="w-4 h-4 mr-2" />
+                  <Mic className="w-5 h-5 mr-2" />
                   {isRecording ? "Stop Recording" : isTranscribing ? "Transcribing..." : "Dictate"}
                 </Button>
                 
                 <Button
                   onClick={handleClear}
-                  variant="outline"
+                  variant="ghost"
                   disabled={!editableText && !isRecording}
+                  className="touch-target"
+                  size="lg"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear
+                  <Trash2 className="w-5 h-5" />
                 </Button>
                 
                 <Button
                   onClick={handleSend}
                   disabled={!editableText.trim() || isSending || isRecording}
-                  className="flex-1"
+                  variant="hero"
+                  className="flex-1 h-12 touch-target"
+                  size="lg"
                 >
-                  <Send className="w-4 h-4 mr-2" />
-                  {isSending ? "Sending..." : "Send"}
+                  {isSending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5 mr-2" />
+                      Send
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </AnimatedPage>
     </Layout>
   );
 };

@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedPage } from "@/components/AnimatedPage";
+import { EmptyState } from "@/components/EmptyState";
+import { PageSkeleton } from "@/components/skeletons/PageSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
-import { Trash2, MessageSquare, Mic } from "lucide-react";
+import { Trash2, MessageSquare, Mic, ArrowLeft } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,60 +43,64 @@ const VoiceHistory = () => {
   if (loading || isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-pulse text-lg">Loading...</div>
-        </div>
+        <PageSkeleton variant="minimal" />
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/voice-assistant')}
-          >
-            ← Back
-          </Button>
-        </div>
+      <AnimatedPage className="max-w-4xl mx-auto space-y-8">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/voice-assistant')}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to MyScentGenAI
+        </Button>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Conversations</h1>
+        <div className="space-y-2">
+          <h1 className="text-3xl md:text-4xl font-playfair">Conversation History</h1>
           <p className="text-muted-foreground">
             {conversations.length} saved conversation{conversations.length !== 1 ? 's' : ''}
           </p>
         </div>
 
         {conversations.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">
-                You don't have any saved conversations yet
-              </p>
-              <Button onClick={() => navigate('/voice-assistant')}>
-                Start a conversation
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            variant="conversation"
+            actionLabel="Start a conversation"
+            onAction={() => navigate('/voice-assistant')}
+          />
         ) : (
-          <div className="grid gap-4">
-            {conversations.map((conversation) => (
-              <Card key={conversation.id}>
+          <div className="space-y-4">
+            {conversations.map((conversation, index) => (
+              <Card 
+                key={conversation.id}
+                className="card-hover-lift animate-fade-in opacity-0"
+                style={{ 
+                  animationDelay: `${index * 50}ms`,
+                  animationFillMode: "forwards"
+                }}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        conversation.conversation_type === 'live' 
+                          ? 'gradient-primary shadow-elegant' 
+                          : 'bg-accent/20 shadow-gold'
+                      }`}>
                         {conversation.conversation_type === 'live' ? (
-                          <Mic className="w-5 h-5 text-primary" />
+                          <Mic className="w-6 h-6 text-white" strokeWidth={1.5} />
                         ) : (
-                          <MessageSquare className="w-5 h-5 text-primary" />
+                          <MessageSquare className="w-6 h-6 text-accent" strokeWidth={1.5} />
                         )}
                       </div>
                       <div>
                         <CardTitle className="text-lg">{conversation.title}</CardTitle>
-                        <CardDescription>
+                        <CardDescription className="mt-1">
                           {new Date(conversation.created_at).toLocaleString('en-US', {
                             dateStyle: 'medium',
                             timeStyle: 'short'
@@ -105,7 +112,7 @@ const VoiceHistory = () => {
                     </div>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="touch-target">
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </AlertDialogTrigger>
@@ -118,7 +125,10 @@ const VoiceHistory = () => {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(conversation.id)}>
+                          <AlertDialogAction 
+                            onClick={() => handleDelete(conversation.id)}
+                            className="bg-destructive text-destructive-foreground"
+                          >
                             Delete
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -127,13 +137,22 @@ const VoiceHistory = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
                     {conversation.messages.slice(0, 3).map((msg, idx) => (
-                      <div key={idx} className={`text-sm p-2 rounded ${msg.role === 'user' ? 'bg-primary/5' : 'bg-secondary/5'}`}>
-                        <span className="font-medium text-xs text-muted-foreground">
-                          {msg.role === 'user' ? 'You' : 'Assistant'}:
-                        </span>{' '}
-                        {msg.content.length > 150 ? msg.content.slice(0, 150) + '...' : msg.content}
+                      <div 
+                        key={idx} 
+                        className={`text-sm p-3 rounded-xl ${
+                          msg.role === 'user' 
+                            ? 'bg-primary/5 ml-4 border-l-2 border-primary/30' 
+                            : 'bg-secondary/30 mr-4 border-l-2 border-accent/30'
+                        }`}
+                      >
+                        <span className="font-medium text-xs text-muted-foreground uppercase tracking-wide">
+                          {msg.role === 'user' ? 'You' : 'Assistant'}
+                        </span>
+                        <p className="mt-1 leading-relaxed">
+                          {msg.content.length > 150 ? msg.content.slice(0, 150) + '...' : msg.content}
+                        </p>
                       </div>
                     ))}
                     {conversation.messages.length > 3 && (
@@ -147,7 +166,7 @@ const VoiceHistory = () => {
             ))}
           </div>
         )}
-      </div>
+      </AnimatedPage>
     </Layout>
   );
 };
