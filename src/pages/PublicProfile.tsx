@@ -65,10 +65,10 @@ const PublicProfile = () => {
     if (!userId) return;
 
     try {
-      // Fetch profile
+      // Fetch profile - explicitly select only public fields (no email)
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, bio, location, avatar_url, is_private")
         .eq("id", userId)
         .single();
 
