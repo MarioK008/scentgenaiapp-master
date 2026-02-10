@@ -28,12 +28,15 @@ interface TrendResult {
 }
 
 const TRENDING_TOPICS = [
-  { label: "Trending 2025", query: "What are the most trending perfumes and fragrances for 2025?" },
+  { label: "Trending 2026", query: "What are the most trending perfumes and fragrances for 2026?" },
   { label: "New Releases", query: "What are the latest new perfume releases this month?" },
   { label: "Niche Fragrances", query: "What niche fragrances are gaining popularity right now?" },
   { label: "Celebrity Launches", query: "What celebrity perfume launches have happened recently?" },
   { label: "Sustainable Scents", query: "What are the trending sustainable and eco-friendly perfumes?" },
-  { label: "Summer Picks", query: "What are the best trending summer fragrances for 2025?" },
+  { label: "Spring Picks", query: "What are the best trending spring fragrances for 2026?" },
+  { label: "Summer Picks", query: "What are the best trending summer fragrances for 2026?" },
+  { label: "Autumn Picks", query: "What are the best trending autumn fragrances for 2026?" },
+  { label: "Winter Picks", query: "What are the best trending winter fragrances for 2026?" },
 ];
 
 const Trends = () => {
