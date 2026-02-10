@@ -131,7 +131,7 @@ Guidelines:
                 create_response: true
               },
               temperature: 0.8,
-              max_response_output_tokens: 150
+              max_response_output_tokens: 500
             }
           };
 

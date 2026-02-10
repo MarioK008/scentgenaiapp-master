@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Logo } from "@/components/Logo";
 import { Sparkles, Home, Heart, Search, Shield, LogOut, MessageSquare, User, Users, TrendingUp } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface LayoutProps {
   children: ReactNode;
@@ -52,7 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
             </Link>
 
             {/* Navigation Items */}
-            <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide max-w-[50vw] sm:max-w-none">
+            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide max-w-[50vw] sm:max-w-none">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
@@ -61,23 +62,26 @@ const Layout = ({ children }: LayoutProps) => {
                     <Button
                       variant={isActive ? "premium" : "ghost"}
                       size="sm"
-                      className={`gap-2 transition-smooth ${
+                      className={`gap-2 px-3 sm:px-4 transition-smooth ${
                         !isActive && "hover:text-accent hover:shadow-gold"
                       }`}
                     >
                       <Icon className="h-4 w-4" strokeWidth={1.5} />
-                      <span className="hidden lg:inline">{item.label}</span>
+                      <span className="hidden md:inline">{item.label}</span>
                     </Button>
                   </Link>
                 );
               })}
+
+              {/* Separator */}
+              <Separator orientation="vertical" className="h-6 mx-1 bg-border/40" />
 
               {/* Avatar with Profile Access */}
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/profile')}
-                className="ml-4 hover:shadow-gold transition-smooth rounded-full"
+                className="hover:shadow-gold transition-smooth rounded-full"
                 title="My Profile"
               >
                 <UserAvatar
@@ -92,7 +96,7 @@ const Layout = ({ children }: LayoutProps) => {
                 variant="ghost" 
                 size="sm" 
                 onClick={signOut} 
-                className="gap-2 ml-2 hover:text-destructive transition-smooth"
+                className="gap-2 hover:text-destructive transition-smooth"
               >
                 <LogOut className="h-4 w-4" strokeWidth={1.5} />
                 <span className="hidden md:inline">Sign Out</span>
