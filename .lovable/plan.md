@@ -1,74 +1,46 @@
 
-# ScentGenAI Feedback Fixes
 
-## 1. Navigation Spacing (Layout.tsx)
+# Navegacion Superior - Solo Iconos con Tooltips
 
-**Problem:** Top menu buttons feel too crowded; active highlight causes visual overlap.
+## Problema
 
-**Fix:**
-- Increase gap between nav items from `gap-1 sm:gap-2` to `gap-2 sm:gap-3`
-- Add horizontal padding to each nav button (`px-3 sm:px-4`)
-- Add a subtle separator before the profile/signout section
-- Consider showing labels at `md:` breakpoint instead of only `lg:` to use available space better
+El boton activo "Dashboard" (con estilo premium/gradiente) es tan ancho que se superpone visualmente con el logo "ScentGenAI". Los demas botones tambien contribuyen a la saturacion visual del menu.
 
-**File:** `src/components/Layout.tsx`
+## Solucion
+
+Eliminar todos los textos de los botones de navegacion y dejar **solo iconos**. Al pasar el raton por encima de cada icono, aparecera un **tooltip elegante** con el nombre de la seccion. Esto es limpio, escalable y coherente con la estetica premium.
 
 ---
 
-## 2. Perfume Images
+## Cambios
 
-**Problem:** Current images are AI-generated (DALL-E 3) and don't look like real products.
+### `src/components/Layout.tsx`
 
-**What's needed from you:** This requires replacing the AI-generated images in the database with real/official product photos. Two approaches:
-- **Option A (Manual):** You upload real product images and we update the database URLs
-- **Option B (Automated):** We modify the system to search for and use official product images from a fragrance API or web source
+1. Importar `Tooltip, TooltipTrigger, TooltipContent, TooltipProvider` de los componentes UI
+2. Eliminar los `<span>` con los labels de texto de cada boton de navegacion
+3. Cambiar todos los botones de nav a `size="icon"` (cuadrados, compactos)
+4. Envolver cada boton en un `Tooltip` que muestra el label al hacer hover
+5. Tambien aplicar tooltip al boton de Sign Out (eliminar su texto)
+6. Envolver todo el nav en `TooltipProvider`
 
-This item will NOT be implemented in this round -- it requires a decision and real image assets from you. We'll note it as a follow-up.
-
----
-
-## 3. Voice Response Length (realtime-perfume-chat)
-
-**Problem:** AI spoken responses are limited to ~5 seconds because `max_response_output_tokens` is set to `150`.
-
-**Fix:** Increase `max_response_output_tokens` from `150` to `500` in the session configuration. This allows responses of roughly 15-20 seconds of speech while still keeping them conversational and not overly long.
-
-**File:** `supabase/functions/realtime-perfume-chat/index.ts` (line 134)
-
----
-
-## 4. Trends Section Updates (Trends.tsx)
-
-**Problem:** "Trending 2025" is outdated; missing seasonal categories.
-
-**Fix:** Update `TRENDING_TOPICS` array:
-- Change "Trending 2025" to "Trending 2026" (and update its query text)
-- Change "Summer Picks" query year to 2026
-- Add three new seasonal topics: "Spring Picks", "Autumn Picks", "Winter Picks"
-
-**File:** `src/pages/Trends.tsx` (lines 30-37)
-
-Updated topics list:
+**Resultado visual:**
 ```text
-- Trending 2026
-- New Releases
-- Niche Fragrances
-- Celebrity Launches
-- Sustainable Scents
-- Spring Picks
-- Summer Picks
-- Autumn Picks
-- Winter Picks
+[Logo ScentGenAI]          [icono][icono][icono][icono][icono][icono] | [avatar][icono-logout]
 ```
 
+Cada icono, de un tamaño mayor al actual, mostrara su nombre al pasar el raton por encima con un tooltip elegante.
+
 ---
 
-## Summary of Changes
+## Detalles Tecnicos
 
-| File | Change |
-|------|--------|
-| `src/components/Layout.tsx` | Increase nav spacing and padding |
-| `supabase/functions/realtime-perfume-chat/index.ts` | Increase max_response_output_tokens from 150 to 500 |
-| `src/pages/Trends.tsx` | Update year to 2026, add seasonal categories |
+- Se usara el componente `Tooltip` de Radix UI ya existente en el proyecto (`src/components/ui/tooltip.tsx`)
+- Los botones pasaran de `size="sm"` a `size="icon"` (42x42px) para consistencia
+- Se eliminara la clase `gap-2` ya que no habra texto junto al icono
+- El tooltip usara un `delayDuration` corto (200ms) para respuesta rapida
+- El estilo premium del boton activo se mantiene pero al ser solo icono, sera compacto y no invadira el logo
 
-**Deferred:** Perfume images replacement (requires real product image assets or API integration decision from you).
+### Archivo modificado:
+- `src/components/Layout.tsx`
+
+Adicionalmente, los cambios anteriores de trending topics en la seccion Trends, no se han aplicado. Tienes que aplicarlos sin costes de creditos!
