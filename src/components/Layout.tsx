@@ -127,9 +127,42 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </nav>
 
-      <main className="container mx-auto px-6 lg:px-8 py-12">
+      <main className={`container mx-auto px-6 lg:px-8 py-12 ${!isAdmin ? "pb-20 md:pb-12" : ""}`}>
         {children}
       </main>
+
+      {/* Mobile bottom tab bar - users only */}
+      {!isAdmin && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/30 gradient-card backdrop-blur-xl shadow-elegant">
+          <div className="flex items-center justify-around px-2 py-2">
+            {userNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="flex flex-col items-center justify-center gap-1 flex-1 py-1.5 transition-smooth"
+                >
+                  <Icon
+                    className={`h-5 w-5 ${isActive ? "text-accent" : "text-muted-foreground"}`}
+                    strokeWidth={1.5}
+                  />
+                  <span
+                    className={`text-xs ${
+                      isActive
+                        ? "bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-semibold"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
     </div>
   );
 };
