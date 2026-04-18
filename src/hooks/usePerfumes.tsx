@@ -42,27 +42,31 @@ export interface Perfume {
   accords: Accord[];
 }
 
-export const usePerfumes = () => {
+export const usePerfumes = (searchQuery?: string) => {
   const [perfumes, setPerfumes] = useState<Perfume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPerfumes = async () => {
+  const fetchPerfumes = async (query?: string) => {
     setLoading(true);
     setError(null);
-    
-    try {
-      console.log('Fetching perfumes... (usePerfumes hook)');
-      
-      // First, verify we can reach Supabase with a simple count
-      const { count, error: countError } = await supabase
-        .from("perfumes")
-        .select("*", { count: "exact", head: true });
-      
-      console.log('Perfumes count check:', { count, error: countError });
 
-      // Fetch perfumes with brand and main accord
-      const { data: perfumesData, error: perfumesError } = await supabase
+    try {
+      const trimmed = (query ?? "").trim();
+      const hasSearch = trimmed.length >= 2;
+
+      // If we have a search query, also resolve matching brand IDs so we can
+      // include perfumes whose brand name matches.
+      let matchingBrandIds: string[] = [];
+      if (hasSearch) {
+        const { data: brandMatches } = await supabase
+          .from("brands")
+          .select("id")
+          .ilike("name", `%${trimmed}%`);
+        matchingBrandIds = (brandMatches || []).map((b) => b.id);
+      }
+
+      let perfumesQuery = supabase
         .from("perfumes")
         .select(`
           *,
@@ -71,72 +75,64 @@ export const usePerfumes = () => {
         `)
         .order("name");
 
-      console.log('Perfumes query result:', { 
-        count: perfumesData?.length, 
-        error: perfumesError,
-        firstPerfume: perfumesData?.[0]?.name 
-      });
+      if (hasSearch) {
+        const orFilters = [
+          `name.ilike.%${trimmed}%`,
+          `description.ilike.%${trimmed}%`,
+        ];
+        if (matchingBrandIds.length > 0) {
+          orFilters.push(`brand_id.in.(${matchingBrandIds.join(",")})`);
+        }
+        perfumesQuery = perfumesQuery.or(orFilters.join(","));
+      } else {
+        perfumesQuery = perfumesQuery.limit(50);
+      }
+
+      const { data: perfumesData, error: perfumesError } = await perfumesQuery;
 
       if (perfumesError) throw perfumesError;
 
       if (!perfumesData || perfumesData.length === 0) {
-        console.log('No perfumes found in database');
         setPerfumes([]);
         return;
       }
 
-      // Fetch all notes for these perfumes
-      const perfumeIds = perfumesData.map(p => p.id);
-      
-      const { data: notesData, error: notesError } = await supabase
-        .from("perfume_notes")
-        .select("perfume_id, note:notes(id, name, type)")
-        .in("perfume_id", perfumeIds);
+      const perfumeIds = perfumesData.map((p) => p.id);
 
-      if (notesError) {
-        console.error('Notes query error:', notesError);
-      }
+      const [{ data: notesData }, { data: seasonsData }, { data: accordsData }] =
+        await Promise.all([
+          supabase
+            .from("perfume_notes")
+            .select("perfume_id, note:notes(id, name, type)")
+            .in("perfume_id", perfumeIds),
+          supabase
+            .from("perfume_seasons")
+            .select("perfume_id, season:seasons(id, name)")
+            .in("perfume_id", perfumeIds),
+          supabase
+            .from("perfume_accords")
+            .select("perfume_id, accord:accords(id, name)")
+            .in("perfume_id", perfumeIds),
+        ]);
 
-      // Fetch all seasons for these perfumes
-      const { data: seasonsData, error: seasonsError } = await supabase
-        .from("perfume_seasons")
-        .select("perfume_id, season:seasons(id, name)")
-        .in("perfume_id", perfumeIds);
-
-      if (seasonsError) {
-        console.error('Seasons query error:', seasonsError);
-      }
-
-      // Fetch all accords for these perfumes
-      const { data: accordsData, error: accordsError } = await supabase
-        .from("perfume_accords")
-        .select("perfume_id, accord:accords(id, name)")
-        .in("perfume_id", perfumeIds);
-
-      if (accordsError) {
-        console.error('Accords query error:', accordsError);
-      }
-
-      // Combine all data
-      const enrichedPerfumes = perfumesData.map(perfume => ({
+      const enrichedPerfumes = perfumesData.map((perfume: any) => ({
         ...perfume,
         brand: Array.isArray(perfume.brand) ? perfume.brand[0] : perfume.brand,
         main_accord: Array.isArray(perfume.main_accord) ? perfume.main_accord[0] : perfume.main_accord,
         notes: (notesData || [])
-          .filter(n => n.perfume_id === perfume.id)
-          .map(n => Array.isArray(n.note) ? n.note[0] : n.note)
+          .filter((n) => n.perfume_id === perfume.id)
+          .map((n: any) => (Array.isArray(n.note) ? n.note[0] : n.note))
           .filter(Boolean),
         seasons: (seasonsData || [])
-          .filter(s => s.perfume_id === perfume.id)
-          .map(s => Array.isArray(s.season) ? s.season[0] : s.season)
+          .filter((s) => s.perfume_id === perfume.id)
+          .map((s: any) => (Array.isArray(s.season) ? s.season[0] : s.season))
           .filter(Boolean),
         accords: (accordsData || [])
-          .filter(a => a.perfume_id === perfume.id)
-          .map(a => Array.isArray(a.accord) ? a.accord[0] : a.accord)
+          .filter((a) => a.perfume_id === perfume.id)
+          .map((a: any) => (Array.isArray(a.accord) ? a.accord[0] : a.accord))
           .filter(Boolean),
       }));
 
-      console.log('Enriched perfumes count:', enrichedPerfumes.length);
       setPerfumes(enrichedPerfumes);
     } catch (err: any) {
       setError(err.message);
@@ -146,8 +142,16 @@ export const usePerfumes = () => {
   };
 
   useEffect(() => {
-    fetchPerfumes();
-  }, []);
+    const trimmed = (searchQuery ?? "").trim();
 
-  return { perfumes, loading, error, refetch: fetchPerfumes };
+    // Debounce all refetches by 300ms
+    const handle = setTimeout(() => {
+      // If user typed only 1 character, treat as no search (show initial set)
+      fetchPerfumes(trimmed.length >= 2 ? trimmed : "");
+    }, 300);
+
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
+
+  return { perfumes, loading, error, refetch: () => fetchPerfumes(searchQuery) };
 };
