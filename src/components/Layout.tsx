@@ -53,9 +53,9 @@ const Layout = ({ children }: LayoutProps) => {
               <Logo variant="compact" className="flex sm:hidden" />
             </Link>
 
-            {/* Navigation Items */}
+            {/* Navigation Items - Desktop only */}
             <TooltipProvider delayDuration={200}>
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="hidden md:flex items-center gap-1.5 sm:gap-2">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
