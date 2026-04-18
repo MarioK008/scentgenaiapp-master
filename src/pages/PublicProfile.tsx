@@ -6,7 +6,7 @@ import { useUserFollows } from "@/hooks/useUserFollows";
 import { useBadges } from "@/hooks/useBadges";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
-import PerfumeCard from "@/components/PerfumeCard";
+import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import { BadgeDisplay } from "@/components/BadgeDisplay";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,16 +29,7 @@ interface CollectionItem {
   status: string;
   rating: number | null;
   personal_notes: string | null;
-  perfumes: {
-    id: string;
-    name: string;
-    brand: string;
-    image_url: string | null;
-    description: string | null;
-    top_notes: string[];
-    heart_notes: string[];
-    base_notes: string[];
-  };
+  perfumes: PerfumeData;
 }
 
 const PublicProfile = () => {
@@ -75,36 +66,60 @@ const PublicProfile = () => {
       if (profileError) throw profileError;
       setProfile(profileData);
 
-      // Fetch collections
+      // Step 1: Fetch user collection rows (perfume_id + status/rating)
       const { data: collectionsData, error: collectionsError } = await supabase
         .from("user_collections")
-        .select(`
-          id,
-          status,
-          rating,
-          personal_notes,
-          perfumes!inner (
-            id,
-            name,
-            brand,
-            image_url,
-            description,
-            top_notes,
-            heart_notes,
-            base_notes
-          )
-        `)
+        .select("id, status, rating, personal_notes, perfume_id")
         .eq("user_id", userId)
         .order("added_at", { ascending: false });
 
       if (collectionsError) throw collectionsError;
-      
-      const transformedData = (collectionsData || []).map(item => ({
-        ...item,
-        perfumes: Array.isArray(item.perfumes) ? item.perfumes[0] : item.perfumes
-      }));
-      
-      setCollections(transformedData as CollectionItem[]);
+
+      const perfumeIds = (collectionsData || []).map((c) => c.perfume_id);
+
+      if (perfumeIds.length === 0) {
+        setCollections([]);
+        return;
+      }
+
+      // Step 2: Fetch perfumes with normalized junction tables
+      const { data: perfumesData, error: perfumesError } = await supabase
+        .from("perfumes")
+        .select(`
+          id, name, image_url, longevity, sillage, description, year, concentration,
+          brand:brands!brand_id(name),
+          notes:perfume_notes(note:notes(name, type)),
+          seasons:perfume_seasons(season:seasons(name)),
+          accords:perfume_accords(accord:accords(name))
+        `)
+        .in("id", perfumeIds);
+
+      if (perfumesError) throw perfumesError;
+
+      // Step 3: Normalize nested arrays (same pattern as Collections.tsx)
+      const enrichedPerfumes: Record<string, PerfumeData> = {};
+      (perfumesData || []).forEach((p: any) => {
+        enrichedPerfumes[p.id] = {
+          ...p,
+          brand: Array.isArray(p.brand) ? p.brand[0] : p.brand,
+          notes: p.notes?.map((n: any) => (Array.isArray(n.note) ? n.note[0] : n.note)).filter(Boolean) || [],
+          seasons: p.seasons?.map((s: any) => (Array.isArray(s.season) ? s.season[0] : s.season)).filter(Boolean) || [],
+          accords: p.accords?.map((a: any) => (Array.isArray(a.accord) ? a.accord[0] : a.accord)).filter(Boolean) || [],
+        };
+      });
+
+      // Step 4: Merge collection metadata with enriched perfume data
+      const merged: CollectionItem[] = (collectionsData || [])
+        .filter((c) => enrichedPerfumes[c.perfume_id])
+        .map((c) => ({
+          id: c.id,
+          status: c.status,
+          rating: c.rating,
+          personal_notes: c.personal_notes,
+          perfumes: enrichedPerfumes[c.perfume_id],
+        }));
+
+      setCollections(merged);
     } catch (error) {
       console.error("Error fetching profile data:", error);
       setCollections([]);
