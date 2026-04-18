@@ -21,16 +21,15 @@ const Search = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes();
+  const [searchQuery, setSearchQuery] = useState("");
+  const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery);
   const { collections, createCollection, addToCollection } = useCustomCollections();
 
   useSEO({ 
     title: 'Search Perfumes', 
     description: 'Find perfumes by name, brand, or fragrance notes' 
   });
-  
-  const [filteredPerfumes, setFilteredPerfumes] = useState<Perfume[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null);
   const [addingPerfume, setAddingPerfume] = useState<Perfume | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -40,26 +39,6 @@ const Search = () => {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
-
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredPerfumes(perfumes);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = perfumes.filter((perfume) => {
-      const brandName = typeof perfume.brand === 'string' ? perfume.brand : perfume.brand?.name || '';
-      return (
-        perfume.name.toLowerCase().includes(query) ||
-        brandName.toLowerCase().includes(query) ||
-        perfume.notes?.some((note) => note.name.toLowerCase().includes(query)) ||
-        perfume.description?.toLowerCase().includes(query) ||
-        perfume.concentration?.toLowerCase().includes(query)
-      );
-    });
-    setFilteredPerfumes(filtered);
-  }, [searchQuery, perfumes]);
 
   const handleAddToLegacyCollection = async (perfumeId: string, status: "owned" | "wishlist") => {
     if (!user) return;
@@ -149,10 +128,10 @@ const Search = () => {
         </div>
 
         <div className="text-sm text-muted-foreground">
-          Showing {filteredPerfumes.length} of {perfumes.length} perfumes
+          Showing {perfumes.length} perfumes
         </div>
 
-        {filteredPerfumes.length === 0 ? (
+        {perfumes.length === 0 ? (
           <EmptyState
             variant="search"
             title="No fragrances found"
@@ -162,7 +141,7 @@ const Search = () => {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {filteredPerfumes.map((perfume, index) => (
+            {perfumes.map((perfume, index) => (
               <div
                 key={perfume.id}
                 className="animate-fade-in opacity-0"
