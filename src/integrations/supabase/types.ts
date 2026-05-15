@@ -93,6 +93,7 @@ export type Database = {
           id: string
           notes: string | null
           perfume_id: string
+          sort_order: number
         }
         Insert: {
           added_at?: string | null
@@ -100,6 +101,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perfume_id: string
+          sort_order?: number
         }
         Update: {
           added_at?: string | null
@@ -107,6 +109,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perfume_id?: string
+          sort_order?: number
         }
         Relationships: [
           {
@@ -867,6 +870,30 @@ export type Database = {
           metadata?: Json | null
           notified?: boolean | null
           welcome_email_status?: string | null
+        }
+        Relationships: []
+      }
+      wear_logs: {
+        Row: {
+          created_at: string
+          id: string
+          perfume_id: string
+          user_id: string
+          worn_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          perfume_id: string
+          user_id: string
+          worn_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          perfume_id?: string
+          user_id?: string
+          worn_at?: string
         }
         Relationships: []
       }
