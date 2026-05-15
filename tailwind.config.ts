@@ -229,6 +229,8 @@ export default {
         "liquid-fill": "liquid-fill 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
         "typing-dot": "typing-dot 1.2s ease-in-out infinite",
+        "confetti-fall": "confetti-fall 2s linear forwards",
+        "badge-pop": "badge-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
       },
     },
   },
