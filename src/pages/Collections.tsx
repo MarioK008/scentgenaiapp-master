@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
@@ -10,6 +10,9 @@ import { AnimatedPage } from "@/components/AnimatedPage";
 import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useCustomCollections, CustomCollection } from "@/hooks/useCustomCollections";
+import { useWearLogs } from "@/hooks/useWearLogs";
+import { WearTodayButton } from "@/components/WearTodayButton";
+import { SortableCollectionGrid } from "@/components/SortableCollectionGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
