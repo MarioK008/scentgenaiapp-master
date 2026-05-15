@@ -42,6 +42,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <BadgeUnlockOverlay />
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
