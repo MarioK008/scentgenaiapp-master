@@ -33,6 +33,7 @@ import Trends from "./pages/Trends";
 import NotFound from "./pages/NotFound";
 import { AdminRoute } from "./components/AdminRoute";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { BadgeUnlockOverlay } from "./components/BadgeUnlockOverlay";
 
 const queryClient = new QueryClient();
 
