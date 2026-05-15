@@ -12,6 +12,8 @@ import { useVoiceTranscription } from "@/hooks/useVoiceTranscription";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { Mic, Send, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import TypingIndicator from "@/components/TypingIndicator";
+import ConversationStarters from "@/components/ConversationStarters";
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -61,8 +63,9 @@ const VoiceChat = () => {
     }
   };
 
-  const handleSend = async () => {
-    if (!editableText.trim()) {
+  const handleSend = async (overrideText?: string) => {
+    const textToSend = (overrideText ?? editableText).trim();
+    if (!textToSend) {
       toast({
         title: "Error",
         description: "Please type or dictate a message first",
@@ -76,7 +79,7 @@ const VoiceChat = () => {
 
       const userMessage: ChatMessage = {
         role: 'user',
-        content: editableText,
+        content: textToSend,
         timestamp: new Date().toISOString()
       };
 
@@ -200,7 +203,18 @@ const VoiceChat = () => {
                     <div className="text-sm leading-relaxed">{msg.content}</div>
                   </div>
                 ))}
+                {isSending && <TypingIndicator />}
               </div>
+            )}
+
+            {messages.length === 0 && (
+              <ConversationStarters
+                disabled={isSending || isRecording}
+                onSelect={(prompt) => {
+                  setEditableText(prompt);
+                  handleSend(prompt);
+                }}
+              />
             )}
 
             <div className="space-y-4">
@@ -238,7 +252,7 @@ const VoiceChat = () => {
                 </Button>
                 
                 <Button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!editableText.trim() || isSending || isRecording}
                   variant="hero"
                   className="flex-1 h-12 touch-target"

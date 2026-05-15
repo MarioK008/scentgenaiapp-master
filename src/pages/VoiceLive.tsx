@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AudioRecorder, encodeAudioForAPI, AudioQueue } from "@/utils/RealtimeAudio";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 import { ArrowLeft, Mic, MicOff, Volume2 } from "lucide-react";
+import TypingIndicator from "@/components/TypingIndicator";
+import AudioWaveform from "@/components/AudioWaveform";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -29,6 +31,8 @@ const VoiceLive = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState("");
+  const [isAssistantThinking, setIsAssistantThinking] = useState(false);
+  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
@@ -85,6 +89,7 @@ const VoiceLive = () => {
 
           if (data.type === 'response.audio.delta' && data.delta) {
             setIsSpeaking(true);
+            setIsAssistantThinking(false);
             const binaryString = atob(data.delta);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -102,6 +107,7 @@ const VoiceLive = () => {
             setMessages(prev => [...prev, userMessage]);
             setCurrentTranscript("");
           } else if (data.type === 'response.audio_transcript.delta') {
+            setIsAssistantThinking(false);
             setCurrentTranscript(prev => prev + (data.delta || ''));
           } else if (data.type === 'response.audio_transcript.done') {
             const assistantMessage: Message = {
@@ -122,9 +128,11 @@ const VoiceLive = () => {
               }
               setIsSpeaking(false);
             }
+            setIsAssistantThinking(false);
             setIsListening(true);
           } else if (data.type === 'input_audio_buffer.speech_stopped') {
             setIsListening(false);
+            setIsAssistantThinking(true);
           } else if (data.type === 'error') {
             console.error('Server error:', data.message);
             toast({
@@ -175,6 +183,7 @@ const VoiceLive = () => {
         }
       });
       await audioRecorderRef.current.start();
+      setAnalyser(audioRecorderRef.current.analyser);
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
@@ -189,10 +198,12 @@ const VoiceLive = () => {
     audioRecorderRef.current?.stop();
     wsRef.current?.close();
     audioQueueRef.current?.clear();
-    
+    setAnalyser(null);
+
     setIsConnected(false);
     setIsListening(false);
     setIsSpeaking(false);
+    setIsAssistantThinking(false);
 
     // Save conversation if there are messages
     if (messages.length > 0) {
@@ -280,6 +291,9 @@ const VoiceLive = () => {
                     </div>
                   </div>
 
+                  {/* Live audio waveform */}
+                  <AudioWaveform analyser={analyser} active={isListening} />
+
                   <Button 
                     onClick={endConversation} 
                     variant="destructive" 
@@ -319,6 +333,7 @@ const VoiceLive = () => {
                     <div className="text-sm leading-relaxed">{currentTranscript}</div>
                   </div>
                 )}
+                {isAssistantThinking && !currentTranscript && <TypingIndicator />}
               </div>
             )}
 
