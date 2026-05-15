@@ -12,6 +12,8 @@ import { useVoiceTranscription } from "@/hooks/useVoiceTranscription";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { Mic, Send, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import TypingIndicator from "@/components/TypingIndicator";
+import ConversationStarters from "@/components/ConversationStarters";
 
 interface ChatMessage {
   role: 'user' | 'assistant';
