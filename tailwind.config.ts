@@ -202,6 +202,16 @@ export default {
           "0%, 60%, 100%": { opacity: "0.3", transform: "translateY(0)" },
           "30%": { opacity: "1", transform: "translateY(-3px)" },
         },
+        "confetti-fall": {
+          "0%": { transform: "translateY(-20px) rotate(0deg)", opacity: "1" },
+          "100%": { transform: "translateY(110vh) rotate(720deg)", opacity: "0" },
+        },
+        "badge-pop": {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "60%": { transform: "scale(1.18)", opacity: "1" },
+          "80%": { transform: "scale(0.92)" },
+          "100%": { transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
