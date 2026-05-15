@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ const VoiceChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [editableText, setEditableText] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const conversationIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -104,10 +105,33 @@ const VoiceChat = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Save conversation after each exchange
-      if (messages.length === 0) {
-        const title = `Dictated Chat - ${new Date().toLocaleDateString()}`;
-        await saveConversation(title, 'dictated', [...messages, userMessage, assistantMessage]);
+      // Persist the FULL conversation after every assistant response.
+      // Insert on first turn, update on subsequent turns using the tracked ID.
+      const fullMessages = [...messages, userMessage, assistantMessage];
+      try {
+        if (!conversationIdRef.current) {
+          const title = `Dictated Chat - ${new Date().toLocaleDateString()}`;
+          const { data: inserted, error: insertError } = await supabase
+            .from('voice_conversations')
+            .insert({
+              user_id: user!.id,
+              title,
+              conversation_type: 'dictated',
+              messages: fullMessages as any,
+            })
+            .select('id')
+            .single();
+          if (insertError) throw insertError;
+          conversationIdRef.current = inserted.id;
+        } else {
+          const { error: updateError } = await supabase
+            .from('voice_conversations')
+            .update({ messages: fullMessages as any })
+            .eq('id', conversationIdRef.current);
+          if (updateError) throw updateError;
+        }
+      } catch (persistErr) {
+        console.error('Error persisting conversation:', persistErr);
       }
 
     } catch (error) {
