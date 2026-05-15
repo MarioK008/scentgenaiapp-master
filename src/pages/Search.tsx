@@ -157,11 +157,13 @@ const Search = () => {
           />
         </div>
 
+        <RecentlyViewed items={recentlyViewed} onSelect={openPerfumeById} />
+
         <div className="text-sm text-muted-foreground">
-          Showing {perfumes.length} perfumes
+          Showing {visiblePerfumes.length} perfumes
         </div>
 
-        {perfumes.length === 0 ? (
+        {visiblePerfumes.length === 0 ? (
           <EmptyState
             variant="search"
             title="No fragrances found"
@@ -171,7 +173,7 @@ const Search = () => {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {perfumes.map((perfume, index) => (
+            {visiblePerfumes.map((perfume, index) => (
               <div
                 key={perfume.id}
                 className="animate-fade-in opacity-0"
@@ -180,16 +182,23 @@ const Search = () => {
                   animationFillMode: "forwards"
                 }}
               >
-                <PerfumeCard
-                  perfume={perfume}
-                  onAddToCollection={(id, status) => {
-                    if (status === "owned" || status === "wishlist") {
-                      handleAddToLegacyCollection(id, status);
-                    }
-                  }}
-                  onAddToCustomCollection={() => setAddingPerfume(perfume)}
-                  onClick={() => setSelectedPerfume(perfume)}
-                />
+                <SwipeablePerfumeCard
+                  onSwipeRight={() => handleAddToLegacyCollection(perfume.id, "owned")}
+                  onSwipeLeft={() =>
+                    setDismissed((prev) => new Set(prev).add(perfume.id))
+                  }
+                >
+                  <PerfumeCard
+                    perfume={perfume}
+                    onAddToCollection={(id, status) => {
+                      if (status === "owned" || status === "wishlist") {
+                        handleAddToLegacyCollection(id, status);
+                      }
+                    }}
+                    onAddToCustomCollection={() => setAddingPerfume(perfume)}
+                    onClick={() => openPerfume(perfume)}
+                  />
+                </SwipeablePerfumeCard>
               </div>
             ))}
           </div>
