@@ -373,9 +373,11 @@ const PublicProfile = () => {
 
               <TabsContent value="owned" className="mt-6">
                 {ownedPerfumes.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No perfumes in collection yet
-                  </p>
+                  <EmptyState
+                    variant="collection"
+                    title="No perfumes yet"
+                    description="This collection is empty for now."
+                  />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {ownedPerfumes.map((item) => (
