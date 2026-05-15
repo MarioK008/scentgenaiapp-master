@@ -32,9 +32,6 @@ const VoiceHistory = () => {
     }
   }, [user, loading, navigate]);
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
 
   const handleDelete = async (id: string) => {
     await deleteConversation(id);
