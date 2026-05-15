@@ -58,7 +58,7 @@ export const useProfileStats = (userId: string | undefined) => {
         .not("rating", "is", null)
         .order("rating", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       let favoritePerfume = null;
       if (favoriteData) {
@@ -71,7 +71,7 @@ export const useProfileStats = (userId: string | undefined) => {
             brand:brands(name)
           `)
           .eq("id", favoriteData.perfume_id)
-          .single();
+          .maybeSingle();
 
         if (perfumeData) {
           const brandData: any = Array.isArray(perfumeData.brand) ? perfumeData.brand[0] : perfumeData.brand;
