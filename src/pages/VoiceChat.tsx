@@ -241,7 +241,7 @@ const VoiceChat = () => {
                 </Button>
                 
                 <Button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!editableText.trim() || isSending || isRecording}
                   variant="hero"
                   className="flex-1 h-12 touch-target"
