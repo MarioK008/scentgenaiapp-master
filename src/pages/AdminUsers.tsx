@@ -37,7 +37,7 @@ const AdminUsers = () => {
       // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, avatar_url, created_at, is_private")
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
