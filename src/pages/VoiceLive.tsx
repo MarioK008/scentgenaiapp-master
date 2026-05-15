@@ -183,6 +183,7 @@ const VoiceLive = () => {
         }
       });
       await audioRecorderRef.current.start();
+      setAnalyser(audioRecorderRef.current.analyser);
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
