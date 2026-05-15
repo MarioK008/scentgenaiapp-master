@@ -59,7 +59,7 @@ const App = () => (
           <Route path="/voice-live" element={<ProtectedRoute><VoiceLive /></ProtectedRoute>} />
           <Route path="/voice-chat" element={<ProtectedRoute><VoiceChat /></ProtectedRoute>} />
           <Route path="/voice-history" element={<ProtectedRoute><VoiceHistory /></ProtectedRoute>} />
-          <Route path="/knowledge" element={<ProtectedRoute><KnowledgeManagement /></ProtectedRoute>} />
+          <Route path="/knowledge" element={<AdminRoute><KnowledgeManagement /></AdminRoute>} />
           <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/user/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />

@@ -36,14 +36,10 @@ export const useAuth = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          setAdminCheckComplete(false);
-          // Defer Supabase calls with setTimeout to prevent deadlock
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
-        } else {
+
+        // Admin role is checked once in initializeAuth.
+        // On sign-out we clear it; on sign-in we let initializeAuth or a refresh handle it.
+        if (!session?.user) {
           setIsAdmin(false);
           setAdminCheckComplete(true);
         }
