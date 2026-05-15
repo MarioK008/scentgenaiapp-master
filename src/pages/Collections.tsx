@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
@@ -10,6 +10,9 @@ import { AnimatedPage } from "@/components/AnimatedPage";
 import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useCustomCollections, CustomCollection } from "@/hooks/useCustomCollections";
+import { useWearLogs } from "@/hooks/useWearLogs";
+import { WearTodayButton } from "@/components/WearTodayButton";
+import { SortableCollectionGrid } from "@/components/SortableCollectionGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -227,6 +230,27 @@ const Collections = () => {
 
   const emptyVariant = activeView === "owned" ? "collection" : activeView === "wishlist" ? "wishlist" : "collection";
 
+  // Wear logs: track for owned + custom (not wishlist)
+  const wearablePerfumeIds = useMemo(
+    () =>
+      activeView === "wishlist"
+        ? []
+        : currentPerfumes.map((p) => p.id),
+    [currentPerfumes, activeView]
+  );
+  const { stats: wearStats, logWear } = useWearLogs(wearablePerfumeIds);
+
+  const renderWearSlot = (perfume: PerfumeData) => {
+    const s = wearStats[perfume.id] ?? { count: 0, wornToday: false };
+    return (
+      <WearTodayButton
+        count={s.count}
+        wornToday={s.wornToday}
+        onClick={() => logWear(perfume.id)}
+      />
+    );
+  };
+
   return (
     <Layout>
       <AnimatedPage className="flex flex-col lg:flex-row gap-8">
@@ -366,6 +390,13 @@ const Collections = () => {
               actionLabel="Explore Perfumes"
               onAction={() => navigate("/search")}
             />
+          ) : activeView === "custom" && selectedCollection ? (
+            <SortableCollectionGrid
+              collectionId={selectedCollection.id}
+              perfumes={currentPerfumes}
+              onSelect={(p) => setSelectedPerfume(p)}
+              renderWearSlot={renderWearSlot}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
               {currentPerfumes.map((perfume, index) => (
@@ -383,6 +414,9 @@ const Collections = () => {
                     showActions={false}
                     onClick={() => setSelectedPerfume(perfume)}
                   />
+                  {activeView === "owned" && (
+                    <div className="mt-2">{renderWearSlot(perfume)}</div>
+                  )}
                 </div>
               ))}
             </div>

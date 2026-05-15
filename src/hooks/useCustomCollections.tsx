@@ -181,6 +181,7 @@ export const useCustomCollections = () => {
           notes
         `)
         .eq("collection_id", collectionId)
+        .order("sort_order", { ascending: true })
         .order("added_at", { ascending: false });
 
       if (error) throw error;
