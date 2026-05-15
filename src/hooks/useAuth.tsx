@@ -65,6 +65,12 @@ export const useAuth = () => {
   }, []);
 
   const signOut = async () => {
+    try {
+      const { clearAllRecentlyViewed } = await import("./useRecentlyViewed");
+      clearAllRecentlyViewed();
+    } catch {
+      // ignore
+    }
     await supabase.auth.signOut();
     navigate("/auth");
   };

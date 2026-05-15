@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
@@ -7,6 +7,8 @@ import PerfumeCard from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import SwipeablePerfumeCard from "@/components/SwipeablePerfumeCard";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -16,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
 import { usePerfumes, Perfume } from "@/hooks/usePerfumes";
 import { useBadges } from "@/hooks/useBadges";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { supabase } from "@/integrations/supabase/client";
 
 const Search = () => {
@@ -35,6 +38,28 @@ const Search = () => {
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null);
   const [addingPerfume, setAddingPerfume] = useState<Perfume | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
+
+  const visiblePerfumes = useMemo(
+    () => perfumes.filter((p) => !dismissed.has(p.id)),
+    [perfumes, dismissed]
+  );
+
+  const openPerfume = (perfume: Perfume) => {
+    setSelectedPerfume(perfume);
+    addRecentlyViewed({
+      id: perfume.id,
+      name: perfume.name,
+      image_url: perfume.image_url,
+      brand: typeof perfume.brand === "string" ? perfume.brand : perfume.brand?.name ?? null,
+    });
+  };
+
+  const openPerfumeById = (id: string) => {
+    const p = perfumes.find((x) => x.id === id);
+    if (p) openPerfume(p);
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -132,11 +157,13 @@ const Search = () => {
           />
         </div>
 
+        <RecentlyViewed items={recentlyViewed} onSelect={openPerfumeById} />
+
         <div className="text-sm text-muted-foreground">
-          Showing {perfumes.length} perfumes
+          Showing {visiblePerfumes.length} perfumes
         </div>
 
-        {perfumes.length === 0 ? (
+        {visiblePerfumes.length === 0 ? (
           <EmptyState
             variant="search"
             title="No fragrances found"
@@ -146,7 +173,7 @@ const Search = () => {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {perfumes.map((perfume, index) => (
+            {visiblePerfumes.map((perfume, index) => (
               <div
                 key={perfume.id}
                 className="animate-fade-in opacity-0"
@@ -155,16 +182,23 @@ const Search = () => {
                   animationFillMode: "forwards"
                 }}
               >
-                <PerfumeCard
-                  perfume={perfume}
-                  onAddToCollection={(id, status) => {
-                    if (status === "owned" || status === "wishlist") {
-                      handleAddToLegacyCollection(id, status);
-                    }
-                  }}
-                  onAddToCustomCollection={() => setAddingPerfume(perfume)}
-                  onClick={() => setSelectedPerfume(perfume)}
-                />
+                <SwipeablePerfumeCard
+                  onSwipeRight={() => handleAddToLegacyCollection(perfume.id, "owned")}
+                  onSwipeLeft={() =>
+                    setDismissed((prev) => new Set(prev).add(perfume.id))
+                  }
+                >
+                  <PerfumeCard
+                    perfume={perfume}
+                    onAddToCollection={(id, status) => {
+                      if (status === "owned" || status === "wishlist") {
+                        handleAddToLegacyCollection(id, status);
+                      }
+                    }}
+                    onAddToCustomCollection={() => setAddingPerfume(perfume)}
+                    onClick={() => openPerfume(perfume)}
+                  />
+                </SwipeablePerfumeCard>
               </div>
             ))}
           </div>
