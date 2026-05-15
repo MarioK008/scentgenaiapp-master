@@ -4,7 +4,7 @@ project_id = "gmsezowrwgveggssefss"
 verify_jwt = true
 
 [functions.realtime-perfume-chat]
-verify_jwt = false
+verify_jwt = true
 
 [functions.voice-transcribe]
 verify_jwt = true

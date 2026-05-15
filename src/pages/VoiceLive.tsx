@@ -54,7 +54,13 @@ const VoiceLive = () => {
         audioQueueRef.current = new AudioQueue(audioContextRef.current);
       }
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'gmsezowrwgveggssefss';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+      const projectId =
+        import.meta.env.VITE_SUPABASE_PROJECT_ID ||
+        (supabaseUrl ? new URL(supabaseUrl).hostname.split('.supabase.co')[0] : '');
+      if (!projectId) {
+        throw new Error('Supabase project ID is not configured');
+      }
       const wsUrl = `wss://${projectId}.supabase.co/functions/v1/realtime-perfume-chat?token=${session.access_token}`;
       
       console.log('Connecting to:', wsUrl);
