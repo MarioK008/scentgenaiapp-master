@@ -310,6 +310,47 @@ const AdminImages = () => {
           </CardContent>
         </Card>
 
+        {/* Perfumes Without Images */}
+        {stats?.perfumesWithoutImages && stats.perfumesWithoutImages.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <XCircle className="h-5 w-5 text-orange-500" />
+                Perfumes Without Images ({stats.perfumesWithoutImages.length})
+              </CardTitle>
+              <CardDescription>
+                Generate an image for an individual perfume.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {stats.perfumesWithoutImages.slice(0, 100).map((p: any) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/40 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{p.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {p.brand?.name || "Unknown brand"}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => regenerateMutation.mutate(p.id)}
+                      disabled={regenerateMutation.isPending}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate Image
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Recently Generated Images Gallery */}
         <Card>
           <CardHeader>
