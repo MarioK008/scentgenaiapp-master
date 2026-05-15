@@ -21,7 +21,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Trash2, Lock, Star, Heart, Sparkles } from "lucide-react";
+import { Loader2, Trash2, Lock, Star, Heart, Sparkles, Share2 } from "lucide-react";
+import { ShareCollectionCard } from "@/components/ShareCollectionCard";
 import { toast } from "sonner";
 const Profile = () => {
   const navigate = useNavigate();
@@ -79,6 +80,7 @@ const Profile = () => {
   });
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [shareCardOpen, setShareCardOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string>("");
   const handleAvatarUpload = async (file: File) => {
     // Create a URL for the image to crop
