@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useBadges } from "./useBadges";
 import { toast } from "sonner";
 
 export interface OnboardingPreferences {
@@ -11,6 +12,7 @@ export interface OnboardingPreferences {
 
 export const useOnboarding = () => {
   const { user } = useAuth();
+  const { checkBadges } = useBadges(user?.id);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -61,6 +63,7 @@ export const useOnboarding = () => {
 
       setShowOnboarding(false);
       toast.success("Preferences saved! Welcome to ScentGenAI");
+      checkBadges();
       return true;
     } catch (error) {
       console.error("Error saving preferences:", error);

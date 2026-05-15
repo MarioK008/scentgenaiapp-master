@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
 import { usePerfumes, Perfume } from "@/hooks/usePerfumes";
+import { useBadges } from "@/hooks/useBadges";
 import { supabase } from "@/integrations/supabase/client";
 
 const Search = () => {
@@ -24,6 +25,7 @@ const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery);
   const { collections, createCollection, addToCollection } = useCustomCollections();
+  const { checkBadges } = useBadges(user?.id);
 
   useSEO({ 
     title: 'Search Perfumes', 
@@ -70,12 +72,15 @@ const Search = () => {
         title: "Success",
         description: `Added to ${status === "owned" ? "favorites" : "wishlist"}`,
       });
+      checkBadges();
     }
   };
 
   const handleAddToCustomCollection = async (collectionId: string) => {
     if (!addingPerfume) return false;
-    return await addToCollection(collectionId, addingPerfume.id);
+    const ok = await addToCollection(collectionId, addingPerfume.id);
+    if (ok) checkBadges();
+    return ok;
   };
 
   if (loading || loadingPerfumes) {

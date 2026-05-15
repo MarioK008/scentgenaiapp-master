@@ -18,12 +18,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Loader2 } from "lucide-react";
+import { useBadges } from "@/hooks/useBadges";
 
 const Recommendations = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { collections, createCollection, addToCollection } = useCustomCollections();
+  const { checkBadges } = useBadges(user?.id);
 
   useSEO({ 
     title: 'AI Recommendations', 
@@ -121,12 +123,15 @@ const Recommendations = () => {
         title: "Success",
         description: `Added to ${status === "owned" ? "favorites" : "wishlist"}`,
       });
+      checkBadges();
     }
   };
 
   const handleAddToCustomCollection = async (collectionId: string) => {
     if (!addingPerfume) return false;
-    return await addToCollection(collectionId, addingPerfume.id);
+    const ok = await addToCollection(collectionId, addingPerfume.id);
+    if (ok) checkBadges();
+    return ok;
   };
 
   if (loading) {
