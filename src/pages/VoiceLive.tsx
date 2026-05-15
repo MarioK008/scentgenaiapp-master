@@ -61,13 +61,15 @@ const VoiceLive = () => {
       if (!projectId) {
         throw new Error('Supabase project ID is not configured');
       }
-      const wsUrl = `wss://${projectId}.supabase.co/functions/v1/realtime-perfume-chat?token=${session.access_token}`;
+      const wsUrl = `wss://${projectId}.supabase.co/functions/v1/realtime-perfume-chat`;
       
       console.log('Connecting to:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
         console.log('Connected to voice assistant');
+        // Send authentication frame as the very first message
+        wsRef.current?.send(JSON.stringify({ type: 'authenticate', token: session.access_token }));
         setIsConnected(true);
         toast({
           title: "Connected",
