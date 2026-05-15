@@ -353,6 +353,13 @@ const Collections = () => {
 
           {loadingPerfumes ? (
             <PerfumeCardSkeletonGrid count={6} />
+          ) : error && activeView !== "custom" ? (
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center space-y-4">
+              <p className="text-destructive font-medium">{error}</p>
+              <Button variant="outline" onClick={() => fetchLegacy()}>
+                Retry
+              </Button>
+            </div>
           ) : currentPerfumes.length === 0 ? (
             <EmptyState
               variant={emptyVariant}
