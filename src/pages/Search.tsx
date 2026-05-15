@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
@@ -7,6 +7,8 @@ import PerfumeCard from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import SwipeablePerfumeCard from "@/components/SwipeablePerfumeCard";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -16,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
 import { usePerfumes, Perfume } from "@/hooks/usePerfumes";
 import { useBadges } from "@/hooks/useBadges";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { supabase } from "@/integrations/supabase/client";
 
 const Search = () => {
