@@ -390,6 +390,13 @@ const Collections = () => {
               actionLabel="Explore Perfumes"
               onAction={() => navigate("/search")}
             />
+          ) : activeView === "custom" && selectedCollection ? (
+            <SortableCollectionGrid
+              collectionId={selectedCollection.id}
+              perfumes={currentPerfumes}
+              onSelect={(p) => setSelectedPerfume(p)}
+              renderWearSlot={renderWearSlot}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
               {currentPerfumes.map((perfume, index) => (
@@ -407,6 +414,9 @@ const Collections = () => {
                     showActions={false}
                     onClick={() => setSelectedPerfume(perfume)}
                   />
+                  {activeView === "owned" && (
+                    <div className="mt-2">{renderWearSlot(perfume)}</div>
+                  )}
                 </div>
               ))}
             </div>
