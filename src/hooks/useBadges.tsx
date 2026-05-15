@@ -118,12 +118,16 @@ export const useBadges = (userId: string | undefined) => {
         const newBadges = newBadgesData.slice(0, newBadgesData.length - previousCount);
         newBadges.forEach((badge) => {
           const badgeData = Array.isArray(badge.badges) ? badge.badges[0] : badge.badges;
-          toast.success(
-            `🏆 Badge Earned: ${badgeData.icon} ${badgeData.name}`,
-            {
-              description: badgeData.description,
-              duration: 5000,
-            }
+          // Trigger the global full-screen unlock animation
+          window.dispatchEvent(
+            new CustomEvent("badge:unlocked", {
+              detail: {
+                id: badgeData.id,
+                name: badgeData.name,
+                description: badgeData.description,
+                icon: badgeData.icon,
+              },
+            })
           );
         });
       }

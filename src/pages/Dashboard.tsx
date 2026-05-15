@@ -10,6 +10,7 @@ import { FollowRequests } from "@/components/FollowRequests";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { ScentProfileReveal } from "@/components/ScentProfileReveal";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
+import { WearReengagementBanner } from "@/components/WearReengagementBanner";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -109,6 +110,8 @@ const Dashboard = () => {
         </div>
 
         <FollowRequests />
+
+        {user && <WearReengagementBanner userId={user.id} />}
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
