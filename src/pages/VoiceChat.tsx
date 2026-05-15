@@ -79,7 +79,7 @@ const VoiceChat = () => {
 
       const userMessage: ChatMessage = {
         role: 'user',
-        content: editableText,
+        content: textToSend,
         timestamp: new Date().toISOString()
       };
 
