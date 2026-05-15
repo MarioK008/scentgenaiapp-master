@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { usePasswordReset } from "@/hooks/usePasswordReset";
+import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 
 const calculatePasswordStrength = (password: string): number => {
