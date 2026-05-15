@@ -10,6 +10,7 @@ import { FollowRequests } from "@/components/FollowRequests";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { ScentProfileReveal } from "@/components/ScentProfileReveal";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
+import { WearReengagementBanner } from "@/components/WearReengagementBanner";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
