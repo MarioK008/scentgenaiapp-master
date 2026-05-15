@@ -310,11 +310,11 @@ const Recommendations = () => {
           />
         )}
 
-        {recommendations.length > 0 && (
+        {visibleRecs.length > 0 && (
           <div className="space-y-6">
             <h2 className="text-2xl md:text-3xl font-playfair">Recommended for you</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {recommendations.map((perfume, index) => (
+              {visibleRecs.map((perfume, index) => (
                 <div
                   key={perfume.id}
                   className="animate-fade-in opacity-0"
@@ -323,12 +323,20 @@ const Recommendations = () => {
                     animationFillMode: "forwards"
                   }}
                 >
-                  <PerfumeCard
-                    perfume={perfume}
-                    onAddToCollection={handleAddToCollection}
-                    onAddToCustomCollection={() => setAddingPerfume(perfume)}
-                    onClick={() => setSelectedPerfume(perfume)}
-                  />
+                  <SwipeablePerfumeCard
+                    onSwipeRight={() => handleAddToCollection(perfume.id, "owned")}
+                    onSwipeLeft={() =>
+                      setDismissed((prev) => new Set(prev).add(perfume.id))
+                    }
+                  >
+                    <PerfumeCard
+                      perfume={perfume}
+                      reason={buildReason(perfume)}
+                      onAddToCollection={handleAddToCollection}
+                      onAddToCustomCollection={() => setAddingPerfume(perfume)}
+                      onClick={() => openPerfume(perfume)}
+                    />
+                  </SwipeablePerfumeCard>
                 </div>
               ))}
             </div>
