@@ -586,6 +586,7 @@ export type Database = {
           location: string | null
           notification_settings: Json | null
           onboarding_completed: boolean | null
+          onboarding_step: number
           preferred_families: string[] | null
           preferred_language: string | null
           preferred_occasions: string[] | null
@@ -604,6 +605,7 @@ export type Database = {
           location?: string | null
           notification_settings?: Json | null
           onboarding_completed?: boolean | null
+          onboarding_step?: number
           preferred_families?: string[] | null
           preferred_language?: string | null
           preferred_occasions?: string[] | null
@@ -622,6 +624,7 @@ export type Database = {
           location?: string | null
           notification_settings?: Json | null
           onboarding_completed?: boolean | null
+          onboarding_step?: number
           preferred_families?: string[] | null
           preferred_language?: string | null
           preferred_occasions?: string[] | null
