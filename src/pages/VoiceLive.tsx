@@ -198,10 +198,12 @@ const VoiceLive = () => {
     audioRecorderRef.current?.stop();
     wsRef.current?.close();
     audioQueueRef.current?.clear();
-    
+    setAnalyser(null);
+
     setIsConnected(false);
     setIsListening(false);
     setIsSpeaking(false);
+    setIsAssistantThinking(false);
 
     // Save conversation if there are messages
     if (messages.length > 0) {
