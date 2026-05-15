@@ -31,6 +31,7 @@ interface PerfumeCardProps {
   showActions?: boolean;
   onClick?: () => void;
   className?: string;
+  reason?: string;
 }
 
 const PerfumeCard = ({
@@ -43,6 +44,7 @@ const PerfumeCard = ({
   showActions = true,
   onClick,
   className,
+  reason,
 }: PerfumeCardProps) => {
   const brandName = typeof perfume.brand === 'string' ? perfume.brand : perfume.brand?.name || 'Unknown';
   const topNotes = perfume.notes?.filter(n => n.type === 'top') || [];
@@ -114,6 +116,12 @@ const PerfumeCard = ({
         {perfume.description && (
           <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
             {perfume.description}
+          </p>
+        )}
+
+        {reason && (
+          <p className="text-xs italic text-muted-foreground line-clamp-1">
+            ✨ {reason}
           </p>
         )}
 
