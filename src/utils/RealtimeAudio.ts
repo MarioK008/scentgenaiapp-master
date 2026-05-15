@@ -3,6 +3,7 @@ export class AudioRecorder {
   private audioContext: AudioContext | null = null;
   private processor: ScriptProcessorNode | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
+  public analyser: AnalyserNode | null = null;
 
   constructor(private onAudioData: (audioData: Float32Array) => void) {}
 
