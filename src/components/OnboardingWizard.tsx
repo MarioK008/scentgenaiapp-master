@@ -80,13 +80,40 @@ export const OnboardingWizard = ({
   onComplete,
   onSkip,
   saving,
+  initialStep = 0,
+  onStepChange,
+  onStartOver,
 }: OnboardingWizardProps) => {
-  const [step, setStep] = useState(0);
+  const totalSteps = 5;
+  const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), totalSteps - 1));
   const [preferences, setPreferences] = useState<OnboardingPreferences>({
     preferred_families: [],
     preferred_occasions: [],
     preferred_seasons: [],
   });
+
+  // Sync to a new initialStep when the wizard re-opens
+  useEffect(() => {
+    if (open) {
+      setStep(Math.min(Math.max(initialStep, 0), totalSteps - 1));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const goToStep = (next: number) => {
+    setStep(next);
+    onStepChange?.(next);
+  };
+
+  const handleStartOver = () => {
+    setPreferences({
+      preferred_families: [],
+      preferred_occasions: [],
+      preferred_seasons: [],
+    });
+    setStep(0);
+    onStartOver?.();
+  };
 
   const toggleSelection = (
     key: keyof OnboardingPreferences,
