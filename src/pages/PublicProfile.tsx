@@ -394,9 +394,11 @@ const PublicProfile = () => {
 
               <TabsContent value="wishlist" className="mt-6">
                 {wishlistPerfumes.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No perfumes in wishlist yet
-                  </p>
+                  <EmptyState
+                    variant="wishlist"
+                    title="No wishlist items yet"
+                    description="This wishlist is empty for now."
+                  />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {wishlistPerfumes.map((item) => (
