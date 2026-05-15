@@ -80,11 +80,22 @@ const Dashboard = () => {
     <Layout>
       {/* Onboarding Wizard */}
       <OnboardingWizard
-        open={showOnboarding && !onboardingLoading}
-        onComplete={savePreferences}
+        open={showOnboarding && !onboardingLoading && !revealFamilies}
+        onComplete={handleOnboardingComplete}
         onSkip={skipOnboarding}
         saving={saving}
+        initialStep={savedStep}
+        onStepChange={updateStep}
+        onStartOver={resetStep}
       />
+
+      {/* Scent Profile Reveal */}
+      {revealFamilies && (
+        <ScentProfileReveal
+          families={revealFamilies}
+          onComplete={() => setRevealFamilies(null)}
+        />
+      )}
 
       <AnimatedPage className="space-y-10">
         {/* Welcome Section */}
