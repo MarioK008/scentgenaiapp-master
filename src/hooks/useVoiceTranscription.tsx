@@ -76,8 +76,8 @@ export function useVoiceTranscription() {
               setIsTranscribing(false);
               
               toast({
-                title: "Transcripción completa",
-                description: "Puedes editar el texto antes de enviarlo",
+                title: "Transcription complete",
+                description: "You can edit the text before sending",
               });
               
               resolve(data.text);
@@ -86,7 +86,7 @@ export function useVoiceTranscription() {
               setIsTranscribing(false);
               toast({
                 title: "Error",
-                description: "No se pudo transcribir el audio",
+                description: "Could not transcribe audio",
                 variant: "destructive",
               });
               reject(error);
