@@ -215,6 +215,8 @@ const Recommendations = () => {
           </p>
         </div>
 
+        <RecentlyViewed items={recentlyViewed} onSelect={openPerfumeById} />
+
         <Card className="border-accent/20">
           <CardHeader>
             <CardTitle className="text-2xl">Tell us what you're looking for</CardTitle>
