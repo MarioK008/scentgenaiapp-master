@@ -333,6 +333,7 @@ const VoiceLive = () => {
                     <div className="text-sm leading-relaxed">{currentTranscript}</div>
                   </div>
                 )}
+                {isAssistantThinking && !currentTranscript && <TypingIndicator />}
               </div>
             )}
 
