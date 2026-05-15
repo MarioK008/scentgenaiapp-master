@@ -38,6 +38,28 @@ const Search = () => {
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null);
   const [addingPerfume, setAddingPerfume] = useState<Perfume | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
+
+  const visiblePerfumes = useMemo(
+    () => perfumes.filter((p) => !dismissed.has(p.id)),
+    [perfumes, dismissed]
+  );
+
+  const openPerfume = (perfume: Perfume) => {
+    setSelectedPerfume(perfume);
+    addRecentlyViewed({
+      id: perfume.id,
+      name: perfume.name,
+      image_url: perfume.image_url,
+      brand: typeof perfume.brand === "string" ? perfume.brand : perfume.brand?.name ?? null,
+    });
+  };
+
+  const openPerfumeById = (id: string) => {
+    const p = perfumes.find((x) => x.id === id);
+    if (p) openPerfume(p);
+  };
 
   useEffect(() => {
     if (!loading && !user) {
