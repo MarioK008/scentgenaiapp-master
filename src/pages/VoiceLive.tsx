@@ -31,6 +31,8 @@ const VoiceLive = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState("");
+  const [isAssistantThinking, setIsAssistantThinking] = useState(false);
+  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
