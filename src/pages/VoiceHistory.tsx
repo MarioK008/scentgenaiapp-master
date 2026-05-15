@@ -68,7 +68,7 @@ const VoiceHistory = () => {
           <EmptyState
             variant="conversation"
             actionLabel="Start a conversation"
-            onAction={() => navigate('/voice-assistant')}
+            onAction={() => navigate('/voice-chat')}
           />
         ) : (
           <div className="space-y-4">

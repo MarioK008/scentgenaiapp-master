@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,9 @@ interface OnboardingWizardProps {
   onComplete: (preferences: OnboardingPreferences) => void;
   onSkip: () => void;
   saving?: boolean;
+  initialStep?: number;
+  onStepChange?: (step: number) => void;
+  onStartOver?: () => void;
 }
 
 const FRAGRANCE_FAMILIES = [
@@ -77,13 +80,40 @@ export const OnboardingWizard = ({
   onComplete,
   onSkip,
   saving,
+  initialStep = 0,
+  onStepChange,
+  onStartOver,
 }: OnboardingWizardProps) => {
-  const [step, setStep] = useState(0);
+  const totalSteps = 5;
+  const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), totalSteps - 1));
   const [preferences, setPreferences] = useState<OnboardingPreferences>({
     preferred_families: [],
     preferred_occasions: [],
     preferred_seasons: [],
   });
+
+  // Sync to a new initialStep when the wizard re-opens
+  useEffect(() => {
+    if (open) {
+      setStep(Math.min(Math.max(initialStep, 0), totalSteps - 1));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const goToStep = (next: number) => {
+    setStep(next);
+    onStepChange?.(next);
+  };
+
+  const handleStartOver = () => {
+    setPreferences({
+      preferred_families: [],
+      preferred_occasions: [],
+      preferred_seasons: [],
+    });
+    setStep(0);
+    onStartOver?.();
+  };
 
   const toggleSelection = (
     key: keyof OnboardingPreferences,
@@ -273,8 +303,6 @@ export const OnboardingWizard = ({
     }
   };
 
-  const totalSteps = 5;
-
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent 
@@ -315,7 +343,7 @@ export const OnboardingWizard = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setStep((s) => s - 1)}
+                  onClick={() => goToStep(step - 1)}
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Back
@@ -328,7 +356,7 @@ export const OnboardingWizard = ({
               </Badge>
               {step < totalSteps - 1 ? (
                 <Button
-                  onClick={() => setStep((s) => s + 1)}
+                  onClick={() => goToStep(step + 1)}
                   disabled={!canProceed()}
                   className="bg-accent hover:bg-accent/90"
                 >
@@ -353,8 +381,21 @@ export const OnboardingWizard = ({
               )}
             </div>
           </div>
+
+          {step > 0 && (
+            <div className="text-center pt-3">
+              <button
+                type="button"
+                onClick={handleStartOver}
+                className="text-xs text-muted-foreground hover:text-accent transition-colors underline-offset-4 hover:underline"
+              >
+                Start over
+              </button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+

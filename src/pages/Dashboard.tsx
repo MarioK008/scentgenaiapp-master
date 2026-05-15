@@ -1,13 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCollectionStats } from "@/hooks/useCollectionStats";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { useOnboarding, OnboardingPreferences } from "@/hooks/useOnboarding";
 import { useProfile } from "@/hooks/useProfile";
 import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
 import { FollowRequests } from "@/components/FollowRequests";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { ScentProfileReveal } from "@/components/ScentProfileReveal";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +20,26 @@ const Dashboard = () => {
   const { user, loading } = useAuth();
   const { profile } = useProfile();
   const { stats, loading: statsLoading } = useCollectionStats(user?.id);
-  const { showOnboarding, loading: onboardingLoading, saving, savePreferences, skipOnboarding } = useOnboarding();
+  const {
+    showOnboarding,
+    loading: onboardingLoading,
+    saving,
+    savedStep,
+    savePreferences,
+    skipOnboarding,
+    updateStep,
+    resetStep,
+  } = useOnboarding();
   const navigate = useNavigate();
+  const [revealFamilies, setRevealFamilies] = useState<string[] | null>(null);
+
+  const handleOnboardingComplete = async (prefs: OnboardingPreferences) => {
+    const ok = await savePreferences(prefs);
+    if (ok && prefs.preferred_families.length > 0) {
+      setRevealFamilies(prefs.preferred_families);
+    }
+  };
+
 
   useSEO({ 
     title: 'Dashboard', 
@@ -61,11 +80,22 @@ const Dashboard = () => {
     <Layout>
       {/* Onboarding Wizard */}
       <OnboardingWizard
-        open={showOnboarding && !onboardingLoading}
-        onComplete={savePreferences}
+        open={showOnboarding && !onboardingLoading && !revealFamilies}
+        onComplete={handleOnboardingComplete}
         onSkip={skipOnboarding}
         saving={saving}
+        initialStep={savedStep}
+        onStepChange={updateStep}
+        onStartOver={resetStep}
       />
+
+      {/* Scent Profile Reveal */}
+      {revealFamilies && (
+        <ScentProfileReveal
+          families={revealFamilies}
+          onComplete={() => setRevealFamilies(null)}
+        />
+      )}
 
       <AnimatedPage className="space-y-10">
         {/* Welcome Section */}

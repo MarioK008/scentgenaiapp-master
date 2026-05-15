@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, MapPin, Star, Heart, Sparkles, TrendingUp, UserPlus, UserMinus, Lock } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Profile {
   id: string;
@@ -372,9 +373,11 @@ const PublicProfile = () => {
 
               <TabsContent value="owned" className="mt-6">
                 {ownedPerfumes.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No perfumes in collection yet
-                  </p>
+                  <EmptyState
+                    variant="collection"
+                    title="No perfumes yet"
+                    description="This collection is empty for now."
+                  />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {ownedPerfumes.map((item) => (
@@ -391,9 +394,11 @@ const PublicProfile = () => {
 
               <TabsContent value="wishlist" className="mt-6">
                 {wishlistPerfumes.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No perfumes in wishlist yet
-                  </p>
+                  <EmptyState
+                    variant="wishlist"
+                    title="No wishlist items yet"
+                    description="This wishlist is empty for now."
+                  />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {wishlistPerfumes.map((item) => (

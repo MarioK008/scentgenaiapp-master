@@ -10,17 +10,21 @@ export interface OnboardingPreferences {
   preferred_seasons: string[];
 }
 
+const stepKey = (uid: string) => `scentgenai:onboarding_step:${uid}`;
+
 export const useOnboarding = () => {
   const { user } = useAuth();
   const { checkBadges } = useBadges(user?.id);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savedStep, setSavedStep] = useState(0);
 
   useEffect(() => {
     if (user) {
       checkOnboardingStatus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const checkOnboardingStatus = async () => {
@@ -29,19 +33,54 @@ export const useOnboarding = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("onboarding_completed")
+        .select("onboarding_completed, onboarding_step")
         .eq("id", user.id)
         .single();
 
       if (error) throw error;
 
-      // Show onboarding if not completed
-      setShowOnboarding(data?.onboarding_completed !== true);
+      const completed = data?.onboarding_completed === true;
+      setShowOnboarding(!completed);
+
+      // Resume from saved step (DB first, then localStorage fallback)
+      const dbStep = (data as any)?.onboarding_step ?? 0;
+      let resumeStep = dbStep;
+      try {
+        const local = localStorage.getItem(stepKey(user.id));
+        if (local !== null && Number.isFinite(Number(local))) {
+          resumeStep = Math.max(resumeStep, Number(local));
+        }
+      } catch {
+        // ignore
+      }
+      setSavedStep(resumeStep);
     } catch (error) {
       console.error("Error checking onboarding status:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateStep = async (step: number) => {
+    if (!user) return;
+    setSavedStep(step);
+    try {
+      localStorage.setItem(stepKey(user.id), String(step));
+    } catch {
+      // ignore
+    }
+    try {
+      await supabase
+        .from("profiles")
+        .update({ onboarding_step: step } as any)
+        .eq("id", user.id);
+    } catch (err) {
+      console.warn("Failed to persist onboarding step", err);
+    }
+  };
+
+  const resetStep = async () => {
+    await updateStep(0);
   };
 
   const savePreferences = async (preferences: OnboardingPreferences) => {
@@ -56,12 +95,20 @@ export const useOnboarding = () => {
           preferred_occasions: preferences.preferred_occasions,
           preferred_seasons: preferences.preferred_seasons,
           onboarding_completed: true,
-        })
+          onboarding_step: 0,
+        } as any)
         .eq("id", user.id);
 
       if (error) throw error;
 
+      try {
+        localStorage.removeItem(stepKey(user.id));
+      } catch {
+        // ignore
+      }
+
       setShowOnboarding(false);
+      setSavedStep(0);
       toast.success("Preferences saved! Welcome to ScentGenAI");
       checkBadges();
       return true;
@@ -93,7 +140,10 @@ export const useOnboarding = () => {
     showOnboarding,
     loading,
     saving,
+    savedStep,
     savePreferences,
     skipOnboarding,
+    updateStep,
+    resetStep,
   };
 };
