@@ -113,9 +113,7 @@ export const FollowRequests = () => {
     }
   };
 
-  if (loading) {
-    return null;
-  }
+  if (loading) return <div className="h-24 rounded-xl animate-pulse bg-muted mb-6" />;
 
   if (requests.length === 0) {
     return null;
