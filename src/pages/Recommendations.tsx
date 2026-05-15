@@ -42,12 +42,64 @@ const Recommendations = () => {
   const [selectedPerfume, setSelectedPerfume] = useState<PerfumeData | null>(null);
   const [addingPerfume, setAddingPerfume] = useState<PerfumeData | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [preferredFamilies, setPreferredFamilies] = useState<string[]>([]);
+  const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("preferred_families")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const fams = (data as any)?.preferred_families;
+        if (Array.isArray(fams)) setPreferredFamilies(fams.map((f: string) => f.toLowerCase()));
+      });
+  }, [user]);
+
+  const buildReason = (perfume: PerfumeData): string => {
+    const accordTokens = (perfume.accords ?? []).map((a) => a.name.toLowerCase());
+    const noteTokens = (perfume.notes ?? []).map((n) => n.name.toLowerCase());
+    const haystack = [...accordTokens, ...noteTokens].join(" ");
+    const matches = preferredFamilies.filter((f) => haystack.includes(f)).slice(0, 2);
+    if (matches.length > 0) {
+      const list = matches.length === 2 ? `${matches[0]} and ${matches[1]}` : matches[0];
+      return `Matches your love of ${list} notes`;
+    }
+    if (mood || occasion || season) {
+      const v = mood || occasion || season;
+      return `Picked for your ${v} vibe`;
+    }
+    return "Popular with users who share your taste profile";
+  };
+
+  const visibleRecs = useMemo(
+    () => recommendations.filter((p) => !dismissed.has(p.id)),
+    [recommendations, dismissed]
+  );
+
+  const openPerfume = (perfume: PerfumeData) => {
+    setSelectedPerfume(perfume);
+    addRecentlyViewed({
+      id: perfume.id,
+      name: perfume.name,
+      image_url: perfume.image_url,
+      brand: typeof perfume.brand === "string" ? perfume.brand : perfume.brand?.name ?? null,
+    });
+  };
+
+  const openPerfumeById = (id: string) => {
+    const p = recommendations.find((x) => x.id === id);
+    if (p) openPerfume(p);
+  };
 
   const handleGetRecommendations = async () => {
     if (!mood && !occasion && !season) {
