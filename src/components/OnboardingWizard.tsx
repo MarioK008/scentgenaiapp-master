@@ -20,6 +20,9 @@ interface OnboardingWizardProps {
   onComplete: (preferences: OnboardingPreferences) => void;
   onSkip: () => void;
   saving?: boolean;
+  initialStep?: number;
+  onStepChange?: (step: number) => void;
+  onStartOver?: () => void;
 }
 
 const FRAGRANCE_FAMILIES = [
