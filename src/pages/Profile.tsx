@@ -163,9 +163,12 @@ const Profile = () => {
   return <Layout>
       <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8 animate-fade-in">
         {/* Header */}
-        <div>
-          
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <p className="text-muted-foreground mt-3 text-lg">Manage your account settings and preferences</p>
+          <Button variant="hero" onClick={() => setShareCardOpen(true)}>
+            <Share2 className="h-4 w-4 mr-2" />
+            Share my collection
+          </Button>
         </div>
 
         {/* Personal Information */}
@@ -465,6 +468,14 @@ const Profile = () => {
           setImageToCrop("");
         }
       }} imageUrl={imageToCrop} onCropComplete={handleCropComplete} loading={uploading} />
+
+        <ShareCollectionCard
+          isOpen={shareCardOpen}
+          onClose={() => setShareCardOpen(false)}
+          userId={user.id}
+          username={profile.username || profile.email.split("@")[0]}
+          avatarUrl={profile.avatar_url}
+        />
       </div>
     </Layout>;
 };
