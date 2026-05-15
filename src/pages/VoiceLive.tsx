@@ -291,6 +291,9 @@ const VoiceLive = () => {
                     </div>
                   </div>
 
+                  {/* Live audio waveform */}
+                  <AudioWaveform analyser={analyser} active={isListening} />
+
                   <Button 
                     onClick={endConversation} 
                     variant="destructive" 
