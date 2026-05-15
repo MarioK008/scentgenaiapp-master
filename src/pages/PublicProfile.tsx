@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, MapPin, Star, Heart, Sparkles, TrendingUp, UserPlus, UserMinus, Lock } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Profile {
   id: string;
