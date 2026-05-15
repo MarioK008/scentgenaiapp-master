@@ -36,7 +36,7 @@ const AdminImages = () => {
     queryFn: async () => {
       const { data: all, error: allError } = await supabase
         .from("perfumes")
-        .select("id, image_url", { count: "exact" });
+        .select("id, name, image_url, brand:brands!brand_id(name)", { count: "exact" });
 
       if (allError) throw allError;
 
