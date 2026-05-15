@@ -63,8 +63,9 @@ const VoiceChat = () => {
     }
   };
 
-  const handleSend = async () => {
-    if (!editableText.trim()) {
+  const handleSend = async (overrideText?: string) => {
+    const textToSend = (overrideText ?? editableText).trim();
+    if (!textToSend) {
       toast({
         title: "Error",
         description: "Please type or dictate a message first",
