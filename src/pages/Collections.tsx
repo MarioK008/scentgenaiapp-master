@@ -120,58 +120,8 @@ const Collections = () => {
 
   // Fetch legacy collections (owned/wishlist)
   useEffect(() => {
-    if (!user) return;
-
-    const fetchLegacy = async () => {
-      setLoadingLegacy(true);
-      try {
-        const { data, error } = await supabase
-          .from("user_collections")
-          .select("perfume_id, status")
-          .order("added_at", { ascending: false });
-
-        if (error) throw error;
-
-        const perfumeIds = data?.map(d => d.perfume_id) || [];
-        if (perfumeIds.length === 0) {
-          setLegacyOwned([]);
-          setLegacyWishlist([]);
-          setLoadingLegacy(false);
-          return;
-        }
-
-        const { data: perfumesData } = await supabase
-          .from("perfumes")
-          .select(`
-            id, name, image_url, longevity, sillage, description, year, concentration,
-            brand:brands!brand_id(name),
-            notes:perfume_notes(note:notes(name, type)),
-            seasons:perfume_seasons(season:seasons(name)),
-            accords:perfume_accords(accord:accords(name))
-          `)
-          .in("id", perfumeIds);
-
-        const enriched = (perfumesData || []).map(p => ({
-          ...p,
-          brand: Array.isArray(p.brand) ? p.brand[0] : p.brand,
-          notes: p.notes?.map((n: any) => Array.isArray(n.note) ? n.note[0] : n.note).filter(Boolean) || [],
-          seasons: p.seasons?.map((s: any) => Array.isArray(s.season) ? s.season[0] : s.season).filter(Boolean) || [],
-          accords: p.accords?.map((a: any) => Array.isArray(a.accord) ? a.accord[0] : a.accord).filter(Boolean) || [],
-        }));
-
-        const ownedIds = new Set(data?.filter(d => d.status === "owned").map(d => d.perfume_id));
-        const wishlistIds = new Set(data?.filter(d => d.status === "wishlist").map(d => d.perfume_id));
-
-        setLegacyOwned(enriched.filter(p => ownedIds.has(p.id)));
-        setLegacyWishlist(enriched.filter(p => wishlistIds.has(p.id)));
-      } catch (error) {
-        console.error("Error fetching legacy collections:", error);
-      } finally {
-        setLoadingLegacy(false);
-      }
-    };
-
-    fetchLegacy();
+    if (user) fetchLegacy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Fetch custom collection perfumes
