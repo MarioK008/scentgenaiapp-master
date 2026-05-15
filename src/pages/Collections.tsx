@@ -230,6 +230,27 @@ const Collections = () => {
 
   const emptyVariant = activeView === "owned" ? "collection" : activeView === "wishlist" ? "wishlist" : "collection";
 
+  // Wear logs: track for owned + custom (not wishlist)
+  const wearablePerfumeIds = useMemo(
+    () =>
+      activeView === "wishlist"
+        ? []
+        : currentPerfumes.map((p) => p.id),
+    [currentPerfumes, activeView]
+  );
+  const { stats: wearStats, logWear } = useWearLogs(wearablePerfumeIds);
+
+  const renderWearSlot = (perfume: PerfumeData) => {
+    const s = wearStats[perfume.id] ?? { count: 0, wornToday: false };
+    return (
+      <WearTodayButton
+        count={s.count}
+        wornToday={s.wornToday}
+        onClick={() => logWear(perfume.id)}
+      />
+    );
+  };
+
   return (
     <Layout>
       <AnimatedPage className="flex flex-col lg:flex-row gap-8">
