@@ -25,39 +25,19 @@ export function useCollectionStats(userId: string | undefined) {
 
     const fetchStats = async () => {
       try {
-        // Fetch owned perfumes count
-        const { count: ownedCount } = await supabase
+        const { data, error } = await supabase
           .from('user_collections')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .eq('status', 'owned');
+          .select('status, rating')
+          .eq('user_id', userId);
 
-        // Fetch wishlist count
-        const { count: wishlistCount } = await supabase
-          .from('user_collections')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .eq('status', 'wishlist');
+        if (error) throw error;
 
-        // Fetch reviews count (items with a rating)
-        const { count: reviewsCount } = await supabase
-          .from('user_collections')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .not('rating', 'is', null);
-
-        // Fetch favorites count (items rated 5 stars)
-        const { count: favoritesCount } = await supabase
-          .from('user_collections')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .eq('rating', 5);
-
+        const rows = data || [];
         setStats({
-          ownedCount: ownedCount || 0,
-          wishlistCount: wishlistCount || 0,
-          reviewsCount: reviewsCount || 0,
-          favoritesCount: favoritesCount || 0,
+          ownedCount: rows.filter(r => r.status === 'owned').length,
+          wishlistCount: rows.filter(r => r.status === 'wishlist').length,
+          reviewsCount: rows.filter(r => r.rating !== null).length,
+          favoritesCount: rows.filter(r => r.rating === 5).length,
         });
       } catch (error) {
         console.error('Error fetching collection stats:', error);

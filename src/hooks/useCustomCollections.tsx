@@ -34,29 +34,18 @@ export const useCustomCollections = () => {
     if (!user) return;
 
     try {
-      // Fetch collections with item counts
       const { data: collectionsData, error } = await supabase
         .from("custom_collections")
-        .select("*")
+        .select("*, item_count:collection_items(count)")
         .eq("user_id", user.id)
         .order("is_default", { ascending: false })
         .order("created_at", { ascending: true });
 
       if (error) throw error;
 
-      // Fetch item counts for each collection
-      const { data: countData } = await supabase
-        .from("collection_items")
-        .select("collection_id");
-
-      const countMap = new Map<string, number>();
-      countData?.forEach(item => {
-        countMap.set(item.collection_id, (countMap.get(item.collection_id) || 0) + 1);
-      });
-
-      const enrichedCollections = (collectionsData || []).map(c => ({
+      const enrichedCollections = (collectionsData || []).map((c: any) => ({
         ...c,
-        item_count: countMap.get(c.id) || 0
+        item_count: c.item_count?.[0]?.count ?? 0,
       }));
 
       setCollections(enrichedCollections);

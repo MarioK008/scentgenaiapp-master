@@ -109,6 +109,11 @@ const Feed = () => {
 
       // Get perfumes with relations
       const perfumeIds = collections?.map(c => c.perfume_id) || [];
+      if (perfumeIds.length === 0) {
+        setFeedItems([]);
+        setLoadingFeed(false);
+        return;
+      }
       const { data: perfumesData } = await supabase
         .from("perfumes")
         .select(`
