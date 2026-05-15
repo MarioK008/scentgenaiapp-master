@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { usePasswordReset } from "@/hooks/usePasswordReset";
+import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 
 const calculatePasswordStrength = (password: string): number => {
@@ -32,6 +33,7 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const { updatePassword, isLoading } = usePasswordReset();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const passwordStrength = calculatePasswordStrength(password);
@@ -41,10 +43,12 @@ const ResetPassword = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
+      toast({ title: 'Error', description: 'Passwords do not match', variant: 'destructive' });
       return;
     }
 
     if (password.length < 8) {
+      toast({ title: 'Error', description: 'Password must be at least 8 characters', variant: 'destructive' });
       return;
     }
 

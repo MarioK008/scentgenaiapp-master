@@ -172,7 +172,7 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Stats - Premium Design */}
-        <Card className="border-primary/20 overflow-hidden">
+        <Card className="relative border-primary/20 overflow-hidden">
           <div className="absolute inset-0 gradient-accent opacity-30" />
           <CardHeader className="relative">
             <div className="flex items-center justify-between">

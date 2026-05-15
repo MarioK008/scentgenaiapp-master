@@ -92,6 +92,11 @@ const Profile = () => {
     URL.revokeObjectURL(imageToCrop);
     setImageToCrop("");
   };
+  useEffect(() => {
+    if (!authLoading && !profileLoading && (!user || !profile)) {
+      navigate('/auth');
+    }
+  }, [user, profile, authLoading, profileLoading, navigate]);
   if (authLoading || profileLoading) {
     return <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -100,7 +105,6 @@ const Profile = () => {
       </Layout>;
   }
   if (!user || !profile) {
-    navigate("/auth");
     return null;
   }
   const handleSave = async () => {
