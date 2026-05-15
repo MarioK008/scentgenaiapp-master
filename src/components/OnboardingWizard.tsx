@@ -303,8 +303,6 @@ export const OnboardingWizard = ({
     }
   };
 
-  const totalSteps = 5;
-
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent 
@@ -345,7 +343,7 @@ export const OnboardingWizard = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setStep((s) => s - 1)}
+                  onClick={() => goToStep(step - 1)}
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Back
@@ -358,7 +356,7 @@ export const OnboardingWizard = ({
               </Badge>
               {step < totalSteps - 1 ? (
                 <Button
-                  onClick={() => setStep((s) => s + 1)}
+                  onClick={() => goToStep(step + 1)}
                   disabled={!canProceed()}
                   className="bg-accent hover:bg-accent/90"
                 >
@@ -383,8 +381,21 @@ export const OnboardingWizard = ({
               )}
             </div>
           </div>
+
+          {step > 0 && (
+            <div className="text-center pt-3">
+              <button
+                type="button"
+                onClick={handleStartOver}
+                className="text-xs text-muted-foreground hover:text-accent transition-colors underline-offset-4 hover:underline"
+              >
+                Start over
+              </button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+
