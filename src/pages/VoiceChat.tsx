@@ -203,7 +203,18 @@ const VoiceChat = () => {
                     <div className="text-sm leading-relaxed">{msg.content}</div>
                   </div>
                 ))}
+                {isSending && <TypingIndicator />}
               </div>
+            )}
+
+            {messages.length === 0 && (
+              <ConversationStarters
+                disabled={isSending || isRecording}
+                onSelect={(prompt) => {
+                  setEditableText(prompt);
+                  handleSend(prompt);
+                }}
+              />
             )}
 
             <div className="space-y-4">
