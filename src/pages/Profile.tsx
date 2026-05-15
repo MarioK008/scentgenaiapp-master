@@ -139,14 +139,19 @@ const Profile = () => {
     toast.success(isPrivate ? "Profile is now private" : "Profile is now public");
   };
   const handleDeleteAccount = async () => {
+    if (!user) return;
     try {
-      // Note: User deletion should be handled by a backend endpoint
-      // For now, we just sign out the user
-      toast.info("Account deletion requires backend implementation");
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        body: { userId: user.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("Account deleted");
       await signOut();
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Error deleting account");
+      toast.error(error instanceof Error ? error.message : "Error deleting account");
     }
   };
   return <Layout>
