@@ -89,6 +89,7 @@ const VoiceLive = () => {
 
           if (data.type === 'response.audio.delta' && data.delta) {
             setIsSpeaking(true);
+            setIsAssistantThinking(false);
             const binaryString = atob(data.delta);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -106,6 +107,7 @@ const VoiceLive = () => {
             setMessages(prev => [...prev, userMessage]);
             setCurrentTranscript("");
           } else if (data.type === 'response.audio_transcript.delta') {
+            setIsAssistantThinking(false);
             setCurrentTranscript(prev => prev + (data.delta || ''));
           } else if (data.type === 'response.audio_transcript.done') {
             const assistantMessage: Message = {
@@ -126,9 +128,11 @@ const VoiceLive = () => {
               }
               setIsSpeaking(false);
             }
+            setIsAssistantThinking(false);
             setIsListening(true);
           } else if (data.type === 'input_audio_buffer.speech_stopped') {
             setIsListening(false);
+            setIsAssistantThinking(true);
           } else if (data.type === 'error') {
             console.error('Server error:', data.message);
             toast({
