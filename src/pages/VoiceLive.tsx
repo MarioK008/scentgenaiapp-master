@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AudioRecorder, encodeAudioForAPI, AudioQueue } from "@/utils/RealtimeAudio";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 import { ArrowLeft, Mic, MicOff, Volume2 } from "lucide-react";
+import TypingIndicator from "@/components/TypingIndicator";
+import AudioWaveform from "@/components/AudioWaveform";
 
 interface Message {
   role: 'user' | 'assistant';
