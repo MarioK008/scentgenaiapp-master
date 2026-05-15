@@ -28,14 +28,14 @@ export function useVoiceTranscription() {
       setIsRecording(true);
       
       toast({
-        title: "Grabando",
-        description: "Habla ahora...",
+        title: "Recording",
+        description: "Speak now...",
       });
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
         title: "Error",
-        description: "No se pudo acceder al micrófono",
+        description: "Could not access microphone",
         variant: "destructive",
       });
     }
