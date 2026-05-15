@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
@@ -7,6 +7,8 @@ import PerfumeCard, { PerfumeData } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import SwipeablePerfumeCard from "@/components/SwipeablePerfumeCard";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { EmptyState } from "@/components/EmptyState";
 import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkeleton";
@@ -19,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useBadges } from "@/hooks/useBadges";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
 const Recommendations = () => {
   const { user, loading } = useAuth();
