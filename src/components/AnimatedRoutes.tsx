@@ -1,27 +1,18 @@
 import { ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Routes, useLocation } from "react-router-dom";
+import { Routes } from "react-router-dom";
 
 interface AnimatedRoutesProps {
   children: ReactNode;
 }
 
+/**
+ * Renders the app's <Routes>. Per-page fade-in is handled by <AnimatedPage>
+ * inside each route, so this wrapper intentionally avoids AnimatePresence +
+ * mode="wait" which could leave a route blank if its exit animation collided
+ * with auth-driven redirects (the symptom seen on the voice pages).
+ */
 export const AnimatedRoutes = ({ children }: AnimatedRoutesProps) => {
-  const location = useLocation();
-
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
-      >
-        <Routes location={location}>{children}</Routes>
-      </motion.div>
-    </AnimatePresence>
-  );
+  return <Routes>{children}</Routes>;
 };
 
 export default AnimatedRoutes;
