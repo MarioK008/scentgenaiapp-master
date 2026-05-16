@@ -81,7 +81,7 @@ const App = () => (
           
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
+        </AnimatedRoutes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
