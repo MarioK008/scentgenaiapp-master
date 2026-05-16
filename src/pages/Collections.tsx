@@ -198,6 +198,31 @@ const Collections = () => {
     sonnerToast.success("Profile link copied to clipboard!");
   };
 
+  const currentPerfumes = activeView === "owned"
+    ? legacyOwned
+    : activeView === "wishlist"
+    ? legacyWishlist
+    : collectionPerfumes;
+
+  const currentTitle = activeView === "owned"
+    ? "My Favorites"
+    : activeView === "wishlist"
+    ? "Wishlist"
+    : selectedCollection?.name || "Collection";
+
+  const emptyVariant = activeView === "owned" ? "collection" : activeView === "wishlist" ? "wishlist" : "collection";
+
+  // Wear logs: track for owned + custom (not wishlist).
+  // IMPORTANT: these hooks must run on every render — do NOT place them after an early return.
+  const wearablePerfumeIds = useMemo(
+    () =>
+      activeView === "wishlist"
+        ? []
+        : currentPerfumes.map((p) => p.id),
+    [currentPerfumes, activeView]
+  );
+  const { stats: wearStats, logWear } = useWearLogs(wearablePerfumeIds);
+
   if (authLoading || collectionsLoading || loadingLegacy) {
     return (
       <Layout>
@@ -215,30 +240,6 @@ const Collections = () => {
       </Layout>
     );
   }
-
-  const currentPerfumes = activeView === "owned" 
-    ? legacyOwned 
-    : activeView === "wishlist" 
-    ? legacyWishlist 
-    : collectionPerfumes;
-
-  const currentTitle = activeView === "owned"
-    ? "My Favorites"
-    : activeView === "wishlist"
-    ? "Wishlist"
-    : selectedCollection?.name || "Collection";
-
-  const emptyVariant = activeView === "owned" ? "collection" : activeView === "wishlist" ? "wishlist" : "collection";
-
-  // Wear logs: track for owned + custom (not wishlist)
-  const wearablePerfumeIds = useMemo(
-    () =>
-      activeView === "wishlist"
-        ? []
-        : currentPerfumes.map((p) => p.id),
-    [currentPerfumes, activeView]
-  );
-  const { stats: wearStats, logWear } = useWearLogs(wearablePerfumeIds);
 
   const renderWearSlot = (perfume: PerfumeData) => {
     const s = wearStats[perfume.id] ?? { count: 0, wornToday: false };
