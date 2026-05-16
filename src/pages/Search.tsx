@@ -202,6 +202,7 @@ const Search = () => {
                 >
                   <PerfumeCard
                     perfume={perfume}
+                    status={optimisticStatus.get(perfume.id)}
                     onAddToCollection={(id, status) => {
                       if (status === "owned" || status === "wishlist") {
                         handleAddToLegacyCollection(id, status);
