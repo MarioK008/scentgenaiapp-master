@@ -45,7 +45,7 @@ const App = () => (
       <Sonner />
       <BadgeUnlockOverlay />
       <BrowserRouter>
-        <Routes>
+        <AnimatedRoutes>
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/terms" element={<Terms />} />
