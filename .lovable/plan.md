@@ -1,61 +1,62 @@
-## UX Block 2 — Discovery & Recommendations
+# Fix blank Collections & AI conversational pages
 
-### 1. "Why recommended" line on each card
+## What I found
 
-- Add new optional prop `reason?: string` to `PerfumeCard` (rendered as one-line muted text under the description, e.g. `text-xs text-muted-foreground italic line-clamp-1`).
-- Compute the reason client-side in `Recommendations.tsx` (no backend changes):
-  - Load the user's `preferred_families` from `profiles` once on mount via a small `useUserPreferences` hook (or inline query).
-  - For each recommended perfume, intersect its accords/notes with the user's preferred families:
-    - Match → `"Matches your love of {family1} and {family2} notes"` (max 2 families, 12 words max).
-    - No match but mood/occasion/season selected → `"Picked for your {mood}/{occasion}/{season} vibe"`.
-    - Fallback → `"Popular with users who share your taste profile"`.
-  - Pass `reason` into each `<PerfumeCard>` in the recommendations grid.
+### 1. Collections page — confirmed bug (blank screen)
 
-### 2. Recently Viewed horizontal scroller
+`src/pages/Collections.tsx` violates the React **Rules of Hooks**:
 
-- New hook `useRecentlyViewed(userId)`:
-  - Storage key: `scentgenai:recently_viewed:${userId}`.
-  - `addRecentlyViewed(perfume)` — prepend (dedupe by id), cap at 8, stored as `{id, name, image_url, brand}` snapshot.
-  - `recentlyViewed` array, `clear()` method.
-- New component `RecentlyViewed.tsx`:
-  - Horizontal scroll row (`overflow-x-auto snap-x`), small cards (~120px wide) with image + name + brand.
-  - Click → opens the perfume detail modal (emits `onSelect(id)` upward).
-  - Hidden when list is empty.
-- Hook into:
-  - `Search.tsx` — call `addRecentlyViewed` in the existing `setSelectedPerfume` flow; render `<RecentlyViewed>` at top of page.
-  - `Recommendations.tsx` — same.
-- Logout cleanup: in `useAuth` `signOut`, remove all keys matching `scentgenai:recently_viewed:*` from localStorage.
+- Lines 201–217 conditionally `return` early while `authLoading || collectionsLoading || loadingLegacy` is true.
+- Lines 234 (`useMemo`) and 241 (`useWearLogs`) are hooks that run **after** that early return.
 
-### 3. Mobile swipe gestures on perfume cards
+When loading flips from `true` → `false`, the number of hooks React sees changes between renders. React throws "Rendered more hooks than during the previous render" and the whole route unmounts → **blank page**. This matches your symptom exactly.
 
-- Wrap `<PerfumeCard>` consumption in Search/Recommendations with a new `<SwipeablePerfumeCard>` component (keeps `PerfumeCard` itself untouched for desktop/non-swipe contexts).
-- Behavior (only active when `useIsMobile()` returns true; otherwise renders the card normally):
-  - `onTouchStart` records start X.
-  - `onTouchMove` updates `translateX`. Behind the card, render two absolutely-positioned color layers:
-    - Right side: green (`bg-emerald-500`) with check icon, opacity scaling with swipe distance.
-    - Left side: gray (`bg-muted`) with X icon.
-  - `onTouchEnd`:
-    - If `|deltaX| ≥ 40%` of card width:
-      - Right → animate card off-screen right, call `onAddToCollection(perfume.id, 'owned')`, show green checkmark overlay briefly, then unmount or reset.
-      - Left → fade card opacity to 0 + slide left, call optional `onDismiss(perfume.id)` (locally hide from grid via a dismissed-IDs Set in the parent page).
-    - Otherwise → CSS transition snap back to translateX(0).
-- Use plain CSS transforms + transitions; no new deps.
+### 2. AI conversational pages — needs runtime verification
 
-### Files
+The three pages under `/voice-assistant`, `/voice-chat`, `/voice-live` look structurally correct (hooks all declared above the early returns). The likely failure points are:
 
-**New:**
-- `src/hooks/useRecentlyViewed.tsx`
-- `src/components/RecentlyViewed.tsx`
-- `src/components/SwipeablePerfumeCard.tsx`
+- The realtime WebSocket (`/voice-live`) using `wss://<project>.supabase.co/functions/v1/realtime-perfume-chat`. If `VITE_SUPABASE_PROJECT_ID` is empty and URL parsing fails, the WS errors silently.
+- An unhandled error in `chat-with-assistant` (e.g. missing `OPENAI_API_KEY`, rate limit, or schema mismatch) currently bubbles as a generic `toast` — but if the response shape is unexpected the page can still throw.
+- Possibly the same kind of hook/render error tied to the Layout or AnimatedPage wrapper.
 
-**Edited:**
-- `src/components/PerfumeCard.tsx` — add optional `reason` prop + render line.
-- `src/pages/Search.tsx` — recently viewed + swipeable wrapper + dismissed set + record on open.
-- `src/pages/Recommendations.tsx` — recently viewed + swipeable wrapper + compute `reason` per card + load preferred_families.
-- `src/hooks/useAuth.tsx` — clear `recently_viewed:*` localStorage keys on `signOut`.
+I will reproduce in the live preview after fixing Collections, then patch.
 
-### Notes / non-goals
+---
 
-- Reason text is computed client-side from existing data; the recommendations Edge Function is not modified.
-- Swipe gestures are mobile-only (gated by `useIsMobile`); desktop UX is unchanged.
-- Dismissed perfumes are session-local (not persisted) to keep scope tight.
+## Plan
+
+### Step 1 — Fix Collections hook order (root cause of blank page)
+
+In `src/pages/Collections.tsx`:
+
+- Move `wearablePerfumeIds` (`useMemo`) and `useWearLogs(...)` **above** the `if (authLoading || collectionsLoading || loadingLegacy)` early return.
+- Compute `currentPerfumes` / `currentTitle` / `emptyVariant` after the hooks but before the early return, so the loading state still renders the skeleton.
+- No behavior change — only re-ordering so hook counts stay stable between renders.
+
+### Step 2 — Reproduce AI chat blank page in the browser
+
+- Open `/voice-assistant`, `/voice-chat`, `/voice-live` in the preview.
+- Capture console errors, network failures, and edge-function logs (`chat-with-assistant`, `realtime-perfume-chat`).
+- Identify which of the three actually goes blank and the exact thrown error.
+
+### Step 3 — Patch the AI chat failure based on Step 2
+
+Likely fixes (will be narrowed once reproduced):
+
+- Wrap the relevant page body in a defensive guard (no early return between hooks).
+- Add a graceful error state in `chat-with-assistant` invocation: if `data?.error` or no `data?.text`, show an inline error instead of throwing.
+- For `/voice-live`, validate `projectId` before opening the WebSocket and show a clear error if missing; also handle `error` frames so a server-side failure doesn't leave the UI stuck.
+
+### Step 4 — Verify
+
+- Reload `/collections` while authenticated: skeleton → grid renders without console errors.
+- Switch between Favorites / Wishlist / Custom tabs: no remounts crash.
+- Open all three voice pages: each renders its UI; trigger a short send/record and confirm no blanking.
+
+## Technical notes
+
+- Only frontend changes. No DB migrations, no edge-function logic changes (unless Step 2 surfaces one).
+- Keeps existing styles, copy, and routes intact.
+- Files in scope:
+  - `src/pages/Collections.tsx` (definite edit)
+  - `src/pages/VoiceChat.tsx` / `src/pages/VoiceLive.tsx` / `src/pages/VoiceAssistant.tsx` (conditional, after repro)
