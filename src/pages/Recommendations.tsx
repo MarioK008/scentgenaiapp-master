@@ -341,6 +341,7 @@ const Recommendations = () => {
                   >
                     <PerfumeCard
                       perfume={perfume}
+                      status={optimisticStatus.get(perfume.id)}
                       reason={buildReason(perfume)}
                       onAddToCollection={handleAddToCollection}
                       onAddToCustomCollection={() => setAddingPerfume(perfume)}
