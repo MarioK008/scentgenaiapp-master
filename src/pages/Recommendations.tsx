@@ -43,6 +43,7 @@ const Recommendations = () => {
   const [addingPerfume, setAddingPerfume] = useState<PerfumeData | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [optimisticStatus, setOptimisticStatus] = useState<Map<string, "owned" | "wishlist">>(new Map());
   const [preferredFamilies, setPreferredFamilies] = useState<string[]>([]);
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
 
