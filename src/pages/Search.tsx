@@ -39,6 +39,7 @@ const Search = () => {
   const [addingPerfume, setAddingPerfume] = useState<Perfume | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [optimisticStatus, setOptimisticStatus] = useState<Map<string, "owned" | "wishlist">>(new Map());
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
 
   const visiblePerfumes = useMemo(
