@@ -39,6 +39,7 @@ const Search = () => {
   const [addingPerfume, setAddingPerfume] = useState<Perfume | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [optimisticStatus, setOptimisticStatus] = useState<Map<string, "owned" | "wishlist">>(new Map());
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
 
   const visiblePerfumes = useMemo(
@@ -70,6 +71,10 @@ const Search = () => {
   const handleAddToLegacyCollection = async (perfumeId: string, status: "owned" | "wishlist") => {
     if (!user) return;
 
+    // Optimistic update
+    const prev = optimisticStatus.get(perfumeId);
+    setOptimisticStatus((m) => new Map(m).set(perfumeId, status));
+
     const { error } = await supabase
       .from("user_collections")
       .insert({
@@ -79,6 +84,13 @@ const Search = () => {
       });
 
     if (error) {
+      // Revert
+      setOptimisticStatus((m) => {
+        const n = new Map(m);
+        if (prev) n.set(perfumeId, prev);
+        else n.delete(perfumeId);
+        return n;
+      });
       if (error.code === "23505") {
         toast({
           title: "Already added",
@@ -190,6 +202,7 @@ const Search = () => {
                 >
                   <PerfumeCard
                     perfume={perfume}
+                    status={optimisticStatus.get(perfume.id)}
                     onAddToCollection={(id, status) => {
                       if (status === "owned" || status === "wishlist") {
                         handleAddToLegacyCollection(id, status);

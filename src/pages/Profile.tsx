@@ -101,8 +101,14 @@ const Profile = () => {
   }, [user, profile, authLoading, profileLoading, navigate]);
   if (authLoading || profileLoading) {
     return <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="space-y-6 animate-pulse max-w-2xl">
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 rounded-full bg-muted" />
+            <div className="space-y-3 flex-1">
+              <div className="h-5 w-40 bg-muted rounded" />
+              <div className="h-4 w-56 bg-muted rounded" />
+            </div>
+          </div>
         </div>
       </Layout>;
   }

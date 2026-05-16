@@ -43,6 +43,7 @@ const Recommendations = () => {
   const [addingPerfume, setAddingPerfume] = useState<PerfumeData | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [optimisticStatus, setOptimisticStatus] = useState<Map<string, "owned" | "wishlist">>(new Map());
   const [preferredFamilies, setPreferredFamilies] = useState<string[]>([]);
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
 
@@ -151,6 +152,9 @@ const Recommendations = () => {
   const handleAddToCollection = async (perfumeId: string, status: "owned" | "wishlist") => {
     if (!user) return;
 
+    const prev = optimisticStatus.get(perfumeId);
+    setOptimisticStatus((m) => new Map(m).set(perfumeId, status));
+
     const { error } = await supabase
       .from("user_collections")
       .insert({
@@ -160,6 +164,12 @@ const Recommendations = () => {
       });
 
     if (error) {
+      setOptimisticStatus((m) => {
+        const n = new Map(m);
+        if (prev) n.set(perfumeId, prev);
+        else n.delete(perfumeId);
+        return n;
+      });
       if (error.code === "23505") {
         toast({
           title: "Already added",
@@ -331,6 +341,7 @@ const Recommendations = () => {
                   >
                     <PerfumeCard
                       perfume={perfume}
+                      status={optimisticStatus.get(perfume.id)}
                       reason={buildReason(perfume)}
                       onAddToCollection={handleAddToCollection}
                       onAddToCustomCollection={() => setAddingPerfume(perfume)}
