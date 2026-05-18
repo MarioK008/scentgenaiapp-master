@@ -434,10 +434,15 @@ const Collections = () => {
               {currentPerfumes.map((perfume, index) => (
                 <div
                   key={perfume.id}
-                  className="animate-fade-in opacity-0"
-                  style={{ 
+                  data-perfume-id={perfume.id}
+                  className={`animate-fade-in opacity-0 rounded-[22px] transition-shadow ${
+                    highlightFirstId === perfume.id
+                      ? "ring-4 ring-accent shadow-glow animate-pulse"
+                      : ""
+                  }`}
+                  style={{
                     animationDelay: `${Math.min(index * 50, 300)}ms`,
-                    animationFillMode: "forwards"
+                    animationFillMode: "forwards",
                   }}
                 >
                   <PerfumeCard
