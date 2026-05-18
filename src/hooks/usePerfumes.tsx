@@ -42,7 +42,9 @@ export interface Perfume {
   accords: Accord[];
 }
 
-export const usePerfumes = (searchQuery?: string) => {
+export type GenderFilter = "all" | "female" | "male" | "unisex";
+
+export const usePerfumes = (searchQuery?: string, gender: GenderFilter = "all") => {
   const [perfumes, setPerfumes] = useState<Perfume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
