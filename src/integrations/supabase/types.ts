@@ -495,11 +495,13 @@ export type Database = {
       }
       perfumes: {
         Row: {
+          barcode: string | null
           brand_id: string | null
           concentration: string | null
           country: string | null
           created_at: string | null
           description: string | null
+          fragrantica_id: string | null
           fragrantica_url: string | null
           gender: string | null
           id: string
@@ -517,11 +519,13 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          barcode?: string | null
           brand_id?: string | null
           concentration?: string | null
           country?: string | null
           created_at?: string | null
           description?: string | null
+          fragrantica_id?: string | null
           fragrantica_url?: string | null
           gender?: string | null
           id?: string
@@ -539,11 +543,13 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          barcode?: string | null
           brand_id?: string | null
           concentration?: string | null
           country?: string | null
           created_at?: string | null
           description?: string | null
+          fragrantica_id?: string | null
           fragrantica_url?: string | null
           gender?: string | null
           id?: string
@@ -690,6 +696,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      scan_submissions: {
+        Row: {
+          confirmed: boolean | null
+          created_at: string | null
+          id: string
+          perfume_id: string | null
+          raw_input: string | null
+          scan_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          confirmed?: boolean | null
+          created_at?: string | null
+          id?: string
+          perfume_id?: string | null
+          raw_input?: string | null
+          scan_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          confirmed?: boolean | null
+          created_at?: string | null
+          id?: string
+          perfume_id?: string | null
+          raw_input?: string | null
+          scan_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_submissions_perfume_id_fkey"
+            columns: ["perfume_id"]
+            isOneToOne: false
+            referencedRelation: "perfumes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       seasons: {
         Row: {

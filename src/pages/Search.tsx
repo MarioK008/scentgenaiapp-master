@@ -16,7 +16,7 @@ import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
-import { usePerfumes, Perfume } from "@/hooks/usePerfumes";
+import { usePerfumes, Perfume, GenderFilter } from "@/hooks/usePerfumes";
 import { useBadges } from "@/hooks/useBadges";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,8 @@ const Search = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery);
+  const [gender, setGender] = useState<GenderFilter>("all");
+  const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery, gender);
   const { collections, createCollection, addToCollection } = useCustomCollections();
   const { checkBadges } = useBadges(user?.id);
 
@@ -167,6 +168,23 @@ const Search = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-12 h-14 text-lg rounded-2xl glass"
           />
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {(["all", "female", "male", "unisex"] as GenderFilter[]).map((g) => (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setGender(g)}
+              className={`px-4 py-2 rounded-full text-sm capitalize transition-smooth border ${
+                gender === g
+                  ? "bg-primary text-primary-foreground border-primary shadow-elegant"
+                  : "bg-background/40 border-border/50 hover:border-primary/40"
+              }`}
+            >
+              {g}
+            </button>
+          ))}
         </div>
 
         <RecentlyViewed items={recentlyViewed} onSelect={openPerfumeById} />

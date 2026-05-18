@@ -42,12 +42,14 @@ export interface Perfume {
   accords: Accord[];
 }
 
-export const usePerfumes = (searchQuery?: string) => {
+export type GenderFilter = "all" | "female" | "male" | "unisex";
+
+export const usePerfumes = (searchQuery?: string, gender: GenderFilter = "all") => {
   const [perfumes, setPerfumes] = useState<Perfume[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPerfumes = async (query?: string) => {
+  const fetchPerfumes = async (query?: string, genderArg: GenderFilter = "all") => {
     setLoading(true);
     setError(null);
 
@@ -86,6 +88,11 @@ export const usePerfumes = (searchQuery?: string) => {
         perfumesQuery = perfumesQuery.or(orFilters.join(","));
       } else {
         perfumesQuery = perfumesQuery.limit(50);
+      }
+
+      // Gender filter (server-side). DB values may be capitalized; match case-insensitively.
+      if (genderArg && genderArg !== "all") {
+        perfumesQuery = perfumesQuery.ilike("gender", genderArg);
       }
 
       const { data: perfumesData, error: perfumesError } = await perfumesQuery;
@@ -144,14 +151,12 @@ export const usePerfumes = (searchQuery?: string) => {
   useEffect(() => {
     const trimmed = (searchQuery ?? "").trim();
 
-    // Debounce all refetches by 300ms
     const handle = setTimeout(() => {
-      // If user typed only 1 character, treat as no search (show initial set)
-      fetchPerfumes(trimmed.length >= 2 ? trimmed : "");
+      fetchPerfumes(trimmed.length >= 2 ? trimmed : "", gender);
     }, 300);
 
     return () => clearTimeout(handle);
-  }, [searchQuery]);
+  }, [searchQuery, gender]);
 
-  return { perfumes, loading, error, refetch: () => fetchPerfumes(searchQuery) };
+  return { perfumes, loading, error, refetch: () => fetchPerfumes(searchQuery, gender) };
 };
