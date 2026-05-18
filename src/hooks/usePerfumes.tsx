@@ -151,14 +151,12 @@ export const usePerfumes = (searchQuery?: string, gender: GenderFilter = "all") 
   useEffect(() => {
     const trimmed = (searchQuery ?? "").trim();
 
-    // Debounce all refetches by 300ms
     const handle = setTimeout(() => {
-      // If user typed only 1 character, treat as no search (show initial set)
-      fetchPerfumes(trimmed.length >= 2 ? trimmed : "");
+      fetchPerfumes(trimmed.length >= 2 ? trimmed : "", gender);
     }, 300);
 
     return () => clearTimeout(handle);
-  }, [searchQuery]);
+  }, [searchQuery, gender]);
 
-  return { perfumes, loading, error, refetch: () => fetchPerfumes(searchQuery) };
+  return { perfumes, loading, error, refetch: () => fetchPerfumes(searchQuery, gender) };
 };
