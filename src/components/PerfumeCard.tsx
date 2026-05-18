@@ -1,8 +1,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Star, Clock, Wind, FolderPlus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Heart, Star, Clock, Wind, FolderPlus, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+export interface CollectionOption {
+  id: string;
+  label: string;
+  icon?: string;
+}
 
 export interface PerfumeData {
   id: string;
