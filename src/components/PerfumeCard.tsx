@@ -44,6 +44,10 @@ interface PerfumeCardProps {
   onClick?: () => void;
   className?: string;
   reason?: string;
+  // Inline-dropdown variant: when provided, replaces the legacy 3-button action row
+  collectionOptions?: CollectionOption[];
+  memberOfIds?: Set<string>;
+  onSelectCollectionOption?: (optionId: string) => void | Promise<void>;
 }
 
 const PerfumeCard = ({
