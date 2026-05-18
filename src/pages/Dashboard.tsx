@@ -15,7 +15,6 @@ import { AnimatedPage } from "@/components/AnimatedPage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, Search, TrendingUp, Share2, User, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
 import { copyLink } from "@/lib/share";
 
 const Dashboard = () => {
@@ -63,12 +62,7 @@ const Dashboard = () => {
   }
 
   const handleShareProfile = () => {
-    if (!user?.id) {
-      toast.error("Sign in to share your profile");
-      return;
-    }
-    const profileUrl = `${window.location.origin}/user/${user.id}`;
-    copyLink(profileUrl, "Link copied!");
+    copyLink(window.location.href, "Link copied to clipboard ✓");
   };
 
   // Get greeting based on time of day

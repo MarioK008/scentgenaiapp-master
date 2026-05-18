@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Share2, ExternalLink, Heart, Star } from "lucide-react";
-import { toast as sonnerToast } from "sonner";
+
 import { copyLink } from "@/lib/share";
 
 const Collections = () => {
@@ -221,12 +221,7 @@ const Collections = () => {
   };
 
   const handleShareProfile = () => {
-    if (!user?.id) {
-      sonnerToast.error("Sign in to share your profile");
-      return;
-    }
-    const profileUrl = `${window.location.origin}/user/${user.id}`;
-    copyLink(profileUrl, "Link copied!");
+    copyLink(window.location.href, "Link copied to clipboard ✓");
   };
 
   const currentPerfumes = activeView === "owned"
@@ -314,7 +309,7 @@ const Collections = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">My Favorites</p>
-                  <p className="text-xs text-muted-foreground">{legacyOwned.length} perfumes</p>
+                  <p className="text-xs text-muted-foreground">{legacyOwned.length} {legacyOwned.length === 1 ? "perfume" : "perfumes"}</p>
                 </div>
               </button>
 
@@ -334,7 +329,7 @@ const Collections = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">Wishlist</p>
-                  <p className="text-xs text-muted-foreground">{legacyWishlist.length} perfumes</p>
+                  <p className="text-xs text-muted-foreground">{legacyWishlist.length} {legacyWishlist.length === 1 ? "perfume" : "perfumes"}</p>
                 </div>
               </button>
 
@@ -365,7 +360,7 @@ const Collections = () => {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{collection.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {collection.item_count || 0} perfumes
+                        {collection.item_count || 0} {(collection.item_count || 0) === 1 ? "perfume" : "perfumes"}
                       </p>
                     </div>
                   </button>

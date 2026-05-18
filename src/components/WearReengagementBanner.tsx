@@ -57,10 +57,10 @@ export const WearReengagementBanner = ({ userId }: WearReengagementBannerProps) 
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm sm:text-base font-medium">
-            What are you wearing today?
+            Revisit your collection
           </p>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Log your current scent to keep your story going.
+            Browse your favorites and rediscover a scent.
           </p>
         </div>
       </div>
@@ -68,12 +68,10 @@ export const WearReengagementBanner = ({ userId }: WearReengagementBannerProps) 
         <Button
           variant="hero"
           size="sm"
-          onClick={() =>
-            navigate("/collections", { state: { highlightFirst: true } })
-          }
-          className="rounded-full"
+          onClick={() => navigate("/collections")}
+          className="rounded-full uppercase tracking-wide"
         >
-          Go to collection →
+          Go to my collection →
         </Button>
         <Button
           variant="ghost"
