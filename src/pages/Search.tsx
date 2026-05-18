@@ -124,6 +124,110 @@ const Search = () => {
     return ok;
   };
 
+  // Fetch which collections each visible perfume is already a member of
+  useEffect(() => {
+    if (!user || perfumes.length === 0) {
+      setMemberships(new Map());
+      return;
+    }
+    const ids = perfumes.map((p) => p.id);
+    let cancelled = false;
+    (async () => {
+      const [legacyRes, customRes] = await Promise.all([
+        supabase
+          .from("user_collections")
+          .select("perfume_id, status")
+          .eq("user_id", user.id)
+          .in("perfume_id", ids),
+        supabase
+          .from("collection_items")
+          .select("perfume_id, collection_id")
+          .in("perfume_id", ids),
+      ]);
+      if (cancelled) return;
+      const m = new Map<string, Set<string>>();
+      const ensure = (pid: string) => {
+        let s = m.get(pid);
+        if (!s) {
+          s = new Set();
+          m.set(pid, s);
+        }
+        return s;
+      };
+      legacyRes.data?.forEach((r: any) => {
+        ensure(r.perfume_id).add(r.status === "owned" ? "__owned" : "__wishlist");
+      });
+      customRes.data?.forEach((r: any) => {
+        ensure(r.perfume_id).add(r.collection_id);
+      });
+      setMemberships(m);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [perfumes, user]);
+
+  const collectionOptions: CollectionOption[] = useMemo(
+    () => [
+      { id: "__owned", label: "My Favorites", icon: "❤️" },
+      { id: "__wishlist", label: "Wishlist", icon: "⭐" },
+      ...collections.map((c) => ({ id: c.id, label: c.name, icon: c.icon })),
+    ],
+    [collections]
+  );
+
+  const handleSelectCollectionOption = async (perfume: Perfume, optionId: string) => {
+    if (!user) return;
+    let ok = false;
+    let label = "";
+
+    if (optionId === "__owned" || optionId === "__wishlist") {
+      const status: "owned" | "wishlist" = optionId === "__owned" ? "owned" : "wishlist";
+      label = status === "owned" ? "My Favorites" : "Wishlist";
+      const { error } = await supabase
+        .from("user_collections")
+        .insert({ user_id: user.id, perfume_id: perfume.id, status });
+      if (!error) {
+        ok = true;
+        setOptimisticStatus((m) => new Map(m).set(perfume.id, status));
+      } else if (error.code === "23505") {
+        sonnerToast.error(`Already in ${label}`);
+        return;
+      } else {
+        sonnerToast.error("Failed to add to collection");
+        return;
+      }
+    } else {
+      const collection = collections.find((c) => c.id === optionId);
+      label = collection?.name ?? "collection";
+      const { error } = await supabase
+        .from("collection_items")
+        .insert({ collection_id: optionId, perfume_id: perfume.id });
+      if (!error) {
+        ok = true;
+        refetchCollections();
+      } else if (error.code === "23505") {
+        sonnerToast.error(`Already in ${label}`);
+        return;
+      } else {
+        sonnerToast.error("Failed to add to collection");
+        return;
+      }
+    }
+
+    if (ok) {
+      setMemberships((prev) => {
+        const m = new Map(prev);
+        const s = new Set(m.get(perfume.id) ?? []);
+        s.add(optionId);
+        m.set(perfume.id, s);
+        return m;
+      });
+      sonnerToast.success(`Added to ${label} ✓`);
+      checkBadges();
+    }
+  };
+
   if (loading || loadingPerfumes) {
     return (
       <Layout>
