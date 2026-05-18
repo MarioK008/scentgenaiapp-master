@@ -26,7 +26,8 @@ const Search = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery);
+  const [gender, setGender] = useState<GenderFilter>("all");
+  const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery, gender);
   const { collections, createCollection, addToCollection } = useCustomCollections();
   const { checkBadges } = useBadges(user?.id);
 
