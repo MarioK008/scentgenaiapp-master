@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Share2, ExternalLink, Heart, Star } from "lucide-react";
-import { toast as sonnerToast } from "sonner";
+
 import { copyLink } from "@/lib/share";
 
 const Collections = () => {

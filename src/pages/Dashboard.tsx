@@ -15,7 +15,6 @@ import { AnimatedPage } from "@/components/AnimatedPage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, Search, TrendingUp, Share2, User, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
 import { copyLink } from "@/lib/share";
 
 const Dashboard = () => {
