@@ -391,16 +391,17 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Badges */}
-        <BadgeDisplay badges={allBadges.map(badge => {
-        const earnedBadge = badges.find(b => b.badges.id === badge.id);
-        return {
-          ...badge,
-          earned: badge.earned,
-          earned_at: earnedBadge?.earned_at
-        };
-      })} title="Achievements" description="Track your progress and earn badges" showProgress={true} />
-
+        {/* Badges — hidden until MVP v2 */}
+        {false && (
+          <BadgeDisplay badges={allBadges.map(badge => {
+            const earnedBadge = badges.find(b => b.badges.id === badge.id);
+            return {
+              ...badge,
+              earned: badge.earned,
+              earned_at: earnedBadge?.earned_at
+            };
+          })} title="Achievements" description="Track your progress and earn badges" showProgress={true} />
+        )}
         {/* Security */}
         <Card>
           <CardHeader>
