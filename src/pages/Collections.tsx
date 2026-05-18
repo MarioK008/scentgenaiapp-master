@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
@@ -35,7 +35,9 @@ import { copyLink } from "@/lib/share";
 const Collections = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const [highlightFirstId, setHighlightFirstId] = useState<string | null>(null);
   const {
     collections,
     loading: collectionsLoading,
@@ -63,6 +65,31 @@ const Collections = () => {
   const [loadingLegacy, setLoadingLegacy] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"owned" | "wishlist" | "custom">("owned");
+
+  // Highlight the first owned perfume when navigated from the re-engagement banner
+  useEffect(() => {
+    const wants = (location.state as { highlightFirst?: boolean } | null)?.highlightFirst;
+    if (!wants) return;
+    if (loadingLegacy) return;
+    if (legacyOwned.length === 0) return;
+
+    setActiveView("owned");
+    const firstId = legacyOwned[0].id;
+    setHighlightFirstId(firstId);
+
+    // Clear router state so refresh doesn't re-trigger
+    navigate(location.pathname, { replace: true });
+
+    // Scroll into view after the grid renders
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-perfume-id="${firstId}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    const t = setTimeout(() => setHighlightFirstId(null), 4000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingLegacy, legacyOwned.length, location.state]);
 
   const fetchLegacy = async () => {
     if (!user) return;
@@ -407,10 +434,15 @@ const Collections = () => {
               {currentPerfumes.map((perfume, index) => (
                 <div
                   key={perfume.id}
-                  className="animate-fade-in opacity-0"
-                  style={{ 
+                  data-perfume-id={perfume.id}
+                  className={`animate-fade-in opacity-0 rounded-[22px] transition-shadow ${
+                    highlightFirstId === perfume.id
+                      ? "ring-4 ring-accent shadow-glow animate-pulse"
+                      : ""
+                  }`}
+                  style={{
                     animationDelay: `${Math.min(index * 50, 300)}ms`,
-                    animationFillMode: "forwards"
+                    animationFillMode: "forwards",
                   }}
                 >
                   <PerfumeCard
