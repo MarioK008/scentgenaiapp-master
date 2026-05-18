@@ -5,7 +5,7 @@ import { ChevronDown, Trophy, Heart, Star, Users, Sparkles, Bookmark } from "luc
 import { cn } from "@/lib/utils";
 
 type Rule = { label: string; value: number; suffix: string };
-type Group = { key: string; title: string; icon: React.ComponentType<{ className?: string }>; rules: Rule[] };
+type Group = { key: string; title: string; icon: React.ComponentType<any>; rules: Rule[] };
 
 const GROUPS: Group[] = [
   {
