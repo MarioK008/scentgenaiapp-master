@@ -66,6 +66,31 @@ const Collections = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"owned" | "wishlist" | "custom">("owned");
 
+  // Highlight the first owned perfume when navigated from the re-engagement banner
+  useEffect(() => {
+    const wants = (location.state as { highlightFirst?: boolean } | null)?.highlightFirst;
+    if (!wants) return;
+    if (loadingLegacy) return;
+    if (legacyOwned.length === 0) return;
+
+    setActiveView("owned");
+    const firstId = legacyOwned[0].id;
+    setHighlightFirstId(firstId);
+
+    // Clear router state so refresh doesn't re-trigger
+    navigate(location.pathname, { replace: true });
+
+    // Scroll into view after the grid renders
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-perfume-id="${firstId}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    const t = setTimeout(() => setHighlightFirstId(null), 4000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingLegacy, legacyOwned.length, location.state]);
+
   const fetchLegacy = async () => {
     if (!user) return;
     setLoadingLegacy(true);
