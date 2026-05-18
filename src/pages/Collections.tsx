@@ -390,7 +390,11 @@ const Collections = () => {
                 {currentPerfumes.length} {currentPerfumes.length === 1 ? "perfume" : "perfumes"}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="hero" onClick={() => navigate("/search")} size="sm" className="touch-target">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Perfume
+              </Button>
               <Button variant="ghost-gold" onClick={handleShareProfile} size="sm" className="touch-target">
                 <Share2 className="h-4 w-4 mr-2" />
                 Share

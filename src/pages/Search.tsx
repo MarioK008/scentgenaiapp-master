@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
-import PerfumeCard from "@/components/PerfumeCard";
+import PerfumeCard, { CollectionOption } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
@@ -14,6 +14,7 @@ import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkele
 import { EmptyState } from "@/components/EmptyState";
 import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
 import { usePerfumes, Perfume, GenderFilter } from "@/hooks/usePerfumes";
@@ -28,7 +29,7 @@ const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [gender, setGender] = useState<GenderFilter>("all");
   const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery, gender);
-  const { collections, createCollection, addToCollection } = useCustomCollections();
+  const { collections, createCollection, addToCollection, refetch: refetchCollections } = useCustomCollections();
   const { checkBadges } = useBadges(user?.id);
 
   useSEO({ 
@@ -41,6 +42,8 @@ const Search = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [optimisticStatus, setOptimisticStatus] = useState<Map<string, "owned" | "wishlist">>(new Map());
+  // perfumeId -> set of optionIds the perfume already belongs to ("__owned", "__wishlist", or a custom_collections.id)
+  const [memberships, setMemberships] = useState<Map<string, Set<string>>>(new Map());
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
 
   const visiblePerfumes = useMemo(
@@ -119,6 +122,110 @@ const Search = () => {
     const ok = await addToCollection(collectionId, addingPerfume.id);
     if (ok) checkBadges();
     return ok;
+  };
+
+  // Fetch which collections each visible perfume is already a member of
+  useEffect(() => {
+    if (!user || perfumes.length === 0) {
+      setMemberships(new Map());
+      return;
+    }
+    const ids = perfumes.map((p) => p.id);
+    let cancelled = false;
+    (async () => {
+      const [legacyRes, customRes] = await Promise.all([
+        supabase
+          .from("user_collections")
+          .select("perfume_id, status")
+          .eq("user_id", user.id)
+          .in("perfume_id", ids),
+        supabase
+          .from("collection_items")
+          .select("perfume_id, collection_id")
+          .in("perfume_id", ids),
+      ]);
+      if (cancelled) return;
+      const m = new Map<string, Set<string>>();
+      const ensure = (pid: string) => {
+        let s = m.get(pid);
+        if (!s) {
+          s = new Set();
+          m.set(pid, s);
+        }
+        return s;
+      };
+      legacyRes.data?.forEach((r: any) => {
+        ensure(r.perfume_id).add(r.status === "owned" ? "__owned" : "__wishlist");
+      });
+      customRes.data?.forEach((r: any) => {
+        ensure(r.perfume_id).add(r.collection_id);
+      });
+      setMemberships(m);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [perfumes, user]);
+
+  const collectionOptions: CollectionOption[] = useMemo(
+    () => [
+      { id: "__owned", label: "My Favorites", icon: "❤️" },
+      { id: "__wishlist", label: "Wishlist", icon: "⭐" },
+      ...collections.map((c) => ({ id: c.id, label: c.name, icon: c.icon })),
+    ],
+    [collections]
+  );
+
+  const handleSelectCollectionOption = async (perfume: Perfume, optionId: string) => {
+    if (!user) return;
+    let ok = false;
+    let label = "";
+
+    if (optionId === "__owned" || optionId === "__wishlist") {
+      const status: "owned" | "wishlist" = optionId === "__owned" ? "owned" : "wishlist";
+      label = status === "owned" ? "My Favorites" : "Wishlist";
+      const { error } = await supabase
+        .from("user_collections")
+        .insert({ user_id: user.id, perfume_id: perfume.id, status });
+      if (!error) {
+        ok = true;
+        setOptimisticStatus((m) => new Map(m).set(perfume.id, status));
+      } else if (error.code === "23505") {
+        sonnerToast.error(`Already in ${label}`);
+        return;
+      } else {
+        sonnerToast.error("Failed to add to collection");
+        return;
+      }
+    } else {
+      const collection = collections.find((c) => c.id === optionId);
+      label = collection?.name ?? "collection";
+      const { error } = await supabase
+        .from("collection_items")
+        .insert({ collection_id: optionId, perfume_id: perfume.id });
+      if (!error) {
+        ok = true;
+        refetchCollections();
+      } else if (error.code === "23505") {
+        sonnerToast.error(`Already in ${label}`);
+        return;
+      } else {
+        sonnerToast.error("Failed to add to collection");
+        return;
+      }
+    }
+
+    if (ok) {
+      setMemberships((prev) => {
+        const m = new Map(prev);
+        const s = new Set(m.get(perfume.id) ?? []);
+        s.add(optionId);
+        m.set(perfume.id, s);
+        return m;
+      });
+      sonnerToast.success(`Added to ${label} ✓`);
+      checkBadges();
+    }
   };
 
   if (loading || loadingPerfumes) {
@@ -221,12 +328,11 @@ const Search = () => {
                   <PerfumeCard
                     perfume={perfume}
                     status={optimisticStatus.get(perfume.id)}
-                    onAddToCollection={(id, status) => {
-                      if (status === "owned" || status === "wishlist") {
-                        handleAddToLegacyCollection(id, status);
-                      }
-                    }}
-                    onAddToCustomCollection={() => setAddingPerfume(perfume)}
+                    collectionOptions={collectionOptions}
+                    memberOfIds={memberships.get(perfume.id)}
+                    onSelectCollectionOption={(optionId) =>
+                      handleSelectCollectionOption(perfume, optionId)
+                    }
                     onClick={() => openPerfume(perfume)}
                   />
                 </SwipeablePerfumeCard>
