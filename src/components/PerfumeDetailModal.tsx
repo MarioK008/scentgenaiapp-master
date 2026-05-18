@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Star, Clock, Wind, Droplets, Calendar, X } from "lucide-react";
+import { Heart, Star, Clock, Wind, Droplets, Calendar, ExternalLink } from "lucide-react";
 import { getPerfumeImageUrl } from "@/lib/perfumeImage";
 import PerfumeBottleIcon from "@/components/PerfumeBottleIcon";
 
@@ -40,6 +41,7 @@ interface Perfume {
   year?: number | null;
   concentration?: string | null;
   gender?: string | null;
+  fragrantica_url?: string | null;
 }
 
 interface PerfumeDetailModalProps {
@@ -57,12 +59,24 @@ const PerfumeDetailModal = ({
   onAddToCollection,
   userStatus,
 }: PerfumeDetailModalProps) => {
+  const navigate = useNavigate();
   if (!perfume) return null;
 
   const brandName = typeof perfume.brand === 'string' ? perfume.brand : perfume.brand?.name || 'Unknown Brand';
   const topNotes = perfume.notes?.filter(n => n.type === 'top') || [];
   const heartNotes = perfume.notes?.filter(n => n.type === 'heart') || [];
   const baseNotes = perfume.notes?.filter(n => n.type === 'base') || [];
+  const hasAnyNotes = topNotes.length + heartNotes.length + baseNotes.length > 0;
+  const PLACEHOLDER_DESC = "A luxurious fragrance with carefully crafted notes for a memorable experience.";
+  const hasDescription =
+    perfume.description &&
+    perfume.description.trim().length > 0 &&
+    perfume.description.trim() !== PLACEHOLDER_DESC;
+
+  const handleBrandClick = () => {
+    onClose();
+    navigate(`/search?q=${encodeURIComponent(brandName)}`);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
