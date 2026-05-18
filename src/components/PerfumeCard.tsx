@@ -116,11 +116,13 @@ const PerfumeCard = ({
 
       <CardContent className="p-5 space-y-4">
         {/* Description */}
-        {perfume.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {perfume.description}
-          </p>
-        )}
+        {/* Description (hide placeholder text from seed data) */}
+        {perfume.description &&
+          perfume.description.trim() !== "A luxurious fragrance with carefully crafted notes for a memorable experience." && (
+            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+              {perfume.description}
+            </p>
+          )}
 
         {reason && (
           <p className="text-xs italic text-muted-foreground line-clamp-1">
