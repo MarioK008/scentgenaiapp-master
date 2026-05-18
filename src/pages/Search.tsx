@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
 import Layout from "@/components/Layout";
-import PerfumeCard from "@/components/PerfumeCard";
+import PerfumeCard, { CollectionOption } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
@@ -14,6 +14,7 @@ import { PerfumeCardSkeletonGrid } from "@/components/skeletons/PerfumeCardSkele
 import { EmptyState } from "@/components/EmptyState";
 import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
 import { usePerfumes, Perfume, GenderFilter } from "@/hooks/usePerfumes";
@@ -28,7 +29,7 @@ const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [gender, setGender] = useState<GenderFilter>("all");
   const { perfumes, loading: loadingPerfumes, error: perfumesError } = usePerfumes(searchQuery, gender);
-  const { collections, createCollection, addToCollection } = useCustomCollections();
+  const { collections, createCollection, addToCollection, refetch: refetchCollections } = useCustomCollections();
   const { checkBadges } = useBadges(user?.id);
 
   useSEO({ 
@@ -41,6 +42,8 @@ const Search = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [optimisticStatus, setOptimisticStatus] = useState<Map<string, "owned" | "wishlist">>(new Map());
+  // perfumeId -> set of optionIds the perfume already belongs to ("__owned", "__wishlist", or a custom_collections.id)
+  const [memberships, setMemberships] = useState<Map<string, Set<string>>>(new Map());
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
 
   const visiblePerfumes = useMemo(
