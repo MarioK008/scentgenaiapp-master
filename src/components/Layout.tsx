@@ -23,9 +23,11 @@ const Layout = ({ children }: LayoutProps) => {
   const userNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/collections", label: "Collections", icon: Heart },
-    { path: "/recommendations", label: "Recommendations", icon: Sparkles },
+    // hidden until MVP v2
+    // { path: "/recommendations", label: "Recommendations", icon: Sparkles },
     { path: "/voice-assistant", label: "MyScentGenAI", icon: MessageSquare },
-    { path: "/trends", label: "Trends", icon: TrendingUp },
+    // hidden until MVP v2
+    // { path: "/trends", label: "Trends", icon: TrendingUp },
     { path: "/search", label: "Search", icon: Search },
   ];
 
