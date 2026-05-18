@@ -207,7 +207,46 @@ const PerfumeCard = ({
         {/* Actions */}
         {showActions && (
           <div className="space-y-3 pt-2">
-            {!status && (onAddToCollection || onAddToCustomCollection) && (
+            {!status && collectionOptions && collectionOptions.length > 0 && onSelectCollectionOption ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="hero"
+                    className="w-full touch-target"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <FolderPlus className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                    Add to Collection
+                    <ChevronDown className="h-4 w-4 ml-2 opacity-70" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {collectionOptions.map((opt) => {
+                    const added = memberOfIds?.has(opt.id);
+                    return (
+                      <DropdownMenuItem
+                        key={opt.id}
+                        disabled={added}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!added) onSelectCollectionOption(opt.id);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {opt.icon && <span className="mr-2">{opt.icon}</span>}
+                        <span className="flex-1 truncate">{opt.label}</span>
+                        {added && <Check className="h-4 w-4 ml-2 text-primary" />}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : !status && (onAddToCollection || onAddToCustomCollection) ? (
               <div className="flex gap-2">
                 {onAddToCollection && (
                   <>
@@ -251,7 +290,7 @@ const PerfumeCard = ({
                   </Button>
                 )}
               </div>
-            )}
+            ) : null}
 
             {onRate && (
               <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
