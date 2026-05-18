@@ -104,11 +104,21 @@ const PerfumeCard = ({
         </div>
 
         {/* Quick view overlay on hover */}
-        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-smooth flex items-center justify-center">
-          <span className="text-sm font-medium text-foreground bg-background/80 backdrop-blur-sm px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-100">
-            View Details
-          </span>
-        </div>
+        {onClick && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick();
+            }}
+            aria-label={`View details for ${perfume.name}`}
+            className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-smooth flex items-center justify-center cursor-pointer"
+          >
+            <span className="text-sm font-medium text-foreground bg-background/80 backdrop-blur-sm px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-100">
+              View Details
+            </span>
+          </button>
+        )}
       </div>
 
       <CardContent className="p-5 space-y-4">

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Share2, ExternalLink, Heart, Star } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
+import { copyLink } from "@/lib/share";
 
 const Collections = () => {
   const { user, loading: authLoading } = useAuth();
@@ -193,9 +194,12 @@ const Collections = () => {
   };
 
   const handleShareProfile = () => {
-    const profileUrl = `${window.location.origin}/user/${user?.id}`;
-    navigator.clipboard.writeText(profileUrl);
-    sonnerToast.success("Profile link copied to clipboard!");
+    if (!user?.id) {
+      sonnerToast.error("Sign in to share your profile");
+      return;
+    }
+    const profileUrl = `${window.location.origin}/user/${user.id}`;
+    copyLink(profileUrl, "Link copied!");
   };
 
   const currentPerfumes = activeView === "owned"
