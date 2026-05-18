@@ -240,6 +240,10 @@ const PerfumeDetailModal = ({
                     )}
                   </div>
                 </div>
+              ) : (
+                <p className="text-sm text-muted-foreground/60 italic mb-6">
+                  Notes coming soon
+                </p>
               )}
 
               {/* Accords */}
