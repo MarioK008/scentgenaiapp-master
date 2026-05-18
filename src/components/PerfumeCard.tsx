@@ -61,6 +61,9 @@ const PerfumeCard = ({
   onClick,
   className,
   reason,
+  collectionOptions,
+  memberOfIds,
+  onSelectCollectionOption,
 }: PerfumeCardProps) => {
   const brandName = typeof perfume.brand === 'string' ? perfume.brand : perfume.brand?.name || 'Unknown';
   const topNotes = perfume.notes?.filter(n => n.type === 'top') || [];
