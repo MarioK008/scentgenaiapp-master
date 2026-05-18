@@ -16,7 +16,7 @@ import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
-import { usePerfumes, Perfume } from "@/hooks/usePerfumes";
+import { usePerfumes, Perfume, GenderFilter } from "@/hooks/usePerfumes";
 import { useBadges } from "@/hooks/useBadges";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { supabase } from "@/integrations/supabase/client";
