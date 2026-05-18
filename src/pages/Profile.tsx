@@ -12,6 +12,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { AvatarCropDialog } from "@/components/AvatarCropDialog";
 import { BadgeDisplay } from "@/components/BadgeDisplay";
+import { BadgeRules } from "@/components/BadgeRules";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -390,6 +391,9 @@ const Profile = () => {
               </div>}
           </CardContent>
         </Card>
+
+        {/* How to earn badges (collapsed by default) */}
+        <BadgeRules />
 
         {/* TODO: re-enable when badge logic is fixed */}
         {false && (
