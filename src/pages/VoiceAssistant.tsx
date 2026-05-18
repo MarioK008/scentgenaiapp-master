@@ -58,31 +58,34 @@ const VoiceAssistant = () => {
         </div>
         
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-          <Card 
-            className="group cursor-pointer card-hover-lift border-primary/20 hover:border-primary/40 relative overflow-hidden"
-            onClick={() => navigate('/voice-live')}
-          >
-            {/* Ambient glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-smooth" />
-            
-            <CardHeader className="space-y-6 relative">
-              <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-glow mx-auto group-hover:animate-glow-pulse">
-                <Mic className="w-10 h-10 text-white" strokeWidth={1.5} />
-              </div>
-              <div className="text-center space-y-2">
-                <CardTitle className="text-2xl">Live Conversation</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  Speak naturally with your AI consultant in real-time voice-to-voice conversation
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Button variant="premium" className="w-full" size="lg">
-                Start Speaking
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+          {/* hidden until MVP v2 */}
+          {false && (
+            <Card 
+              className="group cursor-pointer card-hover-lift border-primary/20 hover:border-primary/40 relative overflow-hidden"
+              onClick={() => navigate('/voice-live')}
+            >
+              {/* Ambient glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-smooth" />
+              
+              <CardHeader className="space-y-6 relative">
+                <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-glow mx-auto group-hover:animate-glow-pulse">
+                  <Mic className="w-10 h-10 text-white" strokeWidth={1.5} />
+                </div>
+                <div className="text-center space-y-2">
+                  <CardTitle className="text-2xl">Live Conversation</CardTitle>
+                  <CardDescription className="text-base leading-relaxed">
+                    Speak naturally with your AI consultant in real-time voice-to-voice conversation
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button variant="premium" className="w-full" size="lg">
+                  Start Speaking
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           <Card 
             className="group cursor-pointer card-hover-lift border-accent/20 hover:border-accent/40 relative overflow-hidden"
