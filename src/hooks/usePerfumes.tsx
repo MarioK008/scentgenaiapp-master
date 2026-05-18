@@ -90,6 +90,11 @@ export const usePerfumes = (searchQuery?: string, gender: GenderFilter = "all") 
         perfumesQuery = perfumesQuery.limit(50);
       }
 
+      // Gender filter (server-side). DB values may be capitalized; match case-insensitively.
+      if (genderArg && genderArg !== "all") {
+        perfumesQuery = perfumesQuery.ilike("gender", genderArg);
+      }
+
       const { data: perfumesData, error: perfumesError } = await perfumesQuery;
 
       if (perfumesError) throw perfumesError;
