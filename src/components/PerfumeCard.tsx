@@ -212,7 +212,7 @@ const PerfumeCard = ({
         {/* Actions */}
         {showActions && (
           <div className="space-y-3 pt-2">
-            {!status && collectionOptions && collectionOptions.length > 0 && onSelectCollectionOption ? (
+            {collectionOptions && collectionOptions.length > 0 && onSelectCollectionOption ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

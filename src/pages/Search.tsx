@@ -184,19 +184,29 @@ const Search = () => {
     if (optionId === "__owned" || optionId === "__wishlist") {
       const status: "owned" | "wishlist" = optionId === "__owned" ? "owned" : "wishlist";
       label = status === "owned" ? "My Favorites" : "Wishlist";
+
+      // user_collections has UNIQUE (user_id, perfume_id) — a perfume can only be
+      // in ONE legacy bucket. Upsert so switching Favorites <-> Wishlist works.
       const { error } = await supabase
         .from("user_collections")
-        .insert({ user_id: user.id, perfume_id: perfume.id, status });
-      if (!error) {
-        ok = true;
-        setOptimisticStatus((m) => new Map(m).set(perfume.id, status));
-      } else if (error.code === "23505") {
-        sonnerToast.error(`Already in ${label}`);
-        return;
-      } else {
+        .upsert(
+          { user_id: user.id, perfume_id: perfume.id, status },
+          { onConflict: "user_id,perfume_id" }
+        );
+      if (error) {
         sonnerToast.error("Failed to add to collection");
         return;
       }
+      ok = true;
+      // Reflect mutex in local memberships: drop the other legacy bucket.
+      setMemberships((prev) => {
+        const m = new Map(prev);
+        const s = new Set(m.get(perfume.id) ?? []);
+        s.delete(optionId === "__owned" ? "__wishlist" : "__owned");
+        s.add(optionId);
+        m.set(perfume.id, s);
+        return m;
+      });
     } else {
       const collection = collections.find((c) => c.id === optionId);
       label = collection?.name ?? "collection";
