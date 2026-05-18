@@ -328,12 +328,11 @@ const Search = () => {
                   <PerfumeCard
                     perfume={perfume}
                     status={optimisticStatus.get(perfume.id)}
-                    onAddToCollection={(id, status) => {
-                      if (status === "owned" || status === "wishlist") {
-                        handleAddToLegacyCollection(id, status);
-                      }
-                    }}
-                    onAddToCustomCollection={() => setAddingPerfume(perfume)}
+                    collectionOptions={collectionOptions}
+                    memberOfIds={memberships.get(perfume.id)}
+                    onSelectCollectionOption={(optionId) =>
+                      handleSelectCollectionOption(perfume, optionId)
+                    }
                     onClick={() => openPerfume(perfume)}
                   />
                 </SwipeablePerfumeCard>
