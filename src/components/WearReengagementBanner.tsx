@@ -68,10 +68,12 @@ export const WearReengagementBanner = ({ userId }: WearReengagementBannerProps) 
         <Button
           variant="hero"
           size="sm"
-          onClick={() => navigate("/collections")}
+          onClick={() =>
+            navigate("/collections", { state: { highlightFirst: true } })
+          }
           className="rounded-full"
         >
-          Log a scent →
+          Go to collection →
         </Button>
         <Button
           variant="ghost"
