@@ -63,12 +63,7 @@ const Dashboard = () => {
   }
 
   const handleShareProfile = () => {
-    if (!user?.id) {
-      toast.error("Sign in to share your profile");
-      return;
-    }
-    const profileUrl = `${window.location.origin}/user/${user.id}`;
-    copyLink(profileUrl, "Link copied!");
+    copyLink(window.location.href, "Link copied to clipboard ✓");
   };
 
   // Get greeting based on time of day
