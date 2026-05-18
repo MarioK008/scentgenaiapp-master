@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, Search, TrendingUp, Share2, User, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+import { copyLink } from "@/lib/share";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
