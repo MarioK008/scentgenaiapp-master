@@ -84,14 +84,7 @@ const PerfumeCard = ({
           </span>
         </div>
 
-        {/* Season badge */}
-        {perfume.seasons && perfume.seasons.length > 0 && (
-          <div className="absolute top-4 right-4">
-            <Badge variant="secondary" className="capitalize rounded-full bg-background/60 backdrop-blur-sm border-0">
-              {perfume.seasons[0].name}
-            </Badge>
-          </div>
-        )}
+        {/* Season badge hidden until MVP v2 — seasons data not reliable */}
 
         {/* Title overlay at bottom of image */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
