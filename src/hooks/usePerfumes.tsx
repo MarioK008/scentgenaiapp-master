@@ -49,7 +49,7 @@ export const usePerfumes = (searchQuery?: string, gender: GenderFilter = "all") 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPerfumes = async (query?: string) => {
+  const fetchPerfumes = async (query?: string, genderArg: GenderFilter = "all") => {
     setLoading(true);
     setError(null);
 
