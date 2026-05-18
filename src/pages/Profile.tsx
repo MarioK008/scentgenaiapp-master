@@ -391,7 +391,7 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Badges — hidden until MVP v2 */}
+        {/* TODO: re-enable when badge logic is fixed */}
         {false && (
           <BadgeDisplay badges={allBadges.map(badge => {
             const earnedBadge = badges.find(b => b.badges.id === badge.id);
