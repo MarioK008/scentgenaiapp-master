@@ -35,7 +35,9 @@ import { copyLink } from "@/lib/share";
 const Collections = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const [highlightFirstId, setHighlightFirstId] = useState<string | null>(null);
   const {
     collections,
     loading: collectionsLoading,
