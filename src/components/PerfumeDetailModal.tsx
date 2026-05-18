@@ -108,7 +108,13 @@ const PerfumeDetailModal = ({
                     <DialogTitle className="text-2xl font-display">
                       {perfume.name}
                     </DialogTitle>
-                    <p className="text-muted-foreground text-lg">{brandName}</p>
+                    <button
+                      type="button"
+                      onClick={handleBrandClick}
+                      className="text-muted-foreground text-lg hover:text-primary underline-offset-4 hover:underline transition-smooth"
+                    >
+                      {brandName}
+                    </button>
                   </div>
                   {perfume.rating && (
                     <div className="flex items-center gap-1 bg-accent/20 px-3 py-1 rounded-full">
@@ -145,13 +151,26 @@ const PerfumeDetailModal = ({
                 ))}
               </div>
 
-              {/* Description */}
-              {perfume.description && (
+              {/* Description (hide if missing or placeholder) */}
+              {hasDescription && (
                 <div className="mt-6">
                   <p className="text-muted-foreground leading-relaxed">
                     {perfume.description}
                   </p>
                 </div>
+              )}
+
+              {/* Fragrantica external link */}
+              {perfume.fragrantica_url && (
+                <a
+                  href={perfume.fragrantica_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-4 text-sm text-accent hover:text-accent/80 underline-offset-4 hover:underline transition-smooth"
+                >
+                  View on Fragrantica
+                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </a>
               )}
 
               <Separator className="my-6" />
@@ -179,7 +198,7 @@ const PerfumeDetailModal = ({
               </div>
 
               {/* Notes Pyramid */}
-              {(topNotes.length > 0 || heartNotes.length > 0 || baseNotes.length > 0) && (
+              {hasAnyNotes ? (
                 <div className="space-y-4 mb-6">
                   <h3 className="font-display text-lg">Fragrance Notes</h3>
                   <div className="space-y-3">
