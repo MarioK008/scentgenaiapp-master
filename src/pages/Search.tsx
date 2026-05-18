@@ -170,6 +170,23 @@ const Search = () => {
           />
         </div>
 
+        <div className="flex flex-wrap gap-2">
+          {(["all", "female", "male", "unisex"] as GenderFilter[]).map((g) => (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setGender(g)}
+              className={`px-4 py-2 rounded-full text-sm capitalize transition-smooth border ${
+                gender === g
+                  ? "bg-primary text-primary-foreground border-primary shadow-elegant"
+                  : "bg-background/40 border-border/50 hover:border-primary/40"
+              }`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+
         <RecentlyViewed items={recentlyViewed} onSelect={openPerfumeById} />
 
         <div className="text-sm text-muted-foreground">
