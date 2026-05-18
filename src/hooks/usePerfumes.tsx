@@ -40,6 +40,8 @@ export interface Perfume {
   notes: Note[];
   seasons: Season[];
   accords: Accord[];
+  gender?: string | null;
+  fragrantica_url?: string | null;
 }
 
 export type GenderFilter = "all" | "female" | "male" | "unisex";

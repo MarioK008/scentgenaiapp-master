@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Star, Clock, Wind, Droplets, Calendar, X } from "lucide-react";
+import { Heart, Star, Clock, Wind, Droplets, Calendar, ExternalLink } from "lucide-react";
 import { getPerfumeImageUrl } from "@/lib/perfumeImage";
 import PerfumeBottleIcon from "@/components/PerfumeBottleIcon";
 
@@ -40,6 +41,7 @@ interface Perfume {
   year?: number | null;
   concentration?: string | null;
   gender?: string | null;
+  fragrantica_url?: string | null;
 }
 
 interface PerfumeDetailModalProps {
@@ -57,12 +59,24 @@ const PerfumeDetailModal = ({
   onAddToCollection,
   userStatus,
 }: PerfumeDetailModalProps) => {
+  const navigate = useNavigate();
   if (!perfume) return null;
 
   const brandName = typeof perfume.brand === 'string' ? perfume.brand : perfume.brand?.name || 'Unknown Brand';
   const topNotes = perfume.notes?.filter(n => n.type === 'top') || [];
   const heartNotes = perfume.notes?.filter(n => n.type === 'heart') || [];
   const baseNotes = perfume.notes?.filter(n => n.type === 'base') || [];
+  const hasAnyNotes = topNotes.length + heartNotes.length + baseNotes.length > 0;
+  const PLACEHOLDER_DESC = "A luxurious fragrance with carefully crafted notes for a memorable experience.";
+  const hasDescription =
+    perfume.description &&
+    perfume.description.trim().length > 0 &&
+    perfume.description.trim() !== PLACEHOLDER_DESC;
+
+  const handleBrandClick = () => {
+    onClose();
+    navigate(`/search?q=${encodeURIComponent(brandName)}`);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -94,7 +108,13 @@ const PerfumeDetailModal = ({
                     <DialogTitle className="text-2xl font-display">
                       {perfume.name}
                     </DialogTitle>
-                    <p className="text-muted-foreground text-lg">{brandName}</p>
+                    <button
+                      type="button"
+                      onClick={handleBrandClick}
+                      className="text-muted-foreground text-lg hover:text-primary underline-offset-4 hover:underline transition-smooth"
+                    >
+                      {brandName}
+                    </button>
                   </div>
                   {perfume.rating && (
                     <div className="flex items-center gap-1 bg-accent/20 px-3 py-1 rounded-full">
@@ -131,13 +151,26 @@ const PerfumeDetailModal = ({
                 ))}
               </div>
 
-              {/* Description */}
-              {perfume.description && (
+              {/* Description (hide if missing or placeholder) */}
+              {hasDescription && (
                 <div className="mt-6">
                   <p className="text-muted-foreground leading-relaxed">
                     {perfume.description}
                   </p>
                 </div>
+              )}
+
+              {/* Fragrantica external link */}
+              {perfume.fragrantica_url && (
+                <a
+                  href={perfume.fragrantica_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-4 text-sm text-accent hover:text-accent/80 underline-offset-4 hover:underline transition-smooth"
+                >
+                  View on Fragrantica
+                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </a>
               )}
 
               <Separator className="my-6" />
@@ -165,7 +198,7 @@ const PerfumeDetailModal = ({
               </div>
 
               {/* Notes Pyramid */}
-              {(topNotes.length > 0 || heartNotes.length > 0 || baseNotes.length > 0) && (
+              {hasAnyNotes ? (
                 <div className="space-y-4 mb-6">
                   <h3 className="font-display text-lg">Fragrance Notes</h3>
                   <div className="space-y-3">
@@ -207,6 +240,10 @@ const PerfumeDetailModal = ({
                     )}
                   </div>
                 </div>
+              ) : (
+                <p className="text-sm text-muted-foreground/60 italic mb-6">
+                  Notes coming soon
+                </p>
               )}
 
               {/* Accords */}
