@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Heart, Star, Clock, Wind, Droplets, Calendar, X } from "lucide-react";
+import { getPerfumeImageUrl } from "@/lib/perfumeImage";
+import PerfumeBottleIcon from "@/components/PerfumeBottleIcon";
 
 interface PerfumeNote {
   name: string;
@@ -68,17 +70,20 @@ const PerfumeDetailModal = ({
         <ScrollArea className="max-h-[90vh]">
           <div className="relative">
             {/* Hero Image */}
-            <div className="h-64 gradient-card flex items-center justify-center relative">
-              {perfume.image_url ? (
-                <img
-                  src={perfume.image_url}
-                  alt={perfume.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-9xl animate-pulse-glow">🌸</div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
+            <div className="h-64 bg-[#F8F6F2] flex items-center justify-center relative">
+              {(() => {
+                const safeUrl = getPerfumeImageUrl(perfume.image_url);
+                return safeUrl ? (
+                  <img
+                    src={safeUrl}
+                    alt={perfume.name}
+                    className="max-w-[200px] max-h-[200px] w-auto h-auto object-contain"
+                  />
+                ) : (
+                  <PerfumeBottleIcon className="w-[160px] h-[160px] text-foreground/30" />
+                );
+              })()}
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
             </div>
 
             {/* Content */}

@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Heart, Star, Clock, Wind, FolderPlus, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getPerfumeImageUrl } from "@/lib/perfumeImage";
+import PerfumeBottleIcon from "@/components/PerfumeBottleIcon";
 
 export interface CollectionOption {
   id: string;
@@ -80,21 +82,24 @@ const PerfumeCard = ({
       onClick={onClick}
     >
       {/* Magazine-style image with overlay */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-card to-secondary/50">
-        {perfume.image_url ? (
-          <img
-            src={perfume.image_url}
-            alt={perfume.name}
-            className="w-full h-full object-cover image-zoom"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-8xl opacity-50 group-hover:scale-110 transition-bounce">🌸</span>
-          </div>
-        )}
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#F8F6F2]">
+        {(() => {
+          const safeUrl = getPerfumeImageUrl(perfume.image_url);
+          return safeUrl ? (
+            <img
+              src={safeUrl}
+              alt={perfume.name}
+              className="absolute inset-0 m-auto max-w-[200px] max-h-[200px] w-auto h-auto object-contain p-4 image-zoom"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center p-6">
+              <PerfumeBottleIcon className="w-[140px] h-[140px] text-foreground/30 group-hover:scale-105 transition-bounce" />
+            </div>
+          );
+        })()}
         
         {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-background/95 via-background/40 to-transparent pointer-events-none" />
         
         {/* Brand badge positioned elegantly */}
         <div className="absolute top-4 left-4">
