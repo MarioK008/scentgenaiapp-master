@@ -1,5 +1,7 @@
 import { Clock } from "lucide-react";
 import { RecentlyViewedItem } from "@/hooks/useRecentlyViewed";
+import { getPerfumeImageUrl } from "@/lib/perfumeImage";
+import PerfumeBottleIcon from "@/components/PerfumeBottleIcon";
 
 interface RecentlyViewedProps {
   items: RecentlyViewedItem[];
@@ -24,18 +26,19 @@ const RecentlyViewed = ({ items, onSelect }: RecentlyViewedProps) => {
             onClick={() => onSelect(item.id)}
             className="flex-shrink-0 w-28 snap-start group text-left"
           >
-            <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-card to-secondary/50 border border-border/30 group-hover:border-primary/40 transition-smooth">
-              {item.image_url ? (
-                <img
-                  src={item.image_url}
-                  alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl opacity-50">
-                  🌸
-                </div>
-              )}
+            <div className="aspect-square rounded-xl overflow-hidden bg-[#F8F6F2] border border-border/30 group-hover:border-primary/40 transition-smooth flex items-center justify-center p-2">
+              {(() => {
+                const safeUrl = getPerfumeImageUrl(item.image_url);
+                return safeUrl ? (
+                  <img
+                    src={safeUrl}
+                    alt={item.name}
+                    className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-smooth"
+                  />
+                ) : (
+                  <PerfumeBottleIcon className="w-16 h-16 text-foreground/30" />
+                );
+              })()}
             </div>
             <div className="mt-2 space-y-0.5">
               <p className="text-xs font-medium line-clamp-1">{item.name}</p>
