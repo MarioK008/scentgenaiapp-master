@@ -341,7 +341,7 @@ const Search = () => {
                   <PerfumeCard
                     perfume={perfume}
                     status={optimisticStatus.get(perfume.id)}
-                    onAddToCustomCollection={(p) => setAddingPerfume(p)}
+                    onAddToCustomCollection={() => setAddingPerfume(perfume)}
                     onClick={() => openPerfume(perfume)}
                   />
                 </SwipeablePerfumeCard>
