@@ -212,7 +212,21 @@ const PerfumeCard = ({
         {/* Actions */}
         {showActions && (
           <div className="space-y-3 pt-2">
-            {collectionOptions && collectionOptions.length > 0 && onSelectCollectionOption ? (
+
+            {onAddToCustomCollection ? (
+              <Button
+                size="sm"
+                variant="hero"
+                className="w-full touch-target"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToCustomCollection(perfume);
+                }}
+              >
+                <FolderPlus className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                Add to Collection
+              </Button>
+            ) : collectionOptions && collectionOptions.length > 0 && onSelectCollectionOption ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -251,51 +265,34 @@ const PerfumeCard = ({
                   })}
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : !status && (onAddToCollection || onAddToCustomCollection) ? (
+            ) : !status && onAddToCollection ? (
               <div className="flex gap-2">
-                {onAddToCollection && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="hero"
-                      className="touch-target"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddToCollection(perfume.id, "owned");
-                      }}
-                    >
-                      <Heart className="h-4 w-4" strokeWidth={1.5} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost-gold"
-                      className="flex-1 touch-target"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddToCollection(perfume.id, "wishlist");
-                      }}
-                    >
-                      <Star className="h-4 w-4" strokeWidth={1.5} />
-                      Wishlist
-                    </Button>
-                  </>
-                )}
-                {onAddToCustomCollection && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 touch-target"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddToCustomCollection(perfume);
-                    }}
-                  >
-                    <FolderPlus className="h-4 w-4" strokeWidth={1.5} />
-                    Collection
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="hero"
+                  className="touch-target"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCollection(perfume.id, "owned");
+                  }}
+                >
+                  <Heart className="h-4 w-4" strokeWidth={1.5} />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost-gold"
+                  className="flex-1 touch-target"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCollection(perfume.id, "wishlist");
+                  }}
+                >
+                  <Star className="h-4 w-4" strokeWidth={1.5} />
+                  Wishlist
+                </Button>
               </div>
             ) : null}
+
 
             {onRate && (
               <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
