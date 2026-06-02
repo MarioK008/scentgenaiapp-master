@@ -358,7 +358,7 @@ const Profile = () => {
                         {stats.favoritePerfume.brand} - {stats.favoritePerfume.name}
                       </p>
                     </div>
-                    {stats.favoritePerfume.image_url && <img src={stats.favoritePerfume.image_url} alt={stats.favoritePerfume.name} className="w-16 h-16 object-cover rounded-lg" />}
+                    {stats.favoritePerfume.image_url && <img src={stats.favoritePerfume.image_url} alt={stats.favoritePerfume.name} className="w-16 h-16 object-contain rounded-lg" />}
                   </div>}
 
                 {(stats.topNotes.top.length > 0 || stats.topNotes.heart.length > 0 || stats.topNotes.base.length > 0) && <div className="col-span-full p-4 rounded-lg bg-muted space-y-3">
