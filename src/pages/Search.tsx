@@ -341,11 +341,7 @@ const Search = () => {
                   <PerfumeCard
                     perfume={perfume}
                     status={optimisticStatus.get(perfume.id)}
-                    collectionOptions={collectionOptions}
-                    memberOfIds={memberships.get(perfume.id)}
-                    onSelectCollectionOption={(optionId) =>
-                      handleSelectCollectionOption(perfume, optionId)
-                    }
+                    onAddToCustomCollection={(p) => setAddingPerfume(p)}
                     onClick={() => openPerfume(perfume)}
                   />
                 </SwipeablePerfumeCard>
@@ -369,7 +365,11 @@ const Search = () => {
         onAddToCollection={handleAddToCustomCollection}
         onCreateNew={() => setShowCreateDialog(true)}
         perfumeName={addingPerfume?.name}
+        legacyOptions={legacyDialogOptions}
+        onAddToLegacy={handleAddToLegacyFromDialog}
+        alreadyAddedIds={addingPerfume ? memberships.get(addingPerfume.id) : undefined}
       />
+
 
       <CreateCollectionDialog
         isOpen={showCreateDialog}
