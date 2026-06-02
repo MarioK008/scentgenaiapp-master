@@ -270,7 +270,7 @@ const PublicProfile = () => {
                     <img
                       src={stats.favoritePerfume.image_url}
                       alt={stats.favoritePerfume.name}
-                      className="w-20 h-20 object-cover rounded-lg"
+                      className="w-20 h-20 object-contain rounded-lg"
                     />
                   )}
                   <div>
