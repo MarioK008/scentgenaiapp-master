@@ -213,7 +213,7 @@ export const ShareCollectionCard = ({
                               src={p.image_url}
                               crossOrigin="anonymous"
                               alt={p.name}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              style={{ width: "100%", height: "100%", objectFit: "contain" }}
                             />
                           ) : (
                             <span style={{ fontSize: 36 }}>🌸</span>
