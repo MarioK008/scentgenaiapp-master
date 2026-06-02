@@ -212,7 +212,7 @@ const PerfumeCard = ({
         {/* Actions */}
         {showActions && (
           <div className="space-y-3 pt-2">
-          <div className="space-y-3 pt-2">
+
             {onAddToCustomCollection ? (
               <Button
                 size="sm"
