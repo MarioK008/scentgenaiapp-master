@@ -377,14 +377,28 @@ const Search = () => {
           </p>
         </div>
 
-        <div className="relative">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            placeholder="Search for perfumes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-14 text-lg rounded-2xl glass"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              ref={searchInputRef}
+              placeholder="Search for perfumes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 pr-4 h-14 text-lg rounded-2xl glass"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setShowScanner(true)}
+            disabled={scanLookupBusy}
+            aria-label="Scan barcode"
+            className="h-14 w-14 rounded-2xl glass shrink-0"
+          >
+            <ScanBarcode className="h-6 w-6" />
+          </Button>
         </div>
 
         <div className="flex flex-wrap gap-2">
