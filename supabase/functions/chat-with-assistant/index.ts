@@ -193,10 +193,64 @@ serve(async (req) => {
       combinedContext += '\n\n🌐 CURRENT TRENDS & NEWS:\n' + trendsContext;
     }
 
+    // Fetch user personal context (profile + collection + wishlist)
+    let userContext = '';
+    try {
+      const [profileRes, ownedRes, wishlistRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('preferred_families, preferred_occasions, preferred_seasons')
+          .eq('id', authenticatedUserId)
+          .maybeSingle(),
+        supabase
+          .from('user_collections')
+          .select('added_at, perfumes:perfume_id(name, brands:brand_id(name))')
+          .eq('user_id', authenticatedUserId)
+          .eq('status', 'owned')
+          .order('added_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('user_collections')
+          .select('added_at, perfumes:perfume_id(name, brands:brand_id(name))')
+          .eq('user_id', authenticatedUserId)
+          .eq('status', 'wishlist')
+          .order('added_at', { ascending: false })
+          .limit(20),
+      ]);
+
+      const profile: any = profileRes.data || {};
+      const fmt = (arr: any) => Array.isArray(arr) && arr.length ? arr.join(', ') : 'not set';
+      const ownedList = (ownedRes.data || []).map((r: any) => {
+        const brand = r.perfumes?.brands?.name || 'Unknown';
+        const name = r.perfumes?.name || 'Unknown';
+        return `- ${brand} ${name}`;
+      });
+      const wishlistList = (wishlistRes.data || []).map((r: any) => {
+        const brand = r.perfumes?.brands?.name || 'Unknown';
+        const name = r.perfumes?.name || 'Unknown';
+        return `- ${brand} ${name}`;
+      });
+
+      userContext = `USER PROFILE:
+- Preferred fragrance families: ${fmt(profile.preferred_families)}
+- Preferred occasions: ${fmt(profile.preferred_occasions)}
+- Preferred seasons: ${fmt(profile.preferred_seasons)}
+
+USER'S COLLECTION (${ownedList.length} perfumes owned):
+${ownedList.length ? ownedList.join('\n') : '(empty)'}
+
+USER'S WISHLIST (${wishlistList.length} perfumes):
+${wishlistList.length ? wishlistList.join('\n') : '(empty)'}`;
+    } catch (err) {
+      console.error('⚠️ Failed to load user context:', err);
+    }
+
     // System message for perfume consultant with combined context
     const systemMessage = {
       role: 'system',
-      content: `You are an expert perfume consultant for ScentGenAI. Help users find their perfect fragrance by asking about their preferences, occasions, and favorite scents. Keep responses conversational and friendly. Always respond in English.
+      content: `You are a personal fragrance consultant for ScentGenAI. You know this specific user's collection and preferences intimately. Use their owned perfumes, wishlist, and stated preferences to give hyper-personalized advice. Never recommend perfumes they already own unless comparing them. Always respond in the same language the user writes in.
+
+${userContext}
 
 ${combinedContext ? `You have access to both a curated knowledge base and real-time web search results. Use this information to give accurate, detailed answers.
 
@@ -207,6 +261,7 @@ When answering:
 - If information conflicts, note the discrepancy and provide the most reliable answer
 
 ${combinedContext}` : 'Answer based on your general knowledge about perfumery.'}`
+
     };
 
     // Call GPT-4o
