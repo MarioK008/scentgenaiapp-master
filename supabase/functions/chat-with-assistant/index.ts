@@ -219,14 +219,21 @@ serve(async (req) => {
           .limit(20),
       ]);
 
+      const ownedPerfumes = ownedRes.data;
+      const ownedError = ownedRes.error;
+      const wishlist = wishlistRes.data;
+      const wishlistError = wishlistRes.error;
+      console.log('owned perfumes result:', ownedPerfumes, 'error:', ownedError);
+      console.log('wishlist result:', wishlist, 'error:', wishlistError);
+
       const profile: any = profileRes.data || {};
       const fmt = (arr: any) => Array.isArray(arr) && arr.length ? arr.join(', ') : 'not set';
-      const ownedList = (ownedRes.data || []).map((r: any) => {
+      const ownedList = (ownedPerfumes || []).map((r: any) => {
         const brand = r.perfumes?.brands?.name || 'Unknown';
         const name = r.perfumes?.name || 'Unknown';
         return `- ${brand} ${name}`;
       });
-      const wishlistList = (wishlistRes.data || []).map((r: any) => {
+      const wishlistList = (wishlist || []).map((r: any) => {
         const brand = r.perfumes?.brands?.name || 'Unknown';
         const name = r.perfumes?.name || 'Unknown';
         return `- ${brand} ${name}`;
