@@ -487,6 +487,75 @@ const Search = () => {
         onClose={() => setShowCreateDialog(false)}
         onSubmit={createCollection}
       />
+
+      <BarcodeScannerDialog
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onDetected={handleBarcodeDetected}
+      />
+
+      <AlertDialog
+        open={!!scanMatchCandidate}
+        onOpenChange={(o) => !o && setScanMatchCandidate(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Is this your perfume?</AlertDialogTitle>
+            <AlertDialogDescription>
+              We matched the scanned product
+              {scanMatchCandidate?.productName
+                ? ` "${scanMatchCandidate.productName}"`
+                : ""}{" "}
+              to the closest perfume in our catalog.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {scanMatchCandidate && (
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40">
+              {scanMatchCandidate.perfume.image_url && (
+                <img
+                  src={scanMatchCandidate.perfume.image_url}
+                  alt={scanMatchCandidate.perfume.name}
+                  className="h-16 w-16 rounded-lg object-cover"
+                />
+              )}
+              <div className="min-w-0">
+                <p className="font-medium truncate">
+                  {scanMatchCandidate.perfume.name}
+                </p>
+                {scanMatchCandidate.perfume.brand?.name && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {scanMatchCandidate.perfume.brand.name}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                const name = scanMatchCandidate?.productName;
+                setScanMatchCandidate(null);
+                if (name) {
+                  setSearchQuery(name);
+                  searchInputRef.current?.focus();
+                }
+              }}
+            >
+              No
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (scanMatchCandidate) {
+                  setAddingPerfume(scanMatchCandidate.perfume);
+                }
+                setScanMatchCandidate(null);
+              }}
+            >
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };
