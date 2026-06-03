@@ -57,6 +57,13 @@ const Search = () => {
   // perfumeId -> set of optionIds the perfume already belongs to ("__owned", "__wishlist", or a custom_collections.id)
   const [memberships, setMemberships] = useState<Map<string, Set<string>>>(new Map());
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanLookupBusy, setScanLookupBusy] = useState(false);
+  const [scanMatchCandidate, setScanMatchCandidate] = useState<{
+    perfume: Perfume;
+    productName: string;
+  } | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const visiblePerfumes = useMemo(
     () => perfumes.filter((p) => !dismissed.has(p.id)),
