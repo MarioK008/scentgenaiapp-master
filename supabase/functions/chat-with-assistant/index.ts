@@ -197,47 +197,46 @@ serve(async (req) => {
     // Fetch user personal context (profile + collection + wishlist)
     let userContext = '';
     try {
-      const [profileRes, ownedRes, wishlistRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('preferred_families, preferred_occasions, preferred_seasons')
-          .eq('id', authenticatedUserId)
-          .maybeSingle(),
-        supabase
-          .from('user_collections')
-          .select('added_at, perfumes:perfume_id(name, brands:brand_id(name))')
-          .eq('user_id', authenticatedUserId)
-          .eq('status', 'owned')
-          .order('added_at', { ascending: false })
-          .limit(50),
-        supabase
-          .from('user_collections')
-          .select('added_at, perfumes:perfume_id(name, brands:brand_id(name))')
-          .eq('user_id', authenticatedUserId)
-          .eq('status', 'wishlist')
-          .order('added_at', { ascending: false })
-          .limit(20),
-      ]);
+      const profileRes = await supabase
+        .from('profiles')
+        .select('preferred_families, preferred_occasions, preferred_seasons')
+        .eq('id', authenticatedUserId)
+        .maybeSingle();
 
-      const ownedPerfumes = ownedRes.data;
-      const ownedError = ownedRes.error;
-      const wishlist = wishlistRes.data;
-      const wishlistError = wishlistRes.error;
+      const { data: ownedPerfumes, error: ownedError } = await supabase
+        .from('user_collections')
+        .select(`
+          perfume_id,
+          perfumes!inner(name, brand_id, brands!inner(name))
+        `)
+        .eq('user_id', authenticatedUserId)
+        .eq('status', 'owned')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      const { data: wishlist, error: wishlistError } = await supabase
+        .from('user_collections')
+        .select(`
+          perfume_id,
+          perfumes!inner(name, brand_id, brands!inner(name))
+        `)
+        .eq('user_id', authenticatedUserId)
+        .eq('status', 'wishlist')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
       console.log('owned perfumes result:', ownedPerfumes, 'error:', ownedError);
       console.log('wishlist result:', wishlist, 'error:', wishlistError);
 
       const profile: any = profileRes.data || {};
       const fmt = (arr: any) => Array.isArray(arr) && arr.length ? arr.join(', ') : 'not set';
-      const ownedList = (ownedPerfumes || []).map((r: any) => {
-        const brand = r.perfumes?.brands?.name || 'Unknown';
-        const name = r.perfumes?.name || 'Unknown';
-        return `- ${brand} ${name}`;
-      });
-      const wishlistList = (wishlist || []).map((r: any) => {
-        const brand = r.perfumes?.brands?.name || 'Unknown';
-        const name = r.perfumes?.name || 'Unknown';
-        return `- ${brand} ${name}`;
-      });
+      const ownedList = (ownedPerfumes || []).map((item: any) =>
+        `${item.perfumes.brands.name} - ${item.perfumes.name}`
+      ).join('\n');
+      const wishlistList = (wishlist || []).map((item: any) =>
+        `${item.perfumes.brands.name} - ${item.perfumes.name}`
+      ).join('\n');
+
 
       userContext = `USER PROFILE:
 - Preferred fragrance families: ${fmt(profile.preferred_families)}
