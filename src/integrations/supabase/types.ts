@@ -1119,6 +1119,14 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_user_collection_context: {
+        Args: { p_user_id: string }
+        Returns: {
+          brand_name: string
+          perfume_name: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

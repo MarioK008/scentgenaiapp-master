@@ -203,39 +203,20 @@ serve(async (req) => {
         .eq('id', authenticatedUserId)
         .maybeSingle();
 
-      const { data: ownedPerfumes, error: ownedError } = await supabase
-        .from('user_collections')
-        .select(`
-          perfume_id,
-          perfumes!inner(name, brand_id, brands!inner(name))
-        `)
-        .eq('user_id', authenticatedUserId)
-        .eq('status', 'owned')
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const { data: collectionData, error: collectionError } = await supabase
+        .rpc('get_user_collection_context', { p_user_id: authenticatedUserId });
+      console.log('collection rpc result:', collectionData, 'error:', collectionError);
 
-      const { data: wishlist, error: wishlistError } = await supabase
-        .from('user_collections')
-        .select(`
-          perfume_id,
-          perfumes!inner(name, brand_id, brands!inner(name))
-        `)
-        .eq('user_id', authenticatedUserId)
-        .eq('status', 'wishlist')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      console.log('owned perfumes result:', ownedPerfumes, 'error:', ownedError);
-      console.log('wishlist result:', wishlist, 'error:', wishlistError);
+      const ownedPerfumes = (collectionData || []).filter((r: any) => r.status === 'owned');
+      const wishlist = (collectionData || []).filter((r: any) => r.status === 'wishlist');
 
       const profile: any = profileRes.data || {};
       const fmt = (arr: any) => Array.isArray(arr) && arr.length ? arr.join(', ') : 'not set';
-      const ownedList = (ownedPerfumes || []).map((item: any) =>
-        `${item.perfumes.brands.name} - ${item.perfumes.name}`
-      ).join('\n');
-      const wishlistList = (wishlist || []).map((item: any) =>
-        `${item.perfumes.brands.name} - ${item.perfumes.name}`
-      ).join('\n');
+      const ownedList = ownedPerfumes.slice(0, 50)
+        .map((r: any) => `${r.brand_name} - ${r.perfume_name}`).join('\n');
+      const wishlistList = wishlist.slice(0, 20)
+        .map((r: any) => `${r.brand_name} - ${r.perfume_name}`).join('\n');
+
 
 
       userContext = `USER PROFILE:
