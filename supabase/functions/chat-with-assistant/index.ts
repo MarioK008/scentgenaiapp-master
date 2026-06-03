@@ -67,6 +67,7 @@ serve(async (req) => {
 
     const authenticatedUserId = authData.claims.sub as string;
     console.log('Authenticated user:', authenticatedUserId);
+    console.log('authenticatedUserId:', authenticatedUserId);
 
     // Rate limiting check (30 requests per 60 minutes)
     try {
