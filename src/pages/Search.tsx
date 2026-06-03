@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
@@ -7,6 +7,7 @@ import PerfumeCard, { CollectionOption } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import BarcodeScannerDialog from "@/components/BarcodeScannerDialog";
 import SwipeablePerfumeCard from "@/components/SwipeablePerfumeCard";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { AnimatedPage } from "@/components/AnimatedPage";
@@ -16,7 +17,18 @@ import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { Search as SearchIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Search as SearchIcon, ScanBarcode } from "lucide-react";
 import { usePerfumes, Perfume, GenderFilter } from "@/hooks/usePerfumes";
 import { useBadges } from "@/hooks/useBadges";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
