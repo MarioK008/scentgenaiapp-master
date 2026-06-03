@@ -243,11 +243,12 @@ serve(async (req) => {
 - Preferred occasions: ${fmt(profile.preferred_occasions)}
 - Preferred seasons: ${fmt(profile.preferred_seasons)}
 
-USER'S COLLECTION (${ownedList.length} perfumes owned):
-${ownedList.length ? ownedList.join('\n') : '(empty)'}
+USER'S COLLECTION (owned):
+${ownedList || '(empty)'}
 
-USER'S WISHLIST (${wishlistList.length} perfumes):
-${wishlistList.length ? wishlistList.join('\n') : '(empty)'}`;
+USER'S WISHLIST:
+${wishlistList || '(empty)'}`;
+
     } catch (err) {
       console.error('⚠️ Failed to load user context:', err);
     }
