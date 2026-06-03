@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
@@ -7,6 +7,7 @@ import PerfumeCard, { CollectionOption } from "@/components/PerfumeCard";
 import PerfumeDetailModal from "@/components/PerfumeDetailModal";
 import AddToCollectionDialog from "@/components/AddToCollectionDialog";
 import CreateCollectionDialog from "@/components/CreateCollectionDialog";
+import BarcodeScannerDialog from "@/components/BarcodeScannerDialog";
 import SwipeablePerfumeCard from "@/components/SwipeablePerfumeCard";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { AnimatedPage } from "@/components/AnimatedPage";
@@ -16,7 +17,18 @@ import { useCustomCollections } from "@/hooks/useCustomCollections";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { Search as SearchIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Search as SearchIcon, ScanBarcode } from "lucide-react";
 import { usePerfumes, Perfume, GenderFilter } from "@/hooks/usePerfumes";
 import { useBadges } from "@/hooks/useBadges";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
@@ -45,6 +57,13 @@ const Search = () => {
   // perfumeId -> set of optionIds the perfume already belongs to ("__owned", "__wishlist", or a custom_collections.id)
   const [memberships, setMemberships] = useState<Map<string, Set<string>>>(new Map());
   const { recentlyViewed, addRecentlyViewed } = useRecentlyViewed(user?.id);
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanLookupBusy, setScanLookupBusy] = useState(false);
+  const [scanMatchCandidate, setScanMatchCandidate] = useState<{
+    perfume: Perfume;
+    productName: string;
+  } | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const visiblePerfumes = useMemo(
     () => perfumes.filter((p) => !dismissed.has(p.id)),
@@ -65,6 +84,84 @@ const Search = () => {
     const p = perfumes.find((x) => x.id === id);
     if (p) openPerfume(p);
   };
+
+  const loadFullPerfume = async (id: string): Promise<Perfume | null> => {
+    const { data, error } = await supabase
+      .from("perfumes")
+      .select(`*, brand:brands!brand_id(id, name), main_accord:accords!main_accord_id(id, name)`)
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return {
+      ...(data as any),
+      notes: [],
+      seasons: [],
+      accords: [],
+    } as Perfume;
+  };
+
+  const handleBarcodeDetected = useCallback(async (barcode: string) => {
+    setShowScanner(false);
+    setScanLookupBusy(true);
+    try {
+      // 1. Look up in our perfumes table by barcode
+      const { data: byBarcode } = await supabase
+        .from("perfumes")
+        .select(`*, brand:brands!brand_id(id, name), main_accord:accords!main_accord_id(id, name)`)
+        .eq("barcode", barcode)
+        .maybeSingle();
+
+      if (byBarcode) {
+        const p: Perfume = { ...(byBarcode as any), notes: [], seasons: [], accords: [] };
+        openPerfume(p);
+        sonnerToast.success("Perfume found!");
+        return;
+      }
+
+      // 2. Open Beauty Facts fallback
+      let productName: string | null = null;
+      try {
+        const res = await fetch(
+          `https://world.openbeautyfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`
+        );
+        if (res.ok) {
+          const json = await res.json();
+          productName =
+            json?.product?.product_name ||
+            json?.product?.product_name_en ||
+            json?.product?.generic_name ||
+            null;
+        }
+      } catch (e) {
+        console.error("OBF lookup failed", e);
+      }
+
+      if (!productName) {
+        sonnerToast.error("Perfume not found. Try searching by name.");
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // 3. Find closest match by name
+      const firstTokens = productName.split(/\s+/).slice(0, 3).join(" ");
+      const { data: matches } = await supabase
+        .from("perfumes")
+        .select(`*, brand:brands!brand_id(id, name), main_accord:accords!main_accord_id(id, name)`)
+        .ilike("name", `%${firstTokens}%`)
+        .limit(1);
+
+      if (matches && matches.length > 0) {
+        const candidate: Perfume = { ...(matches[0] as any), notes: [], seasons: [], accords: [] };
+        setScanMatchCandidate({ perfume: candidate, productName });
+      } else {
+        sonnerToast.info(`No match found. Searching for "${productName}".`);
+        setSearchQuery(productName);
+        searchInputRef.current?.focus();
+      }
+    } finally {
+      setScanLookupBusy(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -280,14 +377,28 @@ const Search = () => {
           </p>
         </div>
 
-        <div className="relative">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            placeholder="Search for perfumes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-14 text-lg rounded-2xl glass"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              ref={searchInputRef}
+              placeholder="Search for perfumes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 pr-4 h-14 text-lg rounded-2xl glass"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setShowScanner(true)}
+            disabled={scanLookupBusy}
+            aria-label="Scan barcode"
+            className="h-14 w-14 rounded-2xl glass shrink-0"
+          >
+            <ScanBarcode className="h-6 w-6" />
+          </Button>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -376,6 +487,75 @@ const Search = () => {
         onClose={() => setShowCreateDialog(false)}
         onSubmit={createCollection}
       />
+
+      <BarcodeScannerDialog
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onDetected={handleBarcodeDetected}
+      />
+
+      <AlertDialog
+        open={!!scanMatchCandidate}
+        onOpenChange={(o) => !o && setScanMatchCandidate(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Is this your perfume?</AlertDialogTitle>
+            <AlertDialogDescription>
+              We matched the scanned product
+              {scanMatchCandidate?.productName
+                ? ` "${scanMatchCandidate.productName}"`
+                : ""}{" "}
+              to the closest perfume in our catalog.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {scanMatchCandidate && (
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40">
+              {scanMatchCandidate.perfume.image_url && (
+                <img
+                  src={scanMatchCandidate.perfume.image_url}
+                  alt={scanMatchCandidate.perfume.name}
+                  className="h-16 w-16 rounded-lg object-cover"
+                />
+              )}
+              <div className="min-w-0">
+                <p className="font-medium truncate">
+                  {scanMatchCandidate.perfume.name}
+                </p>
+                {scanMatchCandidate.perfume.brand?.name && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {scanMatchCandidate.perfume.brand.name}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                const name = scanMatchCandidate?.productName;
+                setScanMatchCandidate(null);
+                if (name) {
+                  setSearchQuery(name);
+                  searchInputRef.current?.focus();
+                }
+              }}
+            >
+              No
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (scanMatchCandidate) {
+                  setAddingPerfume(scanMatchCandidate.perfume);
+                }
+                setScanMatchCandidate(null);
+              }}
+            >
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };
