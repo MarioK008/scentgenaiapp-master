@@ -85,6 +85,84 @@ const Search = () => {
     if (p) openPerfume(p);
   };
 
+  const loadFullPerfume = async (id: string): Promise<Perfume | null> => {
+    const { data, error } = await supabase
+      .from("perfumes")
+      .select(`*, brand:brands!brand_id(id, name), main_accord:accords!main_accord_id(id, name)`)
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return {
+      ...(data as any),
+      notes: [],
+      seasons: [],
+      accords: [],
+    } as Perfume;
+  };
+
+  const handleBarcodeDetected = useCallback(async (barcode: string) => {
+    setShowScanner(false);
+    setScanLookupBusy(true);
+    try {
+      // 1. Look up in our perfumes table by barcode
+      const { data: byBarcode } = await supabase
+        .from("perfumes")
+        .select(`*, brand:brands!brand_id(id, name), main_accord:accords!main_accord_id(id, name)`)
+        .eq("barcode", barcode)
+        .maybeSingle();
+
+      if (byBarcode) {
+        const p: Perfume = { ...(byBarcode as any), notes: [], seasons: [], accords: [] };
+        openPerfume(p);
+        sonnerToast.success("Perfume found!");
+        return;
+      }
+
+      // 2. Open Beauty Facts fallback
+      let productName: string | null = null;
+      try {
+        const res = await fetch(
+          `https://world.openbeautyfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`
+        );
+        if (res.ok) {
+          const json = await res.json();
+          productName =
+            json?.product?.product_name ||
+            json?.product?.product_name_en ||
+            json?.product?.generic_name ||
+            null;
+        }
+      } catch (e) {
+        console.error("OBF lookup failed", e);
+      }
+
+      if (!productName) {
+        sonnerToast.error("Perfume not found. Try searching by name.");
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // 3. Find closest match by name
+      const firstTokens = productName.split(/\s+/).slice(0, 3).join(" ");
+      const { data: matches } = await supabase
+        .from("perfumes")
+        .select(`*, brand:brands!brand_id(id, name), main_accord:accords!main_accord_id(id, name)`)
+        .ilike("name", `%${firstTokens}%`)
+        .limit(1);
+
+      if (matches && matches.length > 0) {
+        const candidate: Perfume = { ...(matches[0] as any), notes: [], seasons: [], accords: [] };
+        setScanMatchCandidate({ perfume: candidate, productName });
+      } else {
+        sonnerToast.info(`No match found. Searching for "${productName}".`);
+        setSearchQuery(productName);
+        searchInputRef.current?.focus();
+      }
+    } finally {
+      setScanLookupBusy(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
